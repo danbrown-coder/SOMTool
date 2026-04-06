@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Events — SOM Event OS{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <h2>Events</h2>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- ── Create event ── -->
+<div class="card" style="border-left: 3.5px solid var(--accent);">
+  <h2 style="margin-bottom:.25rem;">New event</h2>
+  <p class="muted text-sm mb-2">Set up a new event to start managing outreach.</p>
+  <form method="post" action="{{ url_for('create_event_route') }}">
+    <div class="form-row">
+      <div class="field" style="flex:1;min-width:200px;">
+        <label for="name">Event name</label>
+        <input type="text" id="name" name="name" required placeholder="e.g. AI in Healthcare Panel">
+      </div>
+      <div class="field" style="width:180px;">
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" required>
+      </div>
+      <div class="field" style="width:180px;">
+        <label for="audience_type">Audience</label>
+        <select id="audience_type" name="audience_type" required>
+          <option value="Students">Students</option>
+          <option value="Faculty">Faculty</option>
+          <option value="Alumni">Alumni</option>
+          <option value="Industry partners">Industry partners</option>
+          <option value="General public">General public</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" placeholder="Brief description of the event..."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create event</button>
+  </form>
+</div>
+
+<!-- ── Event list ── -->
+<div style="margin-top:.5rem;">
+  <h2 style="font-size:1.05rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.85rem;">Your events</h2>
+  {% if events %}
+    {% for e in events %}
+    <div class="card card-hoverable" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <a href="{{ url_for('event_detail', event_id=e.id) }}" style="text-decoration:none;color:inherit;display:flex;align-items:center;flex:1;min-width:0;">
+        <div style="min-width:0;">
+          <div style="font-weight:600;font-size:.95rem;">{{ e.name }}</div>
+          <div class="muted text-sm" style="margin-top:.15rem;">{{ e.date }}  ·  {{ e.audience_type }}  ·  {{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</div>
+        </div>
+      </a>
+      {% set er = event_roles.get(e.id, 'viewer') %}
+      {% if er in ['owner', 'editor'] %}
+      <div class="kebab-wrapper">
+        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">⋯</button>
+        <div class="kebab-menu">
+          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">✏️ Edit</a>
+          {% if er == 'owner' %}
+          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
+            <button type="submit" class="kebab-item kebab-danger">🗑️ Delete</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="card">
+      <p class="empty-state">No events yet — create one above to get started.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

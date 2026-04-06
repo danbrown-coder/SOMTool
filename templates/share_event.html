@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Share — {{ event.name }}{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a> / <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a> / Share</div>
+    <h2 style="margin-top:.15rem;">Sharing</h2>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:640px;">
+  <h2>Who has access</h2>
+  <p class="muted text-sm mb-2">Owners can edit sharing. Editors can manage contacts and outreach. Viewers can only read.</p>
+  <table style="width:100%;font-size:.88rem;">
+    <thead>
+      <tr><th>User</th><th>Role</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for s in shares %}
+      <tr>
+        <td>
+          {% if s.user %}
+            <strong>{{ s.user.display_name }}</strong><br><span class="muted">@{{ s.user.username }}</span>
+          {% else %}
+            <span class="muted">(unknown user)</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if s.is_owner %}
+            <span class="badge badge-confirmed">Owner</span>
+          {% else %}
+            <form method="post" style="display:inline;">
+              <input type="hidden" name="action" value="update">
+              <input type="hidden" name="user_id" value="{{ s.user_id }}">
+              <select name="role" onchange="this.form.submit()" style="height:32px;font-size:.8rem;">
+                <option value="editor" {% if s.role == 'editor' %}selected{% endif %}>Editor</option>
+                <option value="viewer" {% if s.role == 'viewer' %}selected{% endif %}>Viewer</option>
+              </select>
+            </form>
+          {% endif %}
+        </td>
+        <td>
+          {% if not s.is_owner %}
+          <form method="post" onsubmit="return confirm('Remove access?');">
+            <input type="hidden" name="action" value="remove">
+            <input type="hidden" name="user_id" value="{{ s.user_id }}">
+            <button type="submit" class="btn btn-ghost btn-sm">Remove</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <h2>Add people</h2>
+  <form method="post" class="form-row" style="align-items:flex-end;gap:.75rem;flex-wrap:wrap;">
+    <input type="hidden" name="action" value="add">
+    <div class="field" style="flex:1;min-width:160px;">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" placeholder="e.g. viewer" required list="usernames">
+      <datalist id="usernames">
+        {% for u in all_users %}
+        <option value="{{ u.username }}">{{ u.display_name }}</option>
+        {% endfor %}
+      </datalist>
+    </div>
+    <div class="field" style="width:140px;">
+      <label for="role">Role</label>
+      <select id="role" name="role">
+        <option value="editor">Editor</option>
+        <option value="viewer" selected>Viewer</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Add</button>
+  </form>
+</div>
+
+<p><a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-secondary">&larr; Back to event</a></p>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}People — SOM Event OS{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <h2>People directory</h2>
+    <span class="muted text-sm">University-wide contacts for outreach (admin can import &amp; edit)</span>
+  </div>
+  {% if can_edit_people %}
+  <div class="gap-row">
+    <a href="{{ url_for('import_people_page') }}" class="btn btn-secondary btn-sm">Import CSV / Excel</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="get" action="{{ url_for('people_page') }}" class="card" style="margin-bottom:1rem;">
+  <div class="form-row" style="align-items:flex-end;gap:.75rem;flex-wrap:wrap;">
+    <div class="field" style="flex:1;min-width:200px;">
+      <label for="q">Search</label>
+      <input type="search" id="q" name="q" value="{{ q }}" placeholder="Name, email, company, tags...">
+    </div>
+    <div class="field" style="width:160px;">
+      <label for="tag">Tag</label>
+      <select id="tag" name="tag" onchange="this.form.submit()">
+        <option value="">All tags</option>
+        {% for t in all_tags %}
+        <option value="{{ t }}" {% if tag_filter == t %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+  </div>
+</form>
+
+{% if can_edit_people %}
+<div class="card" style="border-left:3px solid var(--accent);margin-bottom:1rem;">
+  <h2 style="font-size:1rem;">Add person</h2>
+  <form method="post" action="{{ url_for('people_add_route') }}" class="form-row" style="flex-wrap:wrap;gap:.75rem;align-items:flex-end;">
+    <div class="field" style="width:140px;"><label>Name</label><input type="text" name="name" required></div>
+    <div class="field" style="width:200px;"><label>Email</label><input type="email" name="email" required></div>
+    <div class="field" style="width:140px;"><label>Company</label><input type="text" name="company"></div>
+    <div class="field" style="width:140px;"><label>Role</label><input type="text" name="role"></div>
+    <div class="field" style="flex:1;min-width:160px;"><label>Tags (comma)</label><input type="text" name="tags" placeholder="alumni, finance"></div>
+    <button type="submit" class="btn btn-primary btn-sm">Add</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Directory <span class="muted" style="font-weight:500;font-size:.85rem;">({{ people|length }})</span></h2>
+  {% if people %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Company</th>
+          <th>Tags</th>
+          <th>Source</th>
+          <th>Referral</th>
+          {% if can_edit_people %}<th></th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in people %}
+        <tr>
+          <td style="font-weight:500;">{{ p.name }}</td>
+          <td class="muted">{{ p.email }}</td>
+          <td>{{ p.company or '—' }}</td>
+          <td>
+            {% for t in p.tags %}
+            <span class="badge badge-contacted" style="font-size:.68rem;">{{ t }}</span>
+            {% endfor %}
+            {% if not p.tags %}—{% endif %}
+          </td>
+          <td class="muted text-sm">{{ p.source or '—' }}</td>
+          <td class="text-sm">
+            {% if p.referred_by and p.referred_by in referrers %}
+              via {{ referrers[p.referred_by] }}
+            {% else %}—{% endif %}
+          </td>
+          {% if can_edit_people %}
+          <td>
+            <form method="post" action="{{ url_for('people_delete_route', person_id=p.id) }}" onsubmit="return confirm('Delete this person?');">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:#dc2626;">Delete</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">No people match your filters.</p>
+  {% endif %}
+</div>
+{% endblock %}

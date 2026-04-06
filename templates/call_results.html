@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}AI Calls — {{ call_type }} — SOM Event OS{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a>  /  <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a>  /  AI Calls</div>
+    <h2 style="margin-top:.15rem;">AI {{ call_type }} Calls</h2>
+  </div>
+  <span class="muted text-sm">{{ results|length }} call{{ 's' if results|length != 1 else '' }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align:center;padding:1.25rem;margin-bottom:1rem;background:linear-gradient(135deg,#f0fdf4 0%,#fff 100%);">
+  <div style="font-size:2rem;margin-bottom:.5rem;">📞</div>
+  <p style="font-size:1rem;font-weight:600;margin:0;">
+    {{ results|selectattr('ok')|list|length }} call{{ 's' if results|selectattr('ok')|list|length != 1 else '' }} placed
+  </p>
+  <p class="muted text-sm" style="margin-top:.25rem;">Vapi AI is now calling your contacts with a personalized, role-aware conversation</p>
+</div>
+
+{% for r in results %}
+<div class="card" style="padding:1rem 1.25rem;margin-bottom:.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+  <span style="font-size:1.4rem;">{% if r.ok %}📞{% else %}❌{% endif %}</span>
+  <div style="flex:1;min-width:200px;">
+    <strong>{{ r.recipient_name }}</strong>
+    <span class="muted text-sm">{{ r.phone }}</span>
+    {% if r.contact_role %}
+    <span class="role-badge role-{{ r.contact_role }}" style="font-size:.6rem;padding:.1rem .4rem;margin-left:.4rem;">{{ r.contact_role|replace('_',' ')|title }}</span>
+    {% endif %}
+  </div>
+  {% if r.ok %}
+    <span class="badge badge-confirmed">{{ r.status|default('Queued') }}</span>
+    {% if r.call_id %}<span class="muted text-sm">ID: {{ r.call_id[:12] }}...</span>{% endif %}
+  {% else %}
+    <span class="badge badge-declined">{{ r.error|default('Failed') }}</span>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div style="text-align:center;margin-top:1rem;">
+  <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-ghost">&larr; Back to event</a>
+</div>
+{% endblock %}

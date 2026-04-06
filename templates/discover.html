@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Discover prospects — {{ event.name }}{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a> / <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a> / Discover</div>
+    <h2 style="margin-top:.15rem;">Web discovery</h2>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="padding:1.75rem;">
+  <h2 style="margin-bottom:.35rem;">Search the web</h2>
+  <p class="muted text-sm" style="margin-bottom:1.25rem;">Search DuckDuckGo for potential prospects, optionally filtered by role. AI extracts candidates from results.</p>
+  <form method="post">
+    <input type="hidden" name="action" value="search">
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:.65rem;align-items:end;">
+      <div class="field" style="margin-bottom:0;">
+        <label for="query">Search query</label>
+        <input type="text" id="query" name="query" value="{{ queries[0] if queries else '' }}" style="width:100%;">
+      </div>
+      <div class="field" style="margin-bottom:0;min-width:160px;">
+        <label for="target_role">Looking for</label>
+        <select id="target_role" name="target_role" style="height:40px;">
+          <option value="">Any role</option>
+          {% for cr in selectable_roles %}
+            <option value="{{ cr.value }}" {% if target_role == cr.value %}selected{% endif %}>{{ cr.value|replace('_',' ')|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="height:40px;white-space:nowrap;">Search &amp; extract</button>
+    </div>
+    {% if queries %}
+    <div style="margin-top:.75rem;">
+      <span class="muted text-sm">Suggestions: </span>
+      {% for q in queries %}
+        <span class="badge badge-responded" style="font-size:.7rem;cursor:pointer;" onclick="document.getElementById('query').value='{{ q[:70] }}'">{{ q[:50] }}{% if q|length > 50 %}…{% endif %}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </form>
+</div>
+
+{% if prospects %}
+<div class="card">
+  <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;">
+    <h2 style="margin-bottom:0;">Prospects</h2>
+    {% if target_role %}<span class="role-badge role-{{ target_role }}">{{ target_role|replace('_',' ')|title }}</span>{% endif %}
+    <span class="muted text-sm">{{ prospects|length }} found</span>
+  </div>
+  <form method="post">
+    <input type="hidden" name="action" value="add">
+    {% for pr in prospects %}
+    <div class="card card-hoverable" style="padding:1rem 1.25rem;margin-bottom:.5rem;">
+      <label style="display:flex;gap:.75rem;align-items:flex-start;cursor:pointer;">
+        <input type="checkbox" name="idx" value="{{ loop.index0 }}" style="margin-top:.25rem;">
+        <div>
+          <strong>{{ pr.name }}</strong>
+          {% if pr.organization %}<span class="muted"> — {{ pr.organization }}</span>{% endif %}
+          {% if pr.url %}<div class="text-sm"><a href="{{ pr.url }}" target="_blank" rel="noopener">{{ pr.url|truncate(60) }}</a></div>{% endif %}
+          {% if pr.note %}<p class="text-sm muted" style="margin-top:.25rem;">{{ pr.note }}</p>{% endif %}
+          {% if pr.email %}<div class="text-sm">Email: {{ pr.email }}</div>{% endif %}
+        </div>
+      </label>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary" style="margin-top:.5rem;">Add selected to People</button>
+  </form>
+</div>
+{% endif %}
+
+<p style="margin-top:.75rem;"><a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-ghost">&larr; Back to event</a></p>
+{% endblock %}

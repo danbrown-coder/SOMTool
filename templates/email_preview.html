@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — SOM Event OS{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a>  /  <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a>  /  Emails</div>
+    <h2 style="margin-top:.15rem;">{{ title }}</h2>
+  </div>
+  <span class="muted text-sm">{{ emails|length }} email{{ 's' if emails|length != 1 else '' }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if emails %}
+<div class="card" style="text-align:center;padding:1.25rem;margin-bottom:1rem;background:linear-gradient(135deg,#eef2ff 0%,#fff 100%);">
+  <form method="post" action="{{ url_for('send_emails_route', event_id=event.id) }}" id="send-form">
+    <input type="hidden" name="email_batch" value='{{ emails | tojson }}'>
+    <button type="submit" class="btn btn-primary btn-hero" style="font-size:1rem;padding:.75rem 2.5rem;" id="send-all-btn">
+      ✉️ Send All Emails
+    </button>
+    <p class="muted text-sm" style="margin-top:.5rem;">Sends {{ emails|length }} email{{ 's' if emails|length != 1 else '' }} via Gmail SMTP — real emails to real inboxes</p>
+  </form>
+</div>
+{% endif %}
+
+{% for item in emails %}
+<div class="email-card">
+  <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem;flex-wrap:wrap;">
+    <div class="email-to" style="margin-bottom:0;">{{ item.recipient_name }}</div>
+    {% if item.contact_role %}
+    <span class="role-badge role-{{ item.contact_role }}" style="font-size:.65rem;padding:.15rem .5rem;">{{ item.contact_role|replace('_',' ')|title }}</span>
+    {% endif %}
+    <span class="muted" style="font-weight:400;font-size:.85rem;">&lt;{{ item.recipient_email }}&gt;</span>
+  </div>
+  <div class="email-subject"><strong>Subject:</strong> {{ item.subject }}</div>
+  <div class="email-body">{{ item.body }}</div>
+  <button type="button" class="btn btn-secondary btn-sm copy-btn" data-index="{{ loop.index0 }}">📋 Copy email</button>
+</div>
+{% else %}
+<div class="card">
+  <p class="empty-state">No emails in this batch. <a href="{{ url_for('event_detail', event_id=event.id) }}">Return to event</a></p>
+</div>
+{% endfor %}
+
+<div style="text-align:center;margin-top:.5rem;">
+  <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-ghost">&larr; Back to event</a>
+</div>
+
+<script type="application/json" id="email-batch-json">{{ emails | tojson }}</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  var el = document.getElementById('email-batch-json');
+  if (!el) return;
+  var emails;
+  try { emails = JSON.parse(el.textContent); } catch (e) { return; }
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var i = parseInt(btn.getAttribute('data-index'), 10);
+      var item = emails[i];
+      if (!item) return;
+      var text = 'Subject: ' + (item.subject || '') + '\n\n' + (item.body || '');
+      navigator.clipboard.writeText(text).then(function() {
+        btn.classList.add('copied');
+        btn.textContent = '✓ Copied!';
+        setTimeout(function() {
+          btn.classList.remove('copied');
+          btn.textContent = '📋 Copy email';
+        }, 2000);
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

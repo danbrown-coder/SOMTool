@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Request Referrals — {{ event.name }}{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a> / <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a> / Referrals</div>
+    <h2 style="margin-top:.15rem;">Request referrals</h2>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="role-picker-card">
+  <h2>What role are you trying to fill?</h2>
+  <p>We'll ask your confirmed and responded contacts if they know anyone great. Each email is personalized to the person being asked and the role you need.</p>
+  <form method="post" action="{{ url_for('request_referrals_route', event_id=event.id) }}" class="role-picker-form">
+    <select id="target_role" name="target_role">
+      {% for cr in selectable_roles %}
+        <option value="{{ cr.value }}">{{ cr.value|replace('_',' ')|title }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Generate referral emails</button>
+  </form>
+</div>
+
+<p style="margin-top:1rem;"><a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-ghost">&larr; Back to event</a></p>
+{% endblock %}

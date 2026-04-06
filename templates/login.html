@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Sign in — SOM Event OS{% endblock %}
+{% block topbar %}{% endblock %}
+{% block content %}
+<div class="auth-center">
+  <div class="card" style="box-shadow: var(--shadow-lg);">
+    <h2 style="margin-bottom:.25rem;">Sign in</h2>
+    <p class="muted text-sm mb-2">Demo: <code>admin</code> / <code>admin123</code> or <code>viewer</code> / <code>viewer123</code></p>
+    <form method="post" action="{{ url_for('login') }}">
+      {% if request.args.get('next') %}
+      <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+      {% endif %}
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Sign in</button>
+    </form>
+    <p class="text-sm muted" style="margin-top:1rem;text-align:center;">
+      <a href="{{ url_for('register') }}">Create an account</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

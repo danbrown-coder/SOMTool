@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }} — SOM Event OS{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" class="active" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#contacts" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">👥</span> Contacts</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#outreach" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">✉️</span> Outreach</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📊</span> Metrics</a></li>
+  <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📜</span> Log</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a>  /  {{ event.name }}</div>
+    <h2 style="margin-top:.15rem;">{{ event.name }}</h2>
+    <p class="muted text-sm" style="margin-top:.2rem;">Your role: <strong>{{ event_role }}</strong></p>
+  </div>
+  <div class="gap-row" style="flex-wrap:wrap;">
+    <span class="badge badge-{{ 'confirmed' }}">{{ event.date }}</span>
+    <span class="badge badge-{{ 'responded' }}">{{ event.audience_type }}</span>
+    {% if can_owner %}
+    <a href="{{ url_for('share_event_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Share</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if event.description %}
+<div class="card">
+  <p style="margin:0;">{{ event.description }}</p>
+</div>
+{% endif %}
+
+<!-- ── Add contact ── -->
+<div class="card" id="contacts">
+  <h2>Add contact</h2>
+  {% if not can_edit %}
+  <p class="muted text-sm">View-only access — you cannot add contacts.</p>
+  {% else %}
+  <form method="post" action="{{ url_for('add_contact_route', event_id=event.id) }}">
+    <div class="form-row">
+      <div class="field" style="flex:1;min-width:160px;">
+        <label for="cname">Full name</label>
+        <input type="text" id="cname" name="name" required placeholder="Jane Doe">
+      </div>
+      <div class="field" style="flex:1;min-width:200px;">
+        <label for="cemail">Email address</label>
+        <input type="email" id="cemail" name="email" required placeholder="jane@example.com">
+      </div>
+      <div class="field" style="min-width:150px;">
+        <label for="cphone">Phone</label>
+        <input type="tel" id="cphone" name="phone" placeholder="+1 555-123-4567">
+      </div>
+      <div class="field" style="min-width:140px;">
+        <label for="crole">Role</label>
+        <select id="crole" name="contact_role" style="height:40px;">
+          {% for cr in contact_roles %}
+            <option value="{{ cr.value }}" {% if cr.value == 'attendee' %}selected{% endif %}>{{ cr.value|replace('_',' ')|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field" style="display:flex;align-items:flex-end;">
+        <button type="submit" class="btn btn-primary btn-sm" style="height:40px;">Add contact</button>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+</div>
+
+<!-- ── Contacts by role ── -->
+<div class="card">
+  <h2>Contacts <span class="muted" style="font-weight:500;font-size:.85rem;">({{ event.contacts|length }})</span></h2>
+  {% if grouped_contacts %}
+  {% for role, contacts in grouped_contacts %}
+  <div class="role-section" style="margin-bottom:1.5rem;">
+    <div class="role-section-header">
+      <span class="role-badge role-{{ role.value }}">{{ role.value|replace('_',' ')|title }}</span>
+      <span class="muted" style="font-size:.82rem;margin-left:.4rem;">({{ contacts|length }})</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            {% if can_edit %}<th style="width:120px;">Role</th>{% endif %}
+            <th style="width:90px;">Attended</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in contacts %}
+          <tr>
+            <td style="font-weight:500;">{{ c.name }}</td>
+            <td class="muted">{{ c.email }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+                <span class="badge badge-{{ c.status.value }}">{{ c.status.value.replace('_', ' ') }}</span>
+                {% if can_edit %}
+                <form method="post" action="{{ url_for('update_contact_status_route', event_id=event.id, contact_id=c.id) }}" style="display:flex;gap:.3rem;align-items:center;">
+                  <select name="status" style="height:32px;font-size:.8rem;width:130px;">
+                    {% for s in statuses %}
+                      <option value="{{ s.value }}" {% if c.status.value == s.value %}selected{% endif %}>{{ s.value.replace('_', ' ') }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+            {% if can_edit %}
+            <td>
+              <form method="post" action="{{ url_for('update_contact_role_route', event_id=event.id, contact_id=c.id) }}" style="display:flex;gap:.3rem;align-items:center;">
+                <select name="contact_role" style="height:32px;font-size:.8rem;width:100px;" onchange="this.form.submit()">
+                  {% for cr in contact_roles %}
+                    <option value="{{ cr.value }}" {% if c.contact_role.value == cr.value %}selected{% endif %}>{{ cr.value|replace('_',' ')|title }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </td>
+            {% endif %}
+            <td>
+              {% if can_edit %}
+              <form method="post" action="{{ url_for('toggle_attended_route', event_id=event.id, contact_id=c.id) }}">
+                <input type="hidden" name="attended" value="0">
+                <input type="checkbox" name="attended" value="1" {% if c.attended %}checked{% endif %} onchange="this.form.submit()">
+              </form>
+              {% else %}
+              {{ 'Yes' if c.attended else 'No' }}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+    <p class="empty-state">No contacts yet — add someone above to start outreach.</p>
+  {% endif %}
+</div>
+
+<!-- ── AI Outreach ── -->
+<div class="card" id="outreach">
+  <h2>AI outreach</h2>
+  <p class="muted text-sm" style="margin-bottom:1rem;">Role-aware, personalized emails powered by AI. Each email is tailored to the recipient's background and role.</p>
+  {% if can_edit %}
+  <div class="outreach-grid">
+    <form method="post" action="{{ url_for('generate_emails_route', event_id=event.id) }}" style="grid-column:1/-1;">
+      <button type="submit" class="btn btn-primary btn-hero" style="width:100%;">✦ Generate outreach emails</button>
+    </form>
+    <form method="post" action="{{ url_for('followup_emails_route', event_id=event.id) }}">
+      <button type="submit" class="btn btn-secondary" style="width:100%;">Send follow-ups</button>
+    </form>
+    <a href="{{ url_for('request_referrals_route', event_id=event.id) }}" class="btn btn-secondary">Request referrals</a>
+    <a href="{{ url_for('recommend_people_route', event_id=event.id) }}" class="btn btn-secondary">Recommend from People</a>
+    <a href="{{ url_for('discover_route', event_id=event.id) }}" class="btn btn-secondary">Discover prospects</a>
+  </div>
+
+  <div style="margin-top:1rem;">
+    <h3 style="font-size:.9rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.6rem;color:var(--text-secondary);">📞 AI Voice Calls</h3>
+    <div class="outreach-grid">
+      <form method="post" action="{{ url_for('call_invite_route', event_id=event.id) }}">
+        <button type="submit" class="btn btn-secondary" style="width:100%;background:linear-gradient(135deg,#ecfdf5 0%,#fff 100%);border-color:#10b981;">📞 AI Call — Invite</button>
+      </form>
+      <form method="post" action="{{ url_for('call_followup_route', event_id=event.id) }}">
+        <button type="submit" class="btn btn-secondary" style="width:100%;background:linear-gradient(135deg,#fef3c7 0%,#fff 100%);border-color:#f59e0b;">📞 AI Call — Follow-up</button>
+      </form>
+    </div>
+    <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Vapi AI calls contacts with phone numbers — personalized, role-aware conversations powered by voice AI.</p>
+  </div>
+  {% else %}
+  <p class="muted text-sm">View-only — outreach actions are hidden.</p>
+  {% endif %}
+  <p class="muted" style="font-size:.78rem;margin-top:.75rem;">
+    Outreach emails reference each contact's company, title, and background from your People directory. Follow-ups target people marked <strong>contacted</strong> who haven't responded.
+  </p>
+</div>
+
+<!-- ── Metrics ── -->
+<div id="metrics" style="margin-bottom:1.25rem;">
+  <h2 style="font-size:1.05rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.85rem;">Event metrics</h2>
+  <div class="metrics-grid">
+    <div class="metric-card mc-1">
+      <div class="metric-value">{{ metrics.total_invited }}</div>
+      <div class="metric-label">Total invited</div>
+    </div>
+    <div class="metric-card mc-2">
+      <div class="metric-value">{{ metrics.rsvp_count }}</div>
+      <div class="metric-label">RSVPs</div>
+    </div>
+    <div class="metric-card mc-3">
+      <div class="metric-value">{{ metrics.confirmed }}</div>
+      <div class="metric-label">Confirmed</div>
+    </div>
+    <div class="metric-card mc-4">
+      <div class="metric-value">{{ metrics.declined }}</div>
+      <div class="metric-label">Declined</div>
+    </div>
+    <div class="metric-card mc-5">
+      <div class="metric-value">{{ metrics.attended }}</div>
+      <div class="metric-label">Attended</div>
+    </div>
+    <div class="metric-card mc-big mc-6">
+      <div class="metric-value">{{ metrics.rsvp_rate }}%</div>
+      <div class="metric-label">RSVP rate</div>
+    </div>
+    <div class="metric-card mc-big mc-7">
+      <div class="metric-value">{{ metrics.attendance_rate }}%</div>
+      <div class="metric-label">Attendance rate</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Quick link ── -->
+<div class="card" style="text-align:center;padding:1rem;">
+  <a href="{{ url_for('event_logs', event_id=event.id) }}" class="btn btn-ghost">📜  View full outreach log</a>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Emails Sent — SOM Event OS{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a>  /  <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a>  /  Send results</div>
+    <h2 style="margin-top:.15rem;">Emails sent</h2>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="metrics-grid" style="margin-bottom:1.25rem;">
+  <div class="metric-card mc-2">
+    <div class="metric-value">{{ sent }}</div>
+    <div class="metric-label">Sent</div>
+  </div>
+  <div class="metric-card mc-4">
+    <div class="metric-value">{{ failed }}</div>
+    <div class="metric-label">Failed</div>
+  </div>
+</div>
+
+{% for r in results %}
+<div class="card" style="padding:1rem 1.25rem;margin-bottom:.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+  <span style="font-size:1.4rem;">{% if r.ok %}✅{% else %}❌{% endif %}</span>
+  <div style="flex:1;min-width:200px;">
+    <strong>{{ r.recipient_name }}</strong>
+    <span class="muted text-sm">&lt;{{ r.recipient_email }}&gt;</span>
+  </div>
+  {% if r.ok %}
+    <span class="badge badge-confirmed">Delivered</span>
+  {% else %}
+    <span class="badge badge-declined">{{ r.error|default('Failed') }}</span>
+  {% endif %}
+</div>
+{% endfor %}
+
+<div style="text-align:center;margin-top:1rem;">
+  <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-ghost">&larr; Back to event</a>
+</div>
+{% endblock %}

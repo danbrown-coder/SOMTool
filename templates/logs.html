@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Outreach log — {{ event.name }}{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+  <li><a href="{{ url_for('event_logs', event_id=event.id) }}" class="active" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📜</span> Log</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a>  /  <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a>  /  Log</div>
+    <h2 style="margin-top:.15rem;">Outreach log</h2>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<p class="muted text-sm mb-2">Full record of every AI-generated email for this event.</p>
+
+{% if logs %}
+<div class="timeline">
+  {% for log in logs|sort(attribute='timestamp', reverse=true) %}
+  <div class="timeline-item">
+    <div class="timeline-meta">
+      <span class="timeline-ts">{{ log.timestamp[:19].replace('T', ' ') }}</span>
+      <span class="badge-type {{ log.email_type.value }}">{{ log.email_type.value.replace('_', ' ') }}</span>
+    </div>
+    <div class="timeline-name">{{ log.contact_name }}</div>
+    <div class="timeline-body">{{ log.email_body }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <p class="empty-state">No outreach logged yet. Generate emails from the <a href="{{ url_for('event_detail', event_id=event.id) }}">event page</a>.</p>
+</div>
+{% endif %}
+
+<div style="text-align:center;margin-top:.5rem;">
+  <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-ghost">← Back to event</a>
+</div>
+{% endblock %}
