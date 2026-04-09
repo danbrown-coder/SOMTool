@@ -81,6 +81,26 @@
 {% block content %}
 <form method="post" action="{{ url_for('ai_settings_page') }}">
 
+  <!-- Sender Identity -->
+  <div class="card settings-section">
+    <h3>Sender Identity</h3>
+    <p class="desc">Set the name and title the AI signs emails with, and an optional reply-to address so recipients reply to the right person instead of the bot Gmail account.</p>
+    <div class="num-grid">
+      <div class="field">
+        <label for="sender_name">Sender name</label>
+        <input type="text" id="sender_name" name="sender_name" value="{{ cfg.sender_name }}" placeholder="e.g. Alex" style="width:100%;">
+      </div>
+      <div class="field">
+        <label for="sender_title">Sender title</label>
+        <input type="text" id="sender_title" name="sender_title" value="{{ cfg.sender_title }}" placeholder="e.g. Events Coordinator, School of Management" style="width:100%;">
+      </div>
+      <div class="field" style="grid-column: 1 / -1;">
+        <label for="sender_email">Reply-to email</label>
+        <input type="email" id="sender_email" name="sender_email" value="{{ cfg.sender_email }}" placeholder="e.g. alex@callutheran.edu (leave blank to use Gmail bot address)" style="width:100%;">
+      </div>
+    </div>
+  </div>
+
   <!-- Personality & Tone -->
   <div class="card settings-section">
     <h3>Personality &amp; Tone</h3>

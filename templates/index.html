@@ -37,6 +37,24 @@
       <label for="description">Description</label>
       <textarea id="description" name="description" placeholder="Brief description of the event..."></textarea>
     </div>
+    <details style="margin-bottom:1rem;">
+      <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--accent);">Advanced: Sender Override</summary>
+      <p class="muted text-sm" style="margin:.4rem 0;">Override the global AI sender identity for this event. Leave blank to use defaults from AI Settings.</p>
+      <div class="form-row">
+        <div class="field" style="flex:1;min-width:140px;">
+          <label for="sender_name_new">Sender name</label>
+          <input type="text" id="sender_name_new" name="sender_name" placeholder="e.g. Alex">
+        </div>
+        <div class="field" style="flex:1;min-width:180px;">
+          <label for="sender_title_new">Sender title</label>
+          <input type="text" id="sender_title_new" name="sender_title" placeholder="e.g. Events Coordinator">
+        </div>
+        <div class="field" style="flex:1;min-width:200px;">
+          <label for="sender_email_new">Reply-to email</label>
+          <input type="email" id="sender_email_new" name="sender_email" placeholder="e.g. alex@callutheran.edu">
+        </div>
+      </div>
+    </details>
     <button type="submit" class="btn btn-primary">Create event</button>
   </form>
 </div>

@@ -99,6 +99,9 @@ def create_event(
     description: str,
     audience_type: str,
     owner_id: str = "",
+    sender_name: str = "",
+    sender_title: str = "",
+    sender_email: str = "",
 ) -> Event:
     events = load_events()
     event = Event(
@@ -110,13 +113,25 @@ def create_event(
         contacts=[],
         owner_id=owner_id.strip(),
         permissions=[],
+        sender_name=sender_name.strip(),
+        sender_title=sender_title.strip(),
+        sender_email=sender_email.strip(),
     )
     events.append(event)
     save_events(events)
     return event
 
 
-def update_event(event_id: str, name: str, date: str, description: str, audience_type: str) -> bool:
+def update_event(
+    event_id: str,
+    name: str,
+    date: str,
+    description: str,
+    audience_type: str,
+    sender_name: str = "",
+    sender_title: str = "",
+    sender_email: str = "",
+) -> bool:
     events = load_events()
     for i, e in enumerate(events):
         if e.id == event_id:
@@ -124,6 +139,9 @@ def update_event(event_id: str, name: str, date: str, description: str, audience
             e.date = date.strip()
             e.description = description.strip()
             e.audience_type = audience_type.strip()
+            e.sender_name = sender_name.strip()
+            e.sender_title = sender_title.strip()
+            e.sender_email = sender_email.strip()
             events[i] = e
             save_events(events)
             return True

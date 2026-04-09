@@ -186,6 +186,9 @@ class Event:
     som_event_id: str = ""
     owner_id: str = ""
     permissions: list[dict[str, str]] = field(default_factory=list)
+    sender_name: str = ""
+    sender_title: str = ""
+    sender_email: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -200,6 +203,12 @@ class Event:
         }
         if self.som_event_id:
             d["som_event_id"] = self.som_event_id
+        if self.sender_name:
+            d["sender_name"] = self.sender_name
+        if self.sender_title:
+            d["sender_title"] = self.sender_title
+        if self.sender_email:
+            d["sender_email"] = self.sender_email
         return d
 
     @classmethod
@@ -218,6 +227,9 @@ class Event:
             som_event_id=d.get("som_event_id", ""),
             owner_id=d.get("owner_id", ""),
             permissions=[p for p in perms if isinstance(p, dict) and "user_id" in p and "role" in p],
+            sender_name=d.get("sender_name", ""),
+            sender_title=d.get("sender_title", ""),
+            sender_email=d.get("sender_email", ""),
         )
 
 

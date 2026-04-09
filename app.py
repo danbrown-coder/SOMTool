@@ -315,7 +315,13 @@ def create_event_route():
     if not name or not event_date:
         flash("Name and date are required.", "info")
         return redirect(url_for("index"))
-    em.create_event(name, event_date, description, audience, owner_id=g.current_user.id)
+    em.create_event(
+        name, event_date, description, audience,
+        owner_id=g.current_user.id,
+        sender_name=request.form.get("sender_name", ""),
+        sender_title=request.form.get("sender_title", ""),
+        sender_email=request.form.get("sender_email", ""),
+    )
     flash("Event created.", "info")
     return redirect(url_for("index"))
 
@@ -349,7 +355,12 @@ def edit_event_route(event_id: str):
     if not name or not event_date:
         flash("Name and date are required.", "info")
         return redirect(url_for("edit_event_page", event_id=event_id))
-    em.update_event(event_id, name, event_date, description, audience)
+    em.update_event(
+        event_id, name, event_date, description, audience,
+        sender_name=request.form.get("sender_name", ""),
+        sender_title=request.form.get("sender_title", ""),
+        sender_email=request.form.get("sender_email", ""),
+    )
     flash("Event updated.", "info")
     return redirect(url_for("index"))
 
@@ -563,6 +574,7 @@ def generate_emails_route(event_id: str):
             event.audience_type,
             c.name,
             contact_role=c.contact_role.value,
+            event=event,
             **ctx,
         )
         log.log_outreach(
@@ -615,7 +627,7 @@ def followup_emails_route(event_id: str):
         ctx = _person_context_for_contact(c)
         gen = generate_followup_email(
             event.name, event.date, c.name, contact_role=c.contact_role.value,
-            **ctx,
+            event=event, **ctx,
         )
         log.log_outreach(
             event_id,
@@ -1162,7 +1174,9 @@ def send_emails_route(event_id: str):
     if not emails:
         flash("No emails to send.", "info")
         return redirect(url_for("event_detail", event_id=event_id))
-    results = email_sender.send_batch(emails)
+    from email_generator import get_sender_identity
+    s_name, _s_title, s_email = get_sender_identity(event)
+    results = email_sender.send_batch(emails, reply_to=s_email, sender_name=s_name)
     sent = sum(1 for r in results if r.get("ok"))
     failed = len(results) - sent
     flash(f"Sent {sent} email(s), {failed} failed.", "info" if failed == 0 else "info")
@@ -1484,12 +1498,12 @@ def regenerate_queue_action(action_id: str):
         gen = generate_initial_email(
             event.name, event.date, event.description,
             event.audience_type, contact.name,
-            contact_role=contact.contact_role.value, **ctx,
+            contact_role=contact.contact_role.value, event=event, **ctx,
         )
     elif atype == "email_followup":
         gen = generate_followup_email(
             event.name, event.date, contact.name,
-            contact_role=contact.contact_role.value, **ctx,
+            contact_role=contact.contact_role.value, event=event, **ctx,
         )
     else:
         flash("Regeneration only supported for email actions.", "info")
@@ -1532,7 +1546,7 @@ def _generate_preview_for_queued(event, contact) -> None:
             gen = generate_initial_email(
                 event.name, event.date, event.description,
                 event.audience_type, contact.name,
-                contact_role=contact.contact_role.value, **ctx,
+                contact_role=contact.contact_role.value, event=event, **ctx,
             )
             item["preview"] = f"Subject: {gen.subject}\n\n{gen.body}"
             changed = True
@@ -1575,6 +1589,9 @@ def ai_settings_page():
         cfg["blackout_hours_end"] = int(request.form.get("blackout_hours_end", 8) or 8)
         cfg["max_emails_per_day"] = int(request.form.get("max_emails_per_day", 20) or 20)
         cfg["max_calls_per_day"] = int(request.form.get("max_calls_per_day", 10) or 10)
+        cfg["sender_name"] = request.form.get("sender_name", cfg.get("sender_name", "")).strip()
+        cfg["sender_title"] = request.form.get("sender_title", cfg.get("sender_title", "")).strip()
+        cfg["sender_email"] = request.form.get("sender_email", cfg.get("sender_email", "")).strip()
         aic.save_config(cfg)
         flash("AI settings saved.", "info")
         return redirect(url_for("ai_settings_page"))
@@ -1627,7 +1644,9 @@ def _auto_notify_for_changes(new_changes: list[dict]) -> None:
                 gen.body, subject=gen.subject,
             )
             if gmail_ok:
-                email_sender.send_email(c.email, gen.subject, gen.body)
+                from email_generator import get_sender_identity
+                s_name, _s_title, s_email = get_sender_identity(event)
+                email_sender.send_email(c.email, gen.subject, gen.body, reply_to=s_email, sender_name=s_name)
 
 
 def _auto_import_new_events() -> int:
@@ -1738,7 +1757,7 @@ def _auto_plan_outreach() -> int:
             gen = generate_initial_email(
                 event.name, event.date, event.description,
                 event.audience_type, c.name,
-                contact_role=c.contact_role.value, **ctx,
+                contact_role=c.contact_role.value, event=event, **ctx,
             )
             preview = f"Subject: {gen.subject}\n\n{gen.body}"
             auto_approve = cfg.get("auto_approve_emails", False)
@@ -1834,18 +1853,21 @@ def _execute_approved_actions() -> int:
                     gen = generate_initial_email(
                         event.name, event.date, event.description,
                         event.audience_type, contact.name,
-                        contact_role=contact.contact_role.value, **ctx,
+                        contact_role=contact.contact_role.value, event=event, **ctx,
                     )
                 else:
                     gen = generate_followup_email(
                         event.name, event.date, contact.name,
-                        contact_role=contact.contact_role.value, **ctx,
+                        contact_role=contact.contact_role.value, event=event, **ctx,
                     )
                 subject, body = gen.subject, gen.body
 
+            from email_generator import get_sender_identity
+            s_name, _s_title, s_email = get_sender_identity(event)
+
             etype = EmailType.INITIAL if atype == "email_initial" else EmailType.FOLLOW_UP
             log.log_outreach(event.id, contact.id, contact.name, etype, body, subject=subject)
-            email_sender.send_email(contact.email, subject, body)
+            email_sender.send_email(contact.email, subject, body, reply_to=s_email, sender_name=s_name)
 
             if atype == "email_initial":
                 em.update_contact_status(event.id, contact.id, "contacted")

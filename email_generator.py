@@ -16,7 +16,7 @@ class GeneratedEmail(NamedTuple):
     body: str
 
 
-_HUMAN_SYSTEM_BASE = (
+_HUMAN_SYSTEM_TEMPLATE = (
     "You are writing as a real employee at the Cal Lutheran School of Management. "
     "Write like a human — casual-professional tone, varied sentence structure. "
     "NEVER use phrases like 'I hope this email finds you well', "
@@ -29,19 +29,50 @@ _HUMAN_SYSTEM_BASE = (
     "Each email must feel like it was written individually for that one person. "
     "Keep it short (3-6 sentences for the body). Be direct and warm. "
     "Sign off with just a first name and title, like:\n"
-    "— Alex\nEvents Coordinator, School of Management\n\n"
+    "— {sender_name}\n{sender_title}\n\n"
     "Always respond with exactly: first line 'SUBJECT: ...' then a blank line then the email body. "
     "No markdown formatting."
 )
 
 
-def _get_system_prompt() -> str:
-    """Build the full system prompt by combining the base with admin AI config."""
+def get_sender_identity(event=None) -> tuple[str, str, str]:
+    """Return (sender_name, sender_title, sender_email).
+
+    Checks event-level overrides first, then falls back to AI config globals.
+    """
     try:
         import ai_config
         cfg = ai_config.load_config()
     except Exception:
-        return _HUMAN_SYSTEM_BASE
+        cfg = {}
+    name = cfg.get("sender_name", "Alex")
+    title = cfg.get("sender_title", "Events Coordinator, School of Management")
+    email = cfg.get("sender_email", "")
+    if event:
+        if getattr(event, "sender_name", ""):
+            name = event.sender_name
+        if getattr(event, "sender_title", ""):
+            title = event.sender_title
+        if getattr(event, "sender_email", ""):
+            email = event.sender_email
+    return name, title, email
+
+
+def _signoff(event=None) -> str:
+    name, title, _ = get_sender_identity(event)
+    return f"— {name}\n{title}"
+
+
+def _get_system_prompt(event=None) -> str:
+    """Build the full system prompt with sender identity and admin AI config."""
+    name, title, _ = get_sender_identity(event)
+    base = _HUMAN_SYSTEM_TEMPLATE.format(sender_name=name, sender_title=title)
+
+    try:
+        import ai_config
+        cfg = ai_config.load_config()
+    except Exception:
+        return base
 
     extra_parts: list[str] = []
     personality = cfg.get("personality", "")
@@ -52,8 +83,8 @@ def _get_system_prompt() -> str:
         extra_parts.append(f"ADMIN EMAIL RULES: {email_rules}")
 
     if not extra_parts:
-        return _HUMAN_SYSTEM_BASE
-    return _HUMAN_SYSTEM_BASE + "\n\n" + "\n".join(extra_parts)
+        return base
+    return base + "\n\n" + "\n".join(extra_parts)
 
 
 def _build_recipient_context(
@@ -187,9 +218,11 @@ def _fallback_initial(
     recipient_name: str,
     contact_role: str = "attendee",
     company: str = "",
+    event=None,
 ) -> GeneratedEmail:
     role_label = contact_role.replace("_", " ")
     co = f" at {company}" if company else ""
+    so = _signoff(event)
     if contact_role == "speaker":
         subject = f"Would you speak at {event_name}?"
         body = (
@@ -198,7 +231,7 @@ def _fallback_initial(
             f"as someone who'd be a great fit to speak{co}. The audience is {audience_type} — "
             f"I think they'd really benefit from your perspective.\n\n"
             f"Would you be open to a quick chat about it?\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role in ("panelist", "moderator"):
         subject = f"{event_name} — join us as a {role_label}?"
@@ -207,7 +240,7 @@ def _fallback_initial(
             f"We're hosting {event_name} on {event_date} and given your work{co}, "
             f"I think you'd be a fantastic {role_label}. {event_description[:120]}\n\n"
             f"Let me know if this sounds interesting and I'll send over more details.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role == "judge":
         subject = f"Judge our competition? — {event_name}"
@@ -216,7 +249,7 @@ def _fallback_initial(
             f"We're running {event_name} on {event_date} and we need sharp judges "
             f"with real-world experience. Given your background{co}, I immediately thought of you.\n\n"
             f"It's a half-day commitment and honestly a lot of fun. Interested?\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role == "sponsor":
         subject = f"Sponsorship opportunity — {event_name}"
@@ -226,7 +259,7 @@ def _fallback_initial(
             f"alignment between {company or 'your organization'} and our audience ({audience_type}). "
             f"I'd love to explore a partnership.\n\n"
             f"Happy to jump on a call whenever works for you.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     else:
         subject = f"You're invited — {event_name} ({event_date})"
@@ -235,7 +268,7 @@ def _fallback_initial(
             f"Wanted to let you know about {event_name} happening on {event_date}. "
             f"{event_description[:150]}\n\n"
             f"I think you'd get a lot out of it — would love to see you there.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     return GeneratedEmail(subject=subject, body=body)
 
@@ -246,9 +279,11 @@ def _fallback_followup(
     recipient_name: str,
     contact_role: str = "attendee",
     company: str = "",
+    event=None,
 ) -> GeneratedEmail:
     role_label = contact_role.replace("_", " ")
     co = f" at {company}" if company else ""
+    so = _signoff(event)
 
     if contact_role == "speaker":
         subject = f"Still hoping you'll speak — {event_name}"
@@ -259,7 +294,7 @@ def _fallback_followup(
             f"a highlight{co}.\n\n"
             f"Totally understand if the timing doesn't work — just let me know either way "
             f"so I can plan accordingly.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role == "panelist":
         subject = f"Panel spot — {event_name}"
@@ -269,7 +304,7 @@ def _fallback_followup(
             f"We're putting together a strong panel and your perspective{co} "
             f"would add a lot.\n\n"
             f"Any chance you can join? Even a quick yes/no helps me finalize things.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role == "judge":
         subject = f"Judging at {event_name} — quick follow-up"
@@ -279,7 +314,7 @@ def _fallback_followup(
             f"We need industry professionals{co} to evaluate the student teams and "
             f"your experience would really elevate the competition.\n\n"
             f"It's a half-day commitment — let me know if you're in!\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role == "sponsor":
         subject = f"Sponsorship follow-up — {event_name}"
@@ -289,7 +324,7 @@ def _fallback_followup(
             f"I think there's real alignment between {company or 'your organization'} and our "
             f"audience.\n\n"
             f"Happy to jump on a 10-minute call to walk through the details whenever works.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role == "moderator":
         subject = f"Moderator role — {event_name}"
@@ -299,7 +334,7 @@ def _fallback_followup(
             f"We've got a great panel coming together and need someone sharp{co} "
             f"to keep the conversation flowing.\n\n"
             f"Let me know if you're available — happy to share more details.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     elif contact_role == "faculty":
         subject = f"Quick follow-up — {event_name}"
@@ -309,7 +344,7 @@ def _fallback_followup(
             f"would be great for the students and we'd love to have you represent "
             f"the academic side.\n\n"
             f"Any thoughts?\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     else:
         subject = f"Don't miss {event_name}"
@@ -319,7 +354,7 @@ def _fallback_followup(
             f"you'd get a lot out of it. Great networking and some really "
             f"strong speakers lined up.\n\n"
             f"Hope to see you there!\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         )
     return GeneratedEmail(subject=subject, body=body)
 
@@ -339,11 +374,12 @@ def generate_initial_email(
     linkedin_url: str = "",
     tags: list[str] | None = None,
     notes: str = "",
+    event=None,
 ) -> GeneratedEmail:
     client = _client()
     fallback = _fallback_initial(
         event_name, event_date, event_description, audience_type, recipient_name,
-        contact_role, company,
+        contact_role, company, event=event,
     )
     if not client:
         return fallback
@@ -363,7 +399,7 @@ def generate_initial_email(
         resp = client.chat.completions.create(
             model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
             messages=[
-                {"role": "system", "content": _get_system_prompt()},
+                {"role": "system", "content": _get_system_prompt(event=event)},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.8,
@@ -385,9 +421,10 @@ def generate_followup_email(
     linkedin_url: str = "",
     tags: list[str] | None = None,
     notes: str = "",
+    event=None,
 ) -> GeneratedEmail:
     client = _client()
-    fallback = _fallback_followup(event_name, event_date, recipient_name, contact_role, company)
+    fallback = _fallback_followup(event_name, event_date, recipient_name, contact_role, company, event=event)
     if not client:
         return fallback
     followup_guidance = _FOLLOWUP_ROLE_TONE.get(contact_role, _FOLLOWUP_ROLE_TONE["attendee"])
@@ -410,7 +447,7 @@ def generate_followup_email(
         resp = client.chat.completions.create(
             model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
             messages=[
-                {"role": "system", "content": _get_system_prompt()},
+                {"role": "system", "content": _get_system_prompt(event=event)},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.8,
@@ -434,6 +471,7 @@ def generate_event_update_email(
 ) -> GeneratedEmail:
     """Generate an email notifying a contact about an event update."""
     client = _client()
+    so = _signoff()
     fallback = GeneratedEmail(
         subject=f"Quick update — {event_name}",
         body=(
@@ -441,7 +479,7 @@ def generate_event_update_email(
             f"Heads up — there's been an update to {event_name} ({event_date}):\n\n"
             f"{update_description}\n\n"
             f"Let me know if you have any questions.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{so}"
         ),
     )
     if not client:
@@ -500,7 +538,7 @@ def generate_referral_request_email(
             f"{' at ' + company if company else ''}.\n\n"
             f"If anyone comes to mind, I'd love a name or intro — "
             f"even a quick \"try reaching out to so-and-so\" would be huge.\n\n"
-            "— Alex\nEvents Coordinator, School of Management"
+            f"{_signoff()}"
         ),
     )
     if not client:

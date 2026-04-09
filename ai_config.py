@@ -32,6 +32,9 @@ DEFAULTS: dict = {
     "blackout_hours_end": 8,
     "max_emails_per_day": 20,
     "max_calls_per_day": 10,
+    "sender_name": "Alex",
+    "sender_title": "Events Coordinator, School of Management",
+    "sender_email": "",
 }
 
 

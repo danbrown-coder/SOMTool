@@ -34,6 +34,26 @@
       <label for="description">Description</label>
       <textarea id="description" name="description">{{ event.description }}</textarea>
     </div>
+
+    <details style="margin-bottom:1rem;">
+      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Sender Override (optional)</summary>
+      <p class="muted text-sm" style="margin:.5rem 0;">Leave blank to use the global defaults from AI Settings.</p>
+      <div class="form-row">
+        <div class="field" style="flex:1;min-width:160px;">
+          <label for="sender_name">Sender name</label>
+          <input type="text" id="sender_name" name="sender_name" value="{{ event.sender_name }}" placeholder="e.g. Alex">
+        </div>
+        <div class="field" style="flex:1;min-width:200px;">
+          <label for="sender_title">Sender title</label>
+          <input type="text" id="sender_title" name="sender_title" value="{{ event.sender_title }}" placeholder="e.g. Events Coordinator">
+        </div>
+      </div>
+      <div class="field">
+        <label for="sender_email">Reply-to email</label>
+        <input type="email" id="sender_email" name="sender_email" value="{{ event.sender_email }}" placeholder="e.g. alex@callutheran.edu" style="width:100%;">
+      </div>
+    </details>
+
     <div style="display:flex;gap:.5rem;">
       <button type="submit" class="btn btn-primary">Save changes</button>
       <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>

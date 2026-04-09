@@ -11,7 +11,7 @@ def _gmail_configured() -> bool:
     return bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
 
 
-def send_email(to: str, subject: str, body: str, reply_to: str = "") -> dict:
+def send_email(to: str, subject: str, body: str, reply_to: str = "", sender_name: str = "") -> dict:
     """Send a single email via Gmail SMTP.
 
     Returns {"ok": True} on success or {"ok": False, "error": "..."} on failure.
@@ -22,7 +22,10 @@ def send_email(to: str, subject: str, body: str, reply_to: str = "") -> dict:
         return {"ok": False, "error": "Gmail credentials not configured"}
 
     msg = MIMEMultipart("alternative")
-    msg["From"] = sender
+    if sender_name:
+        msg["From"] = f"{sender_name} <{sender}>"
+    else:
+        msg["From"] = sender
     msg["To"] = to
     msg["Subject"] = subject
     if reply_to:
@@ -51,7 +54,7 @@ def send_email(to: str, subject: str, body: str, reply_to: str = "") -> dict:
         return {"ok": False, "error": str(exc)[:200]}
 
 
-def send_batch(emails: list[dict]) -> list[dict]:
+def send_batch(emails: list[dict], reply_to: str = "", sender_name: str = "") -> list[dict]:
     """Send a batch of emails. Each dict needs: recipient_email, subject, body.
 
     Returns list of results with recipient info + ok/error.
@@ -65,7 +68,7 @@ def send_batch(emails: list[dict]) -> list[dict]:
         if not to or "@" not in to:
             results.append({"recipient_name": name, "recipient_email": to, "ok": False, "error": "Invalid email"})
             continue
-        result = send_email(to, subject, body)
+        result = send_email(to, subject, body, reply_to=reply_to, sender_name=sender_name)
         result["recipient_name"] = name
         result["recipient_email"] = to
         results.append(result)
