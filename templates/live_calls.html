@@ -90,7 +90,12 @@
           <td><span class="badge badge-{{ 'confirmed' if c.status == 'ended' else 'not_contacted' }}">{{ c.status }}</span></td>
           <td class="muted">{{ c.duration_seconds }}s</td>
           <td class="muted text-sm" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.summary or '—' }}</td>
-          <td><a href="{{ url_for('call_detail_page', call_id=c.call_id) }}" class="btn btn-ghost btn-sm">View</a></td>
+          <td style="white-space:nowrap;">
+            <a href="{{ url_for('call_detail_page', call_id=c.call_id) }}" class="btn btn-ghost btn-sm">View</a>
+            <form method="post" action="{{ url_for('delete_call_route', call_id=c.call_id) }}" onsubmit="return confirm('Delete this call record?');" style="display:inline;margin:0;">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Delete</button>
+            </form>
+          </td>
         </tr>
         {% endfor %}
       </tbody>

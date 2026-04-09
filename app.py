@@ -1309,6 +1309,14 @@ def live_calls_page():
     return render_template("live_calls.html", active=active, recent=recent)
 
 
+@app.post("/calls/<call_id>/delete")
+@login_required
+def delete_call_route(call_id: str):
+    call_monitor.delete_call(call_id)
+    flash("Call deleted.", "info")
+    return redirect(url_for("live_calls_page"))
+
+
 @app.route("/calls/<call_id>/stream")
 @login_required
 def call_stream(call_id: str):

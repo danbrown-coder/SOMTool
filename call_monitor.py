@@ -81,6 +81,16 @@ def get_call_by_call_id(call_id: str) -> dict | None:
     return None
 
 
+def delete_call(call_id: str) -> bool:
+    entries = load_call_log()
+    before = len(entries)
+    entries = [e for e in entries if e.get("call_id") != call_id]
+    if len(entries) < before:
+        save_call_log(entries)
+        return True
+    return False
+
+
 def get_calls_for_event(event_id: str) -> list[dict]:
     return [e for e in load_call_log() if e.get("event_id") == event_id]
 
