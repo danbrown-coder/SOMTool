@@ -41,9 +41,40 @@
   </form>
 </div>
 
-<!-- ── Event list ── -->
+<!-- ── Sort / Filter bar ── -->
 <div style="margin-top:.5rem;">
-  <h2 style="font-size:1.05rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.85rem;">Your events</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem;">
+    <h2 style="font-size:1.05rem;font-weight:700;letter-spacing:-.02em;margin:0;">Your events</h2>
+    <form method="get" action="{{ url_for('index') }}" style="display:flex;gap:.45rem;align-items:center;flex-wrap:wrap;">
+      <input type="text" name="q" value="{{ search_q }}" placeholder="Search events..." style="height:34px;width:170px;font-size:.82rem;padding:0 .6rem;">
+      <select name="sort" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+        <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date (newest)</option>
+        <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
+        <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A–Z)</option>
+        <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z–A)</option>
+        <option value="contacts_desc" {% if sort_by == 'contacts_desc' %}selected{% endif %}>Most contacts</option>
+        <option value="contacts_asc" {% if sort_by == 'contacts_asc' %}selected{% endif %}>Fewest contacts</option>
+      </select>
+      <select name="audience" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+        <option value="">All audiences</option>
+        {% for a in all_audiences %}
+        <option value="{{ a }}" {% if filter_audience == a %}selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+      </select>
+      <select name="status" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+        <option value="">All events</option>
+        <option value="upcoming" {% if filter_status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+        <option value="past" {% if filter_status == 'past' %}selected{% endif %}>Past</option>
+        <option value="has_contacts" {% if filter_status == 'has_contacts' %}selected{% endif %}>Has contacts</option>
+        <option value="no_contacts" {% if filter_status == 'no_contacts' %}selected{% endif %}>No contacts</option>
+      </select>
+      <button type="submit" class="btn btn-ghost btn-sm" style="height:34px;">Go</button>
+      {% if search_q or filter_audience or filter_status != '' or sort_by != 'date_desc' %}
+      <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm" style="height:34px;color:var(--s-declined);">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
   {% if events %}
     {% for e in events %}
     <div class="card card-hoverable" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
@@ -71,7 +102,13 @@
     {% endfor %}
   {% else %}
     <div class="card">
-      <p class="empty-state">No events yet — create one above to get started.</p>
+      <p class="empty-state">
+        {% if search_q or filter_audience or filter_status %}
+          No events match your filters. <a href="{{ url_for('index') }}">Clear filters</a>
+        {% else %}
+          No events yet — create one above to get started.
+        {% endif %}
+      </p>
     </div>
   {% endif %}
 </div>

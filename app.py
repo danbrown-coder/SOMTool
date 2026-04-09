@@ -259,9 +259,48 @@ def logout_route():
 @login_required
 def index():
     events = em.list_events_visible_to(g.current_user)
-    events.sort(key=lambda e: e.date, reverse=True)
+
+    filter_audience = request.args.get("audience", "")
+    filter_status = request.args.get("status", "")
+    search_q = request.args.get("q", "").strip().lower()
+
+    if filter_audience:
+        events = [e for e in events if e.audience_type == filter_audience]
+    if filter_status == "upcoming":
+        today = date.today().isoformat()
+        events = [e for e in events if e.date >= today]
+    elif filter_status == "past":
+        today = date.today().isoformat()
+        events = [e for e in events if e.date < today]
+    elif filter_status == "has_contacts":
+        events = [e for e in events if e.contacts]
+    elif filter_status == "no_contacts":
+        events = [e for e in events if not e.contacts]
+    if search_q:
+        events = [e for e in events if search_q in e.name.lower() or search_q in e.description.lower()]
+
+    sort_by = request.args.get("sort", "date_desc")
+    if sort_by == "date_asc":
+        events.sort(key=lambda e: e.date)
+    elif sort_by == "name_asc":
+        events.sort(key=lambda e: e.name.lower())
+    elif sort_by == "name_desc":
+        events.sort(key=lambda e: e.name.lower(), reverse=True)
+    elif sort_by == "contacts_desc":
+        events.sort(key=lambda e: len(e.contacts), reverse=True)
+    elif sort_by == "contacts_asc":
+        events.sort(key=lambda e: len(e.contacts))
+    else:
+        events.sort(key=lambda e: e.date, reverse=True)
+
+    all_audiences = sorted({e.audience_type for e in em.list_events_visible_to(g.current_user) if e.audience_type})
     roles = {e.id: em.get_event_share_role(g.current_user, e) or "viewer" for e in events}
-    return render_template("index.html", events=events, event_roles=roles)
+    return render_template(
+        "index.html", events=events, event_roles=roles,
+        sort_by=sort_by, filter_audience=filter_audience,
+        filter_status=filter_status, search_q=request.args.get("q", ""),
+        all_audiences=all_audiences,
+    )
 
 
 @app.post("/events")
