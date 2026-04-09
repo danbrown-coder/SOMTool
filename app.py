@@ -1401,7 +1401,7 @@ _monitor_state = {
 }
 
 
-def _env_bool(key: str, default: str = "true") -> bool:
+def _env_bool(key: str, default: str = "false") -> bool:
     return os.environ.get(key, default).strip().lower() in ("1", "true", "yes")
 
 
@@ -1511,6 +1511,23 @@ def _auto_populate_contacts(event) -> int:
     return 0
 
 
+import re as _re
+
+_EMAIL_RE = _re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+_PLACEHOLDER_PREFIXES = ("unknown@", "test@", "example@", "noreply@", "no-reply@", "placeholder@", "none@")
+
+
+def _is_valid_email(addr: str) -> bool:
+    if not addr or not _EMAIL_RE.match(addr.strip()):
+        return False
+    lower = addr.strip().lower()
+    if any(lower.startswith(p) for p in _PLACEHOLDER_PREFIXES):
+        return False
+    if lower.endswith("@example.com") or lower.endswith("@test.com"):
+        return False
+    return True
+
+
 def _auto_outreach_emails() -> int:
     """Auto-generate and send initial outreach emails for NOT_CONTACTED contacts."""
     if not _env_bool("AUTO_SEND_EMAILS"):
@@ -1523,7 +1540,7 @@ def _auto_outreach_emails() -> int:
     for event in em.load_events():
         if sent >= batch_size:
             break
-        targets = [c for c in event.contacts if c.status == ContactStatus.NOT_CONTACTED]
+        targets = [c for c in event.contacts if c.status == ContactStatus.NOT_CONTACTED and _is_valid_email(c.email)]
         if not targets:
             continue
         ids_to_update = []
@@ -1566,6 +1583,8 @@ def _auto_followup_emails() -> int:
             if sent >= batch_size:
                 break
             if c.status != ContactStatus.CONTACTED:
+                continue
+            if not _is_valid_email(c.email):
                 continue
             last_log = log.get_last_outreach(event.id, c.id) if hasattr(log, "get_last_outreach") else None
             if last_log:
