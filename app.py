@@ -42,6 +42,26 @@ import vapi_caller
 
 load_dotenv()
 
+
+def _seed_data_if_missing() -> None:
+    """Copy seed files into data/ when they don't exist yet (first deploy)."""
+    import shutil
+    from pathlib import Path
+
+    seed_dir = Path(__file__).resolve().parent / "seed_data"
+    data_dir = Path(__file__).resolve().parent / "data"
+    if not seed_dir.is_dir():
+        return
+    data_dir.mkdir(parents=True, exist_ok=True)
+    for src in seed_dir.iterdir():
+        if src.is_file():
+            dest = data_dir / src.name
+            if not dest.exists():
+                shutil.copy2(src, dest)
+
+
+_seed_data_if_missing()
+
 app = Flask(__name__)
 
 
