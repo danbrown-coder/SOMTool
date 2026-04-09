@@ -8,6 +8,22 @@ from typing import Any
 import uuid
 
 
+def normalize_phone(raw: str) -> str:
+    """Accept any phone format and normalize to +1XXXXXXXXXX (US) or +<digits>."""
+    if not raw:
+        return ""
+    digits = "".join(ch for ch in raw if ch.isdigit())
+    if not digits:
+        return ""
+    if raw.strip().startswith("+"):
+        return "+" + digits
+    if len(digits) == 10:
+        return "+1" + digits
+    if len(digits) == 11 and digits.startswith("1"):
+        return "+" + digits
+    return "+" + digits
+
+
 class ContactStatus(str, Enum):
     NOT_CONTACTED = "not_contacted"
     CONTACTED = "contacted"

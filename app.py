@@ -23,7 +23,7 @@ from flask import (
     url_for,
 )
 
-from models import ContactRole, ContactStatus, EmailType, new_id
+from models import ContactRole, ContactStatus, EmailType, new_id, normalize_phone
 from email_generator import (
     discover_prospects_from_text,
     generate_event_update_email,
@@ -488,7 +488,7 @@ def add_contact_route(event_id: str):
     if not name or not email:
         flash("Name and email are required.", "info")
         return redirect(url_for("event_detail", event_id=event_id))
-    phone = request.form.get("phone", "").strip()
+    phone = normalize_phone(request.form.get("phone", ""))
     try:
         role_val = ContactRole(request.form.get("contact_role", "attendee"))
     except ValueError:
@@ -684,7 +684,7 @@ def edit_contact_route(event_id: str, contact_id: str):
         return redirect(url_for("index"))
     name = request.form.get("name", "").strip()
     email = request.form.get("email", "").strip()
-    phone = request.form.get("phone", "")
+    phone = normalize_phone(request.form.get("phone", ""))
     if em.update_contact_details(event_id, contact_id, name=name, email=email, phone=phone):
         flash("Contact updated.", "info")
     else:
