@@ -12,8 +12,10 @@ from functools import wraps
 from dotenv import load_dotenv
 from flask import (
     Flask,
+    Response,
     flash,
     g,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -39,6 +41,8 @@ import people_import
 import people_manager as pm
 import scraper
 import vapi_caller
+import call_scheduler
+import call_monitor
 
 load_dotenv()
 
@@ -68,6 +72,58 @@ def _seed_data_if_missing() -> None:
 
 
 _seed_data_if_missing()
+
+
+def _merge_seed_contacts() -> None:
+    """Enrich events that have empty contacts with contacts from seed data."""
+    from pathlib import Path
+
+    seed_file = Path(__file__).resolve().parent / "seed_data" / "events.json"
+    data_file = Path(__file__).resolve().parent / "data" / "events.json"
+    if not seed_file.exists() or not data_file.exists():
+        return
+    try:
+        seed_events = json.loads(seed_file.read_text(encoding="utf-8"))
+        data_events = json.loads(data_file.read_text(encoding="utf-8"))
+    except Exception:
+        return
+    if not isinstance(seed_events, list) or not isinstance(data_events, list):
+        return
+
+    seed_by_som_id: dict[str, dict] = {}
+    seed_by_name: dict[str, dict] = {}
+    for se in seed_events:
+        sid = se.get("som_event_id", "")
+        if sid:
+            seed_by_som_id[sid] = se
+        name = se.get("name", "").strip().lower()
+        if name:
+            seed_by_name[name] = se
+
+    changed = False
+    for de in data_events:
+        if de.get("contacts"):
+            continue
+        match = None
+        sid = de.get("som_event_id", "")
+        if sid:
+            match = seed_by_som_id.get(sid)
+        if not match:
+            name = de.get("name", "").strip().lower()
+            if name:
+                match = seed_by_name.get(name)
+        if match and match.get("contacts"):
+            de["contacts"] = match["contacts"]
+            changed = True
+
+    if changed:
+        data_file.write_text(
+            json.dumps(data_events, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+
+_merge_seed_contacts()
 
 app = Flask(__name__)
 
@@ -561,6 +617,38 @@ def event_logs(event_id: str):
         logs=logs,
         can_edit=_role_ok(role, "editor"),
     )
+
+
+# ── Contact edit / delete ────────────────────────────────────
+
+
+@app.post("/events/<event_id>/contacts/<contact_id>/delete")
+@login_required
+def delete_contact_route(event_id: str, contact_id: str):
+    if not _require_event_edit(event_id)[0]:
+        flash("Not allowed.", "info")
+        return redirect(url_for("index"))
+    if em.delete_contact(event_id, contact_id):
+        flash("Contact removed.", "info")
+    else:
+        flash("Could not remove contact.", "info")
+    return redirect(url_for("event_detail", event_id=event_id))
+
+
+@app.post("/events/<event_id>/contacts/<contact_id>/edit")
+@login_required
+def edit_contact_route(event_id: str, contact_id: str):
+    if not _require_event_edit(event_id)[0]:
+        flash("Not allowed.", "info")
+        return redirect(url_for("index"))
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip()
+    phone = request.form.get("phone", "")
+    if em.update_contact_details(event_id, contact_id, name=name, email=email, phone=phone):
+        flash("Contact updated.", "info")
+    else:
+        flash("Could not update contact.", "info")
+    return redirect(url_for("event_detail", event_id=event_id))
 
 
 # ── Recommend / Discover / Referrals ────────────────────────
@@ -1092,6 +1180,12 @@ def call_invite_route(event_id: str):
                 f"[AI CALL — INVITE] Call placed to {phone}",
                 subject=f"AI Call Invite: {event.name}",
             )
+            call_monitor.log_call(
+                call_id=result["call_id"], event_id=event_id,
+                contact_id=c.id, contact_name=c.name, call_type="invite",
+                listen_url=result.get("listen_url", ""),
+                control_url=result.get("control_url", ""),
+            )
     placed = sum(1 for r in results if r.get("ok"))
     flash(f"Placed {placed} invite call(s).", "info")
     return render_template(
@@ -1147,6 +1241,12 @@ def call_followup_route(event_id: str):
                 f"[AI CALL — FOLLOW-UP] Call placed to {phone}",
                 subject=f"AI Call Follow-Up: {event.name}",
             )
+            call_monitor.log_call(
+                call_id=result["call_id"], event_id=event_id,
+                contact_id=c.id, contact_name=c.name, call_type="followup",
+                listen_url=result.get("listen_url", ""),
+                control_url=result.get("control_url", ""),
+            )
     placed = sum(1 for r in results if r.get("ok"))
     flash(f"Placed {placed} follow-up call(s).", "info")
     return render_template(
@@ -1157,7 +1257,102 @@ def call_followup_route(event_id: str):
     )
 
 
-# ── Background web monitor ──────────────────────────────────
+# ── Live calls & analytics routes ───────────────────────────
+
+
+@app.route("/calls/live")
+@login_required
+def live_calls_page():
+    call_monitor.sync_all_active()
+    active = call_monitor.get_active_calls()
+    recent = [e for e in call_monitor.load_call_log() if e.get("status") == "ended"][-20:]
+    recent.reverse()
+    return render_template("live_calls.html", active=active, recent=recent)
+
+
+@app.route("/calls/<call_id>/stream")
+@login_required
+def call_stream(call_id: str):
+    def generate():
+        import time as t
+        for _ in range(120):
+            entry = call_monitor.sync_call_from_vapi(call_id)
+            if not entry:
+                entry = call_monitor.get_call_by_call_id(call_id)
+            if entry:
+                payload = json.dumps({
+                    "status": entry.get("status", ""),
+                    "transcript": entry.get("transcript", ""),
+                    "summary": entry.get("summary", ""),
+                    "duration": entry.get("duration_seconds", 0),
+                    "ended_reason": entry.get("ended_reason", ""),
+                })
+                yield f"data: {payload}\n\n"
+                if entry.get("status") == "ended":
+                    break
+            t.sleep(2)
+        yield "data: {\"done\": true}\n\n"
+    return Response(generate(), mimetype="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@app.route("/calls/<call_id>/detail")
+@login_required
+def call_detail_page(call_id: str):
+    call_monitor.sync_call_from_vapi(call_id)
+    entry = call_monitor.get_call_by_call_id(call_id)
+    if not entry:
+        flash("Call not found.", "info")
+        return redirect(url_for("live_calls_page"))
+    if entry.get("status") == "ended" and not entry.get("ai_analysis"):
+        call_monitor.analyze_call(call_id)
+        entry = call_monitor.get_call_by_call_id(call_id)
+    return render_template("call_detail.html", call=entry)
+
+
+@app.route("/analytics")
+@login_required
+def analytics_page():
+    call_metrics = call_monitor.compute_channel_metrics()
+    all_analyses = call_monitor.get_all_analyses()
+    events = em.load_events()
+    total_contacts = sum(len(e.contacts) for e in events)
+    total_emails = len(log.get_all_logs()) if hasattr(log, "get_all_logs") else 0
+    email_stats = {"total_sent": total_emails}
+    event_stats = []
+    for ev in events:
+        m = em.compute_metrics(ev)
+        if m["total_invited"] > 0:
+            event_stats.append({"name": ev.name, **m})
+    event_stats.sort(key=lambda x: -x["rsvp_rate"])
+    return render_template(
+        "analytics.html",
+        call_metrics=call_metrics,
+        email_stats=email_stats,
+        event_stats=event_stats[:15],
+        total_contacts=total_contacts,
+        recent_analyses=all_analyses[-10:],
+    )
+
+
+@app.route("/api/calls/<call_id>/status")
+@login_required
+def api_call_status(call_id: str):
+    entry = call_monitor.sync_call_from_vapi(call_id)
+    if not entry:
+        entry = call_monitor.get_call_by_call_id(call_id)
+    if not entry:
+        return jsonify({"error": "not found"}), 404
+    return jsonify({
+        "status": entry.get("status"),
+        "transcript": entry.get("transcript", ""),
+        "listen_url": entry.get("listen_url", ""),
+        "summary": entry.get("summary", ""),
+        "duration": entry.get("duration_seconds", 0),
+    })
+
+
+# ── Background web monitor & automation engine ──────────────
 _monitor_state = {
     "running": False,
     "last_check": None,
@@ -1167,17 +1362,23 @@ _monitor_state = {
 }
 
 
+def _env_bool(key: str, default: str = "true") -> bool:
+    return os.environ.get(key, default).strip().lower() in ("1", "true", "yes")
+
+
+# ── Automation helpers ───────────────────────────────────────
+
+
 def _auto_notify_for_changes(new_changes: list[dict]) -> None:
-    """Auto-generate and send update emails when changes are detected."""
-    if os.environ.get("AUTO_NOTIFY_ON_CHANGE", "true").lower() != "true":
+    if not _env_bool("AUTO_NOTIFY_ON_CHANGE"):
         return
     gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
     for change in new_changes:
-        event_id = change.get("event_id", "")
-        if not event_id:
+        eid = change.get("event_id", "")
+        if not eid:
             continue
         events = em.load_events()
-        event = next((e for e in events if e.som_event_id == event_id), None)
+        event = next((e for e in events if e.som_event_id == eid), None)
         if not event or not event.contacts:
             continue
         for c in event.contacts:
@@ -1187,18 +1388,280 @@ def _auto_notify_for_changes(new_changes: list[dict]) -> None:
                 change.get("description", "Event updated"),
                 c.name,
                 contact_role=c.contact_role.value,
-                **ctx,
+                company=ctx.get("company", ""),
+                title=ctx.get("title", ""),
+                notes=ctx.get("notes", ""),
             )
             log.log_outreach(
-                event_id, c.id, c.name, EmailType.FOLLOW_UP,
+                event.id, c.id, c.name, EmailType.FOLLOW_UP,
                 gen.body, subject=gen.subject,
             )
             if gmail_ok:
                 email_sender.send_email(c.email, gen.subject, gen.body)
 
 
+def _auto_import_new_events() -> int:
+    """Auto-import SOM catalog entries that aren't yet app events. Returns count."""
+    if not _env_bool("AUTO_IMPORT_EVENTS"):
+        return 0
+    catalog = scraper.load_som_events()
+    events = em.load_events()
+    existing_som_ids = {e.som_event_id for e in events if e.som_event_id}
+    imported = 0
+    for cat in catalog:
+        cid = cat.get("id", "")
+        if not cid or cid in existing_som_ids:
+            continue
+        if cat.get("status") == "past":
+            continue
+        event = em.create_event(
+            name=cat.get("name", "SOM Event"),
+            date=cat.get("date", ""),
+            description=cat.get("description", ""),
+            audience_type=cat.get("series", "SOM"),
+            owner_id="system",
+        )
+        all_events = em.load_events()
+        for i, e in enumerate(all_events):
+            if e.id == event.id:
+                e.som_event_id = cid
+                all_events[i] = e
+                break
+        em.save_events(all_events)
+        imported += 1
+    return imported
+
+
+def _auto_populate_contacts(event) -> int:
+    """Auto-add contacts from People directory using AI recommendations."""
+    if not _env_bool("AUTO_POPULATE_CONTACTS"):
+        return 0
+    max_contacts = int(os.environ.get("AUTO_CONTACTS_MAX", "20") or "20")
+    if len(event.contacts) >= max_contacts:
+        return 0
+
+    people = pm.load_people()
+    if not people:
+        return 0
+
+    summaries = [
+        {"id": p.id, "name": p.name, "email": p.email,
+         "company": p.company, "role": p.role, "tags": p.tags}
+        for p in people
+    ]
+    try:
+        ranked = recommend_people_for_event(
+            event.name, event.date, event.description, event.audience_type, summaries
+        )
+    except Exception:
+        ranked = []
+
+    if not ranked:
+        return 0
+
+    limit = max_contacts - len(event.contacts)
+    rows = []
+    for rec in ranked[:limit]:
+        pid = rec.get("id", "")
+        p = pm.get_person(pid) if pid else None
+        if p:
+            rows.append((p.name, p.email))
+            pm.append_event_to_person(pid, event.id)
+    if rows:
+        return em.add_contacts_bulk(event.id, rows)
+    return 0
+
+
+def _auto_outreach_emails() -> int:
+    """Auto-generate and send initial outreach emails for NOT_CONTACTED contacts."""
+    if not _env_bool("AUTO_SEND_EMAILS"):
+        return 0
+    gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
+    if not gmail_ok:
+        return 0
+    batch_size = int(os.environ.get("AUTO_EMAIL_BATCH_SIZE", "10") or "10")
+    sent = 0
+    for event in em.load_events():
+        if sent >= batch_size:
+            break
+        targets = [c for c in event.contacts if c.status == ContactStatus.NOT_CONTACTED]
+        if not targets:
+            continue
+        ids_to_update = []
+        for c in targets:
+            if sent >= batch_size:
+                break
+            ctx = _person_context_for_contact(c)
+            gen = generate_initial_email(
+                event.name, event.date, event.description,
+                event.audience_type, c.name,
+                contact_role=c.contact_role.value, **ctx,
+            )
+            log.log_outreach(
+                event.id, c.id, c.name, EmailType.INITIAL,
+                gen.body, subject=gen.subject,
+            )
+            email_sender.send_email(c.email, gen.subject, gen.body)
+            ids_to_update.append(c.id)
+            sent += 1
+        if ids_to_update:
+            em.update_contacts_status_batch(event.id, ids_to_update, ContactStatus.CONTACTED)
+    return sent
+
+
+def _auto_followup_emails() -> int:
+    """Auto-send follow-ups for CONTACTED contacts after a delay."""
+    if not _env_bool("AUTO_SEND_EMAILS"):
+        return 0
+    gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
+    if not gmail_ok:
+        return 0
+    delay_days = int(os.environ.get("AUTO_FOLLOWUP_DAYS", "3") or "3")
+    batch_size = int(os.environ.get("AUTO_EMAIL_BATCH_SIZE", "10") or "10")
+    cutoff = datetime.now(timezone.utc).isoformat()
+    sent = 0
+    for event in em.load_events():
+        if sent >= batch_size:
+            break
+        for c in event.contacts:
+            if sent >= batch_size:
+                break
+            if c.status != ContactStatus.CONTACTED:
+                continue
+            last_log = log.get_last_outreach(event.id, c.id) if hasattr(log, "get_last_outreach") else None
+            if last_log:
+                from datetime import timedelta
+                try:
+                    last_ts = datetime.fromisoformat(last_log.get("timestamp", ""))
+                    if datetime.now(timezone.utc) - last_ts < timedelta(days=delay_days):
+                        continue
+                except Exception:
+                    pass
+            ctx = _person_context_for_contact(c)
+            gen = generate_followup_email(
+                event.name, event.date, c.name,
+                contact_role=c.contact_role.value, **ctx,
+            )
+            log.log_outreach(
+                event.id, c.id, c.name, EmailType.FOLLOW_UP,
+                gen.body, subject=gen.subject,
+            )
+            email_sender.send_email(c.email, gen.subject, gen.body)
+            sent += 1
+    return sent
+
+
+def _auto_schedule_calls() -> int:
+    """AI-suggest call schedule for contacts that haven't responded to emails."""
+    if not _env_bool("AUTO_SCHEDULE_CALLS", "false"):
+        return 0
+    delay = int(os.environ.get("CALL_DELAY_AFTER_EMAIL_DAYS", "2") or "2")
+    scheduled = 0
+    for event in em.load_events():
+        for c in event.contacts:
+            if c.status != ContactStatus.CONTACTED:
+                continue
+            phone = _person_phone_for_contact(c)
+            if not phone:
+                continue
+            if call_scheduler.already_scheduled(event.id, c.id, "invite"):
+                continue
+            from datetime import timedelta
+            call_time = (datetime.now(timezone.utc) + timedelta(days=delay)).replace(
+                hour=10, minute=0, second=0, microsecond=0
+            ).isoformat()
+            call_scheduler.add_scheduled_call(
+                event_id=event.id, contact_id=c.id,
+                contact_name=c.name, call_type="invite",
+                scheduled_at=call_time, suggested_by="ai",
+            )
+            scheduled += 1
+    return scheduled
+
+
+def _auto_execute_calls() -> int:
+    """Execute scheduled calls whose time has arrived."""
+    if not _env_bool("AUTO_SCHEDULE_CALLS", "false"):
+        return 0
+    now = datetime.now(timezone.utc).isoformat()
+    due = call_scheduler.get_pending_due(now)
+    executed = 0
+    for item in due:
+        event = em.get_event(item["event_id"])
+        if not event:
+            call_scheduler.update_status(item["id"], "failed", result="Event not found")
+            continue
+        contact = next((c for c in event.contacts if c.id == item["contact_id"]), None)
+        if not contact:
+            call_scheduler.update_status(item["id"], "failed", result="Contact not found")
+            continue
+        phone = _person_phone_for_contact(contact)
+        if not phone:
+            call_scheduler.update_status(item["id"], "failed", result="No phone")
+            continue
+        ctx = _person_context_for_contact(contact)
+        bg_parts = []
+        if ctx.get("company"):
+            bg_parts.append(f"Works at {ctx['company']}")
+        if ctx.get("title"):
+            bg_parts.append(f"Title: {ctx['title']}")
+        call_fn = vapi_caller.call_invite if item["call_type"] == "invite" else vapi_caller.call_followup
+        result = call_fn(
+            phone=phone, recipient_name=contact.name,
+            event_name=event.name, event_date=event.date,
+            contact_role=contact.contact_role.value,
+            company=ctx.get("company", ""),
+            title=ctx.get("title", ""),
+            background_notes=". ".join(bg_parts) if bg_parts else "",
+        )
+        if result.get("ok"):
+            call_scheduler.update_status(item["id"], "completed", call_id=result["call_id"])
+            call_monitor.log_call(
+                call_id=result["call_id"], event_id=event.id,
+                contact_id=contact.id, contact_name=contact.name,
+                call_type=item["call_type"],
+                listen_url=result.get("listen_url", ""),
+                control_url=result.get("control_url", ""),
+            )
+            etype = EmailType.INITIAL if item["call_type"] == "invite" else EmailType.FOLLOW_UP
+            log.log_outreach(
+                event.id, contact.id, contact.name, etype,
+                f"[AI CALL — AUTO] Call placed to {phone}",
+                subject=f"AI Call: {event.name}",
+            )
+            executed += 1
+        else:
+            call_scheduler.update_status(item["id"], "failed", result=result.get("error", ""))
+    return executed
+
+
+def _auto_analyze_completed_calls() -> int:
+    """Analyze completed calls that don't have analysis yet."""
+    entries = call_monitor.load_call_log()
+    analyzed = 0
+    for entry in entries:
+        if entry.get("status") != "ended":
+            continue
+        if entry.get("ai_analysis"):
+            continue
+        if not entry.get("transcript"):
+            continue
+        result = call_monitor.analyze_call(entry["call_id"])
+        if result:
+            outcome = result.get("outcome", "")
+            if outcome in ("confirmed",) and entry.get("event_id") and entry.get("contact_id"):
+                em.update_contact_status(entry["event_id"], entry["contact_id"], "confirmed")
+            elif outcome in ("not_interested", "hung_up") and entry.get("event_id") and entry.get("contact_id"):
+                em.update_contact_status(entry["event_id"], entry["contact_id"], "declined")
+            analyzed += 1
+    return analyzed
+
+
+# ── Full automation pipeline ─────────────────────────────────
+
+
 def _monitor_loop() -> None:
-    """Background loop that periodically scrapes and auto-notifies."""
+    """Background loop: scrape -> import -> contacts -> emails -> calls -> analyze."""
     interval = int(os.environ.get("SCRAPE_INTERVAL_MINUTES", "10") or "0")
     if interval <= 0:
         return
@@ -1213,6 +1676,24 @@ def _monitor_loop() -> None:
             _monitor_state["last_check"] = datetime.now(timezone.utc).isoformat()
             _monitor_state["checks_count"] += 1
             _monitor_state["last_changes"] = len(new_changes)
+
+            _auto_import_new_events()
+
+            for event in em.load_events():
+                if not event.contacts:
+                    try:
+                        _auto_populate_contacts(event)
+                    except Exception:
+                        pass
+
+            _auto_outreach_emails()
+            _auto_followup_emails()
+            _auto_schedule_calls()
+            _auto_execute_calls()
+
+            call_monitor.sync_all_active()
+            _auto_analyze_completed_calls()
+
             if new_changes:
                 _auto_notify_for_changes(new_changes)
         except Exception:

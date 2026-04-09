@@ -87,3 +87,19 @@ def log_outreach(
 
 def get_logs(event_id: str) -> list[OutreachLog]:
     return [log for log in _load_all_logs() if log.event_id == event_id]
+
+
+def get_all_logs() -> list[OutreachLog]:
+    return _load_all_logs()
+
+
+def get_last_outreach(event_id: str, contact_id: str) -> dict | None:
+    """Return the most recent log entry for a specific contact on an event."""
+    matches = [
+        l for l in _load_all_logs()
+        if l.event_id == event_id and l.contact_id == contact_id
+    ]
+    if not matches:
+        return None
+    matches.sort(key=lambda x: x.timestamp, reverse=True)
+    return matches[0].to_dict()

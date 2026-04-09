@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Live Calls — SOM Event OS{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <h2>Live Call Monitor</h2>
+    <p class="muted text-sm">Real-time AI voice call tracking</p>
+  </div>
+  <a href="{{ url_for('live_calls_page') }}" class="btn btn-secondary btn-sm">Refresh</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.call-card { border-left: 4px solid var(--s-contacted); }
+.call-card.status-queued { border-left-color: var(--s-not-contacted); }
+.call-card.status-ringing { border-left-color: var(--s-contacted); }
+.call-card.status-in-progress { border-left-color: var(--m-emerald); }
+.call-card.status-ended { border-left-color: var(--s-confirmed); }
+.transcript-box {
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  padding: .8rem 1rem;
+  font-size: .84rem;
+  line-height: 1.65;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+}
+.status-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.status-dot.live { background: #10b981; animation: pulse 1.5s infinite; }
+.status-dot.ended { background: var(--s-not-contacted); }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>Active Calls <span class="muted" style="font-weight:500;font-size:.85rem;">({{ active|length }})</span></h2>
+  {% if active %}
+  {% for c in active %}
+  <div class="card call-card status-{{ c.status }}" style="margin-bottom:.75rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+      <div>
+        <span class="status-dot live"></span>
+        <strong>{{ c.contact_name }}</strong>
+        <span class="muted text-sm">— {{ c.call_type|title }}</span>
+      </div>
+      <span class="badge badge-{{ 'confirmed' if c.status == 'in-progress' else 'contacted' }}">{{ c.status }}</span>
+    </div>
+    <div id="transcript-{{ c.call_id }}" class="transcript-box">Connecting...</div>
+    {% if c.listen_url %}
+    <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Audio stream available</p>
+    {% endif %}
+    <div style="margin-top:.5rem;">
+      <a href="{{ url_for('call_detail_page', call_id=c.call_id) }}" class="btn btn-ghost btn-sm">View details</a>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p class="empty-state">No active calls right now.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Recent Calls</h2>
+  {% if recent %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Contact</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Duration</th>
+          <th>Summary</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in recent %}
+        <tr>
+          <td style="font-weight:500;">{{ c.contact_name }}</td>
+          <td><span class="badge badge-responded">{{ c.call_type|title }}</span></td>
+          <td><span class="badge badge-{{ 'confirmed' if c.status == 'ended' else 'not_contacted' }}">{{ c.status }}</span></td>
+          <td class="muted">{{ c.duration_seconds }}s</td>
+          <td class="muted text-sm" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.summary or '—' }}</td>
+          <td><a href="{{ url_for('call_detail_page', call_id=c.call_id) }}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">No completed calls yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  {% for c in active %}
+  (function(callId) {
+    var box = document.getElementById('transcript-' + callId);
+    if (!box) return;
+    var src = new EventSource('/calls/' + callId + '/stream');
+    src.onmessage = function(e) {
+      try {
+        var d = JSON.parse(e.data);
+        if (d.done) { src.close(); return; }
+        if (d.transcript) box.textContent = d.transcript;
+        else if (d.status) box.textContent = 'Status: ' + d.status;
+        box.scrollTop = box.scrollHeight;
+      } catch(ex) {}
+    };
+    src.onerror = function() { src.close(); };
+  })('{{ c.call_id }}');
+  {% endfor %}
+})();
+</script>
+{% endblock %}

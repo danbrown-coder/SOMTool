@@ -56,10 +56,13 @@ def _call(
         )
         data = resp.json() if resp.content else {}
         if resp.status_code in (200, 201):
+            monitor = data.get("monitor", {})
             return {
                 "ok": True,
                 "call_id": data.get("id", ""),
                 "status": data.get("status", "queued"),
+                "listen_url": monitor.get("listenUrl", ""),
+                "control_url": monitor.get("controlUrl", ""),
             }
         error_msg = data.get("message") or data.get("error") or resp.text[:200]
         return {"ok": False, "error": f"Vapi {resp.status_code}: {error_msg}"}

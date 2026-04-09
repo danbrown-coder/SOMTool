@@ -89,13 +89,18 @@
             <th>Status</th>
             {% if can_edit %}<th style="width:120px;">Role</th>{% endif %}
             <th style="width:90px;">Attended</th>
+            {% if can_edit %}<th style="width:70px;">Actions</th>{% endif %}
           </tr>
         </thead>
         <tbody>
           {% for c in contacts %}
-          <tr>
-            <td style="font-weight:500;">{{ c.name }}</td>
-            <td class="muted">{{ c.email }}</td>
+          <tr id="contact-row-{{ c.id }}">
+            <td style="font-weight:500;">
+              <span class="contact-display-{{ c.id }}">{{ c.name }}</span>
+            </td>
+            <td class="muted">
+              <span class="contact-display-{{ c.id }}">{{ c.email }}</span>
+            </td>
             <td>
               <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
                 <span class="badge badge-{{ c.status.value }}">{{ c.status.value.replace('_', ' ') }}</span>
@@ -132,6 +137,14 @@
               {{ 'Yes' if c.attended else 'No' }}
               {% endif %}
             </td>
+            {% if can_edit %}
+            <td style="width:70px;white-space:nowrap;">
+              <button type="button" class="btn btn-ghost btn-sm" title="Edit" onclick="openEditModal('{{ c.id }}','{{ c.name|e }}','{{ c.email|e }}','{{ c.phone|e }}')">✏️</button>
+              <form method="post" action="{{ url_for('delete_contact_route', event_id=event.id, contact_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Remove {{ c.name|e }} from this event?')">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Remove" style="color:#dc2626;">🗑</button>
+              </form>
+            </td>
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>
@@ -220,4 +233,40 @@
 <div class="card" style="text-align:center;padding:1rem;">
   <a href="{{ url_for('event_logs', event_id=event.id) }}" class="btn btn-ghost">📜  View full outreach log</a>
 </div>
+
+{% if can_edit %}
+<div id="editContactModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.4);align-items:center;justify-content:center;">
+  <div style="background:var(--card);border-radius:var(--radius);padding:1.5rem;width:420px;max-width:95vw;box-shadow:var(--shadow-lg);">
+    <h3 style="margin-bottom:1rem;">Edit contact</h3>
+    <form id="editContactForm" method="post">
+      <div class="field"><label>Name</label><input type="text" name="name" id="editName" required></div>
+      <div class="field"><label>Email</label><input type="email" name="email" id="editEmail" required></div>
+      <div class="field"><label>Phone</label><input type="tel" name="phone" id="editPhone"></div>
+      <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+        <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openEditModal(cid, name, email, phone) {
+  var m = document.getElementById('editContactModal');
+  m.style.display = 'flex';
+  document.getElementById('editName').value = name;
+  document.getElementById('editEmail').value = email;
+  document.getElementById('editPhone').value = phone || '';
+  document.getElementById('editContactForm').action = '/events/{{ event.id }}/contacts/' + cid + '/edit';
+}
+function closeEditModal() {
+  document.getElementById('editContactModal').style.display = 'none';
+}
+document.getElementById('editContactModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+</script>
 {% endblock %}

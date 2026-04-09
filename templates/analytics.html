@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Analytics — SOM Event OS{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <h2>Outreach Analytics</h2>
+    <p class="muted text-sm">AI-powered insights across all channels</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- ── Overview metrics ── -->
+<div class="metrics-grid" style="margin-bottom:1.25rem;">
+  <div class="metric-card mc-1">
+    <div class="metric-value">{{ total_contacts }}</div>
+    <div class="metric-label">Total contacts</div>
+  </div>
+  <div class="metric-card mc-2">
+    <div class="metric-value">{{ email_stats.total_sent }}</div>
+    <div class="metric-label">Emails sent</div>
+  </div>
+  <div class="metric-card mc-3">
+    <div class="metric-value">{{ call_metrics.total_calls }}</div>
+    <div class="metric-label">Calls placed</div>
+  </div>
+  <div class="metric-card mc-5">
+    <div class="metric-value">{{ call_metrics.completed_calls }}</div>
+    <div class="metric-label">Calls completed</div>
+  </div>
+  <div class="metric-card mc-6">
+    <div class="metric-value">{{ call_metrics.analyzed_calls }}</div>
+    <div class="metric-label">AI analyzed</div>
+  </div>
+  <div class="metric-card mc-big mc-4">
+    <div class="metric-value">{{ call_metrics.avg_sentiment }}/10</div>
+    <div class="metric-label">Avg. sentiment</div>
+  </div>
+</div>
+
+<!-- ── Call outcomes ── -->
+{% if call_metrics.outcomes %}
+<div class="card">
+  <h2>Call Outcomes</h2>
+  <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+    {% for outcome, count in call_metrics.outcomes.items() %}
+    <div style="background:var(--input-bg);border-radius:var(--radius-sm);padding:.5rem .8rem;text-align:center;min-width:100px;">
+      <div style="font-size:1.2rem;font-weight:700;">{{ count }}</div>
+      <div style="font-size:.75rem;color:var(--text-secondary);text-transform:capitalize;">{{ outcome|replace('_',' ') }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Engagement levels ── -->
+{% if call_metrics.engagement %}
+<div class="card">
+  <h2>Engagement Levels</h2>
+  <div style="display:flex;gap:1rem;">
+    {% for level, count in call_metrics.engagement.items() %}
+    <div style="flex:1;text-align:center;">
+      <div style="font-size:1.5rem;font-weight:700;color:{% if level == 'high' %}var(--m-emerald){% elif level == 'medium' %}var(--s-contacted){% else %}var(--s-not-contacted){% endif %};">{{ count }}</div>
+      <div style="font-size:.8rem;color:var(--text-secondary);text-transform:capitalize;">{{ level }}</div>
+      <div style="margin-top:.4rem;height:6px;background:var(--input-bg);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:{{ (count / (call_metrics.analyzed_calls or 1) * 100)|int }}%;background:{% if level == 'high' %}var(--m-emerald){% elif level == 'medium' %}var(--s-contacted){% else %}var(--s-not-contacted){% endif %};border-radius:3px;"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── What works / doesn't ── -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+  <div class="card">
+    <h2 style="color:var(--m-emerald);">What Works</h2>
+    {% if call_metrics.top_worked %}
+    <ol style="margin-left:1.2rem;font-size:.88rem;line-height:1.8;">
+      {% for item in call_metrics.top_worked %}
+      <li style="text-transform:capitalize;">{{ item }}</li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="empty-state">No data yet — insights appear after AI analyzes calls.</p>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2 style="color:var(--s-declined);">What Doesn't Work</h2>
+    {% if call_metrics.top_didnt_work %}
+    <ol style="margin-left:1.2rem;font-size:.88rem;line-height:1.8;">
+      {% for item in call_metrics.top_didnt_work %}
+      <li style="text-transform:capitalize;">{{ item }}</li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="empty-state">No data yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Per-event performance ── -->
+{% if event_stats %}
+<div class="card">
+  <h2>Event Performance</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>Invited</th>
+          <th>RSVPs</th>
+          <th>Confirmed</th>
+          <th>Declined</th>
+          <th>RSVP Rate</th>
+          <th>Attendance Rate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for es in event_stats %}
+        <tr>
+          <td style="font-weight:500;">{{ es.name|truncate(40) }}</td>
+          <td>{{ es.total_invited }}</td>
+          <td>{{ es.rsvp_count }}</td>
+          <td>{{ es.confirmed }}</td>
+          <td>{{ es.declined }}</td>
+          <td><strong>{{ es.rsvp_rate }}%</strong></td>
+          <td><strong>{{ es.attendance_rate }}%</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Recent AI analyses ── -->
+{% if recent_analyses %}
+<div class="card">
+  <h2>Recent Call Analyses</h2>
+  {% for entry in recent_analyses %}
+  <div style="background:var(--input-bg);border-radius:var(--radius-sm);padding:.8rem 1rem;margin-bottom:.5rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <strong style="font-size:.9rem;">{{ entry.contact_name }}</strong>
+      <div style="display:flex;gap:.4rem;">
+        <span class="badge badge-{% if entry.ai_analysis.sentiment_score >= 7 %}confirmed{% elif entry.ai_analysis.sentiment_score >= 4 %}contacted{% else %}declined{% endif %}">
+          {{ entry.ai_analysis.sentiment_score }}/10
+        </span>
+        <span class="badge badge-responded">{{ entry.ai_analysis.engagement_level }}</span>
+      </div>
+    </div>
+    <p class="muted text-sm" style="margin-top:.3rem;">
+      Outcome: {{ entry.ai_analysis.outcome|replace('_',' ')|title }}
+      {% if entry.ai_analysis.recommended_next_step %} · Next: {{ entry.ai_analysis.recommended_next_step }}{% endif %}
+    </p>
+    <a href="{{ url_for('call_detail_page', call_id=entry.call_id) }}" class="muted" style="font-size:.78rem;">View full analysis →</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

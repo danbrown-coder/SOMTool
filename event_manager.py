@@ -165,6 +165,42 @@ def add_contact(
     return None
 
 
+def delete_contact(event_id: str, contact_id: str) -> bool:
+    events = load_events()
+    for i, e in enumerate(events):
+        if e.id != event_id:
+            continue
+        before = len(e.contacts)
+        e.contacts = [c for c in e.contacts if c.id != contact_id]
+        if len(e.contacts) < before:
+            events[i] = e
+            save_events(events)
+            return True
+    return False
+
+
+def update_contact_details(
+    event_id: str, contact_id: str,
+    name: str = "", email: str = "", phone: str = "",
+) -> bool:
+    events = load_events()
+    for i, e in enumerate(events):
+        if e.id != event_id:
+            continue
+        for j, c in enumerate(e.contacts):
+            if c.id == contact_id:
+                if name:
+                    c.name = name.strip()
+                if email:
+                    c.email = email.strip()
+                c.phone = phone.strip() if phone is not None else c.phone
+                e.contacts[j] = c
+                events[i] = e
+                save_events(events)
+                return True
+    return False
+
+
 def update_contact_status(event_id: str, contact_id: str, status: str) -> bool:
     try:
         new_status = ContactStatus(status)

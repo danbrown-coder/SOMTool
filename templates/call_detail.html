@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Call Detail — SOM Event OS{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('live_calls_page') }}">Live Calls</a>  /  {{ call.contact_name }}</div>
+    <h2>{{ call.call_type|title }} Call — {{ call.contact_name }}</h2>
+  </div>
+  <span class="badge badge-{{ 'confirmed' if call.status == 'ended' else 'contacted' }}">{{ call.status }}</span>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.transcript-full {
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.2rem;
+  font-size: .84rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  max-height: 500px;
+  overflow-y: auto;
+}
+.analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+.analysis-item {
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  padding: .8rem 1rem;
+}
+.analysis-item .label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+  margin-bottom: .3rem;
+}
+.analysis-item .value {
+  font-size: .9rem;
+  font-weight: 500;
+}
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;">
+  <div class="metric-card mc-1">
+    <div class="metric-value">{{ call.duration_seconds }}s</div>
+    <div class="metric-label">Duration</div>
+  </div>
+  <div class="metric-card mc-3">
+    <div class="metric-value">{{ call.ended_reason or '—' }}</div>
+    <div class="metric-label">Ended reason</div>
+  </div>
+</div>
+
+{% if call.summary %}
+<div class="card">
+  <h2>Summary</h2>
+  <p>{{ call.summary }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Transcript</h2>
+  {% if call.status != 'ended' %}
+  <div id="live-transcript" class="transcript-full">Waiting for call data...</div>
+  {% elif call.transcript %}
+  <div class="transcript-full">{{ call.transcript }}</div>
+  {% else %}
+  <p class="empty-state">No transcript available for this call.</p>
+  {% endif %}
+</div>
+
+{% if call.recording_url %}
+<div class="card">
+  <h2>Recording</h2>
+  <audio controls style="width:100%;">
+    <source src="{{ call.recording_url }}" type="audio/wav">
+    Your browser does not support audio playback.
+  </audio>
+  {% if call.stereo_recording_url %}
+  <p class="muted text-sm" style="margin-top:.5rem;">
+    <a href="{{ call.stereo_recording_url }}" target="_blank">Download stereo recording</a>
+  </p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if call.ai_analysis %}
+<div class="card">
+  <h2>AI Analysis</h2>
+  <div class="analysis-grid">
+    <div class="analysis-item">
+      <div class="label">Sentiment Score</div>
+      <div class="value">{{ call.ai_analysis.sentiment_score }}/10</div>
+    </div>
+    <div class="analysis-item">
+      <div class="label">Engagement</div>
+      <div class="value" style="text-transform:capitalize;">{{ call.ai_analysis.engagement_level }}</div>
+    </div>
+    <div class="analysis-item">
+      <div class="label">Outcome</div>
+      <div class="value" style="text-transform:capitalize;">{{ call.ai_analysis.outcome|replace('_',' ') }}</div>
+    </div>
+    <div class="analysis-item">
+      <div class="label">Contact Preference</div>
+      <div class="value" style="text-transform:capitalize;">{{ call.ai_analysis.contact_preference or '—' }}</div>
+    </div>
+  </div>
+
+  {% if call.ai_analysis.key_objections %}
+  <div style="margin-top:1rem;">
+    <h3 style="font-size:.85rem;color:var(--text-secondary);margin-bottom:.4rem;">Key Objections</h3>
+    <ul style="margin-left:1.2rem;font-size:.88rem;">
+      {% for obj in call.ai_analysis.key_objections %}
+      <li>{{ obj }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if call.ai_analysis.what_worked %}
+  <div style="margin-top:.75rem;">
+    <h3 style="font-size:.85rem;color:var(--m-emerald);margin-bottom:.4rem;">What Worked</h3>
+    <ul style="margin-left:1.2rem;font-size:.88rem;">
+      {% for w in call.ai_analysis.what_worked %}
+      <li>{{ w }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if call.ai_analysis.what_didnt_work %}
+  <div style="margin-top:.75rem;">
+    <h3 style="font-size:.85rem;color:var(--s-declined);margin-bottom:.4rem;">What Didn't Work</h3>
+    <ul style="margin-left:1.2rem;font-size:.88rem;">
+      {% for w in call.ai_analysis.what_didnt_work %}
+      <li>{{ w }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if call.ai_analysis.recommended_next_step %}
+  <div style="margin-top:.75rem;">
+    <h3 style="font-size:.85rem;color:var(--accent);margin-bottom:.4rem;">Recommended Next Step</h3>
+    <p style="font-size:.88rem;">{{ call.ai_analysis.recommended_next_step }}</p>
+  </div>
+  {% endif %}
+
+  {% if call.ai_analysis.phrasing_notes %}
+  <div style="margin-top:.75rem;">
+    <h3 style="font-size:.85rem;color:var(--text-secondary);margin-bottom:.4rem;">Phrasing Notes</h3>
+    <p style="font-size:.88rem;">{{ call.ai_analysis.phrasing_notes }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if call.messages %}
+<div class="card">
+  <h2>Message Log</h2>
+  <div style="max-height:400px;overflow-y:auto;">
+    {% for msg in call.messages %}
+    <div style="margin-bottom:.5rem;padding:.4rem .6rem;background:{% if msg.role == 'assistant' %}#eef2ff{% elif msg.role == 'user' %}#f0fdf4{% else %}var(--input-bg){% endif %};border-radius:6px;font-size:.84rem;">
+      <strong style="font-size:.75rem;text-transform:uppercase;color:var(--text-secondary);">{{ msg.role or 'system' }}</strong><br>
+      {{ msg.content or msg.message or '' }}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if call.status != 'ended' %}
+<script>
+(function() {
+  var box = document.getElementById('live-transcript');
+  var src = new EventSource('/calls/{{ call.call_id }}/stream');
+  src.onmessage = function(e) {
+    try {
+      var d = JSON.parse(e.data);
+      if (d.done) { src.close(); location.reload(); return; }
+      if (d.transcript) box.textContent = d.transcript;
+      else if (d.status) box.textContent = 'Status: ' + d.status;
+      box.scrollTop = box.scrollHeight;
+    } catch(ex) {}
+  };
+  src.onerror = function() { src.close(); };
+})();
+</script>
+{% endif %}
+{% endblock %}
