@@ -1,0 +1,12 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# After connect: add env vars from .env.example in the Render dashboard.
+# Free web services spin down when idle; upgrade the instance in the dashboard for true 24/7.
+services:
+  - type: web
+    name: somtool
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    disk:
+      name: somtool-data
+      mountPath: /app/data
+      sizeGB: 1

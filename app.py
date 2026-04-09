@@ -4,7 +4,9 @@ from __future__ import annotations
 import json
 import os
 import secrets
-from datetime import date
+import threading
+import time as _time
+from datetime import date, datetime, timezone
 from functools import wraps
 
 from dotenv import load_dotenv
@@ -872,6 +874,7 @@ def som_events_page():
         other=other,
         changes=changes,
         sources=scraper.SOURCES,
+        monitor=_monitor_state,
     )
 
 
@@ -1127,5 +1130,91 @@ def call_followup_route(event_id: str):
     )
 
 
+# ── Background web monitor ──────────────────────────────────
+_monitor_state = {
+    "running": False,
+    "last_check": None,
+    "checks_count": 0,
+    "last_changes": 0,
+    "interval_minutes": 0,
+}
+
+
+def _auto_notify_for_changes(new_changes: list[dict]) -> None:
+    """Auto-generate and send update emails when changes are detected."""
+    if os.environ.get("AUTO_NOTIFY_ON_CHANGE", "true").lower() != "true":
+        return
+    gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
+    for change in new_changes:
+        event_id = change.get("event_id", "")
+        if not event_id:
+            continue
+        events = em.load_events()
+        event = next((e for e in events if e.id == event_id), None)
+        if not event or not event.contacts:
+            continue
+        for c in event.contacts:
+            ctx = _person_context_for_contact(c)
+            gen = generate_event_update_email(
+                event.name, event.date,
+                change.get("description", "Event updated"),
+                c.name,
+                contact_role=c.contact_role.value,
+                **ctx,
+            )
+            log.log_outreach(
+                event_id, c.id, c.name, EmailType.FOLLOW_UP,
+                gen.body, subject=gen.subject,
+            )
+            if gmail_ok:
+                email_sender.send_email(c.email, gen.subject, gen.body)
+
+
+def _monitor_loop() -> None:
+    """Background loop that periodically scrapes and auto-notifies."""
+    interval = int(os.environ.get("SCRAPE_INTERVAL_MINUTES", "10") or "0")
+    if interval <= 0:
+        return
+    _monitor_state["running"] = True
+    _monitor_state["interval_minutes"] = interval
+    while _monitor_state["running"]:
+        _time.sleep(interval * 60)
+        if not _monitor_state["running"]:
+            break
+        try:
+            _, new_changes = scraper.refresh_from_web()
+            _monitor_state["last_check"] = datetime.now(timezone.utc).isoformat()
+            _monitor_state["checks_count"] += 1
+            _monitor_state["last_changes"] = len(new_changes)
+            if new_changes:
+                _auto_notify_for_changes(new_changes)
+        except Exception:
+            pass
+
+
+def _start_monitor() -> None:
+    interval = int(os.environ.get("SCRAPE_INTERVAL_MINUTES", "10") or "0")
+    if interval <= 0:
+        _monitor_state["running"] = False
+        _monitor_state["interval_minutes"] = 0
+        return
+    _monitor_state["interval_minutes"] = interval
+    t = threading.Thread(target=_monitor_loop, daemon=True)
+    t.start()
+
+
+_start_monitor()
+
+
 if __name__ == "__main__":
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    run_host = os.environ.get("FLASK_RUN_HOST", "127.0.0.1")
+    run_port = int(os.environ.get("FLASK_RUN_PORT", "5000"))
+    debug_env = os.environ.get("FLASK_DEBUG", "").strip().lower()
+    if debug_env in ("1", "true", "yes"):
+        debug = True
+    elif debug_env in ("0", "false", "no"):
+        debug = False
+    else:
+        # Werkzeug debugger is unsafe on a shared interface; default off for 0.0.0.0 / ::
+        debug = run_host not in ("0.0.0.0", "::")
+    app.run(debug=debug, host=run_host, port=run_port)

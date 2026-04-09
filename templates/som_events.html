@@ -53,6 +53,37 @@
 
 {% block content %}
 
+<!-- Monitor Status -->
+<div class="card" style="padding:.75rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:.85rem;">
+  {% if monitor.running %}
+  <span style="display:inline-flex;align-items:center;gap:.35rem;">
+    <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;animation:pulse 2s infinite;"></span>
+    <strong>Auto-monitoring: ON</strong>
+    <span class="muted">(every {{ monitor.interval_minutes }} min)</span>
+  </span>
+  {% else %}
+  <span style="display:inline-flex;align-items:center;gap:.35rem;">
+    <span style="width:8px;height:8px;border-radius:50%;background:#9ca3af;display:inline-block;"></span>
+    <strong>Auto-monitoring: OFF</strong>
+  </span>
+  {% endif %}
+  {% if monitor.last_check %}
+  <span class="muted">Last checked: {{ monitor.last_check[:19] }}Z</span>
+  {% endif %}
+  {% if monitor.checks_count %}
+  <span class="muted">{{ monitor.checks_count }} auto-check{{ 's' if monitor.checks_count != 1 else '' }} completed</span>
+  {% endif %}
+  {% if changes %}
+  <span class="badge badge-declined" style="font-size:.72rem;">{{ changes|length }} pending alert{{ 's' if changes|length != 1 else '' }}</span>
+  {% endif %}
+</div>
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+</style>
+
 <!-- Change Alerts -->
 {% if changes %}
 <div style="margin-bottom: 1.25rem;">
