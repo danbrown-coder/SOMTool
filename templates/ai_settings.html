@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}AI Settings — SOM Event OS{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <h2>AI Settings</h2>
+    <p class="muted text-sm">Configure how the AI behaves when generating emails, scheduling calls, and planning outreach</p>
+  </div>
+  <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-secondary btn-sm">Back to Schedule</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.settings-section {
+  margin-bottom: 1.5rem;
+}
+.settings-section h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  margin-bottom: .75rem;
+  letter-spacing: -.01em;
+}
+.settings-section p.desc {
+  font-size: .82rem;
+  color: var(--text-secondary);
+  margin-bottom: .75rem;
+  line-height: 1.55;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; }
+.toggle-label {
+  font-weight: 500;
+  font-size: .88rem;
+}
+.toggle-desc {
+  font-size: .78rem;
+  color: var(--text-secondary);
+  margin-top: .1rem;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #d1d5db;
+  border-radius: 24px;
+  transition: .3s;
+}
+.switch .slider::before {
+  content: '';
+  position: absolute;
+  height: 18px; width: 18px;
+  left: 3px; bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: .3s;
+}
+.switch input:checked + .slider { background: var(--accent); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
+.num-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+{% endblock %}
+
+{% block content %}
+<form method="post" action="{{ url_for('ai_settings_page') }}">
+
+  <!-- Personality & Tone -->
+  <div class="card settings-section">
+    <h3>Personality &amp; Tone</h3>
+    <p class="desc">Describe how you want the AI to sound in emails and calls. This gets injected into every AI prompt.</p>
+    <div class="field">
+      <label for="personality">Personality instructions</label>
+      <textarea id="personality" name="personality" rows="4" placeholder="e.g. Be casual and warm. Mention SOM by name. Reference their LinkedIn profile.">{{ cfg.personality }}</textarea>
+    </div>
+  </div>
+
+  <!-- Email Rules -->
+  <div class="card settings-section">
+    <h3>Email Rules</h3>
+    <p class="desc">Specific constraints for AI-generated emails.</p>
+    <div class="field">
+      <label for="email_rules">Email rules</label>
+      <textarea id="email_rules" name="email_rules" rows="3" placeholder="e.g. Keep emails under 5 sentences. Don't use exclamation marks.">{{ cfg.email_rules }}</textarea>
+    </div>
+  </div>
+
+  <!-- Call Rules -->
+  <div class="card settings-section">
+    <h3>Call Rules</h3>
+    <p class="desc">Instructions for how the AI should handle phone calls.</p>
+    <div class="field">
+      <label for="call_rules">Call rules</label>
+      <textarea id="call_rules" name="call_rules" rows="3" placeholder="e.g. Open with your name and reason within 10 seconds. Be conversational.">{{ cfg.call_rules }}</textarea>
+    </div>
+  </div>
+
+  <!-- Timing Rules -->
+  <div class="card settings-section">
+    <h3>Timing Rules</h3>
+    <p class="desc">Tell the AI when and how to schedule outreach. This is used when generating the outreach plan.</p>
+    <div class="field">
+      <label for="timing_rules">Timing rules</label>
+      <textarea id="timing_rules" name="timing_rules" rows="3" placeholder="e.g. Prefer Tuesday-Thursday mornings. Never call before 9am PT.">{{ cfg.timing_rules }}</textarea>
+    </div>
+  </div>
+
+  <!-- Auto-Approve Toggles -->
+  <div class="card settings-section">
+    <h3>Auto-Approve</h3>
+    <p class="desc">When enabled, new outreach actions bypass the review queue and execute automatically at their scheduled time.</p>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Auto-approve emails</div>
+        <div class="toggle-desc">New email actions will be approved immediately (no manual review)</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="auto_approve_emails" {% if cfg.auto_approve_emails %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Auto-approve calls</div>
+        <div class="toggle-desc">New call actions will be approved immediately (no manual review)</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" name="auto_approve_calls" {% if cfg.auto_approve_calls %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Numeric Settings -->
+  <div class="card settings-section">
+    <h3>Limits &amp; Timing</h3>
+    <div class="num-grid">
+      <div class="field">
+        <label for="followup_delay_days">Follow-up delay (days)</label>
+        <input type="number" id="followup_delay_days" name="followup_delay_days" value="{{ cfg.followup_delay_days }}" min="1" max="30" style="width:100%;">
+      </div>
+      <div class="field">
+        <label for="call_delay_after_email_days">Call delay after email (days)</label>
+        <input type="number" id="call_delay_after_email_days" name="call_delay_after_email_days" value="{{ cfg.call_delay_after_email_days }}" min="1" max="30" style="width:100%;">
+      </div>
+      <div class="field">
+        <label for="blackout_hours_start">Blackout start (hour, 0-23)</label>
+        <input type="number" id="blackout_hours_start" name="blackout_hours_start" value="{{ cfg.blackout_hours_start }}" min="0" max="23" style="width:100%;">
+      </div>
+      <div class="field">
+        <label for="blackout_hours_end">Blackout end (hour, 0-23)</label>
+        <input type="number" id="blackout_hours_end" name="blackout_hours_end" value="{{ cfg.blackout_hours_end }}" min="0" max="23" style="width:100%;">
+      </div>
+      <div class="field">
+        <label for="max_emails_per_day">Max emails per day</label>
+        <input type="number" id="max_emails_per_day" name="max_emails_per_day" value="{{ cfg.max_emails_per_day }}" min="1" max="200" style="width:100%;">
+      </div>
+      <div class="field">
+        <label for="max_calls_per_day">Max calls per day</label>
+        <input type="number" id="max_calls_per_day" name="max_calls_per_day" value="{{ cfg.max_calls_per_day }}" min="1" max="100" style="width:100%;">
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:.65rem;">
+    <button type="submit" class="btn btn-primary">Save settings</button>
+    <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -43,6 +43,8 @@ import scraper
 import vapi_caller
 import call_scheduler
 import call_monitor
+import outreach_queue
+import ai_config as aic
 
 load_dotenv()
 
@@ -1399,6 +1401,187 @@ def api_call_status(call_id: str):
     })
 
 
+# ── Outreach Schedule routes ─────────────────────────────────
+
+
+@app.route("/outreach/schedule")
+@login_required
+def outreach_schedule_page():
+    status_filter = request.args.get("status", "")
+    type_filter = request.args.get("type", "")
+    event_filter = request.args.get("event", "")
+    items = outreach_queue.get_queue_filtered(
+        status=status_filter, action_type=type_filter, event_id=event_filter,
+    )
+    events = em.load_events()
+    event_map = {e.id: e.name for e in events}
+    return render_template(
+        "outreach_schedule.html",
+        queue=items, event_map=event_map, events=events,
+        status_filter=status_filter, type_filter=type_filter,
+        event_filter=event_filter,
+    )
+
+
+@app.post("/outreach/queue/<action_id>/approve")
+@login_required
+def approve_queue_action(action_id: str):
+    outreach_queue.update_status(action_id, "approved")
+    flash("Action approved.", "info")
+    return redirect(url_for("outreach_schedule_page"))
+
+
+@app.post("/outreach/queue/<action_id>/skip")
+@login_required
+def skip_queue_action(action_id: str):
+    outreach_queue.update_status(action_id, "skipped")
+    flash("Action skipped.", "info")
+    return redirect(url_for("outreach_schedule_page"))
+
+
+@app.post("/outreach/queue/<action_id>/delete")
+@login_required
+def delete_queue_action(action_id: str):
+    outreach_queue.delete_action(action_id)
+    flash("Action deleted.", "info")
+    return redirect(url_for("outreach_schedule_page"))
+
+
+@app.post("/outreach/queue/<action_id>/reschedule")
+@login_required
+def reschedule_queue_action(action_id: str):
+    new_time = request.form.get("scheduled_at", "")
+    if not new_time:
+        flash("No time provided.", "info")
+        return redirect(url_for("outreach_schedule_page"))
+    if "T" not in new_time:
+        new_time += "T10:00:00Z"
+    elif not new_time.endswith("Z"):
+        new_time += "Z"
+    outreach_queue.reschedule(action_id, new_time)
+    flash("Rescheduled and approved.", "info")
+    return redirect(url_for("outreach_schedule_page"))
+
+
+@app.post("/outreach/queue/<action_id>/regenerate")
+@login_required
+def regenerate_queue_action(action_id: str):
+    action = outreach_queue.get_by_id(action_id)
+    if not action:
+        flash("Action not found.", "info")
+        return redirect(url_for("outreach_schedule_page"))
+    event = em.get_event(action["event_id"])
+    if not event:
+        flash("Event not found.", "info")
+        return redirect(url_for("outreach_schedule_page"))
+    contact = next((c for c in event.contacts if c.id == action["contact_id"]), None)
+    if not contact:
+        flash("Contact not found.", "info")
+        return redirect(url_for("outreach_schedule_page"))
+    ctx = _person_context_for_contact(contact)
+    atype = action["action_type"]
+    if atype == "email_initial":
+        gen = generate_initial_email(
+            event.name, event.date, event.description,
+            event.audience_type, contact.name,
+            contact_role=contact.contact_role.value, **ctx,
+        )
+    elif atype == "email_followup":
+        gen = generate_followup_email(
+            event.name, event.date, contact.name,
+            contact_role=contact.contact_role.value, **ctx,
+        )
+    else:
+        flash("Regeneration only supported for email actions.", "info")
+        return redirect(url_for("outreach_schedule_page"))
+    preview = f"Subject: {gen.subject}\n\n{gen.body}"
+    outreach_queue.update_preview(action_id, preview)
+    flash("Email regenerated with fresh AI content.", "info")
+    return redirect(url_for("outreach_schedule_page"))
+
+
+@app.post("/outreach/plan-all")
+@login_required
+def plan_all_outreach():
+    cfg = aic.load_config()
+    total = 0
+    for event in em.load_events():
+        targets = [
+            c for c in event.contacts
+            if c.status == ContactStatus.NOT_CONTACTED and _is_valid_email(c.email)
+            and not outreach_queue.already_queued(event.id, c.id, "email_initial")
+        ]
+        if not targets:
+            continue
+        added = outreach_queue.plan_outreach_for_event(event, targets, cfg)
+        for c in targets:
+            _generate_preview_for_queued(event, c)
+        total += added
+    flash(f"Planned {total} outreach action(s) across all events.", "info")
+    return redirect(url_for("outreach_schedule_page"))
+
+
+def _generate_preview_for_queued(event, contact) -> None:
+    """Fill in email preview for queued initial email actions that lack one."""
+    items = outreach_queue.load_queue()
+    changed = False
+    for item in items:
+        if (item["event_id"] == event.id and item["contact_id"] == contact.id
+                and item["action_type"] == "email_initial" and not item.get("preview")):
+            ctx = _person_context_for_contact(contact)
+            gen = generate_initial_email(
+                event.name, event.date, event.description,
+                event.audience_type, contact.name,
+                contact_role=contact.contact_role.value, **ctx,
+            )
+            item["preview"] = f"Subject: {gen.subject}\n\n{gen.body}"
+            changed = True
+    if changed:
+        outreach_queue.save_queue(items)
+
+
+@app.post("/outreach/approve-all")
+@login_required
+def approve_all_outreach():
+    items = outreach_queue.load_queue()
+    count = 0
+    for item in items:
+        if item["status"] == "planned":
+            item["status"] = "approved"
+            count += 1
+    if count:
+        outreach_queue.save_queue(items)
+    flash(f"Approved {count} planned action(s).", "info")
+    return redirect(url_for("outreach_schedule_page"))
+
+
+# ── AI Settings routes ──────────────────────────────────────
+
+
+@app.route("/outreach/ai-settings", methods=["GET", "POST"])
+@login_required
+def ai_settings_page():
+    if request.method == "POST":
+        cfg = aic.load_config()
+        cfg["personality"] = request.form.get("personality", cfg["personality"])
+        cfg["timing_rules"] = request.form.get("timing_rules", cfg["timing_rules"])
+        cfg["email_rules"] = request.form.get("email_rules", cfg["email_rules"])
+        cfg["call_rules"] = request.form.get("call_rules", cfg["call_rules"])
+        cfg["auto_approve_emails"] = request.form.get("auto_approve_emails") == "on"
+        cfg["auto_approve_calls"] = request.form.get("auto_approve_calls") == "on"
+        cfg["followup_delay_days"] = int(request.form.get("followup_delay_days", 3) or 3)
+        cfg["call_delay_after_email_days"] = int(request.form.get("call_delay_after_email_days", 2) or 2)
+        cfg["blackout_hours_start"] = int(request.form.get("blackout_hours_start", 22) or 22)
+        cfg["blackout_hours_end"] = int(request.form.get("blackout_hours_end", 8) or 8)
+        cfg["max_emails_per_day"] = int(request.form.get("max_emails_per_day", 20) or 20)
+        cfg["max_calls_per_day"] = int(request.form.get("max_calls_per_day", 10) or 10)
+        aic.save_config(cfg)
+        flash("AI settings saved.", "info")
+        return redirect(url_for("ai_settings_page"))
+    cfg = aic.load_config()
+    return render_template("ai_settings.html", cfg=cfg)
+
+
 # ── Background web monitor & automation engine ──────────────
 _monitor_state = {
     "running": False,
@@ -1536,168 +1719,192 @@ def _is_valid_email(addr: str) -> bool:
     return True
 
 
-def _auto_outreach_emails() -> int:
-    """Auto-generate and send initial outreach emails for NOT_CONTACTED contacts."""
+def _auto_plan_outreach() -> int:
+    """Plan outreach actions into the queue for contacts that need them."""
     if not _env_bool("AUTO_SEND_EMAILS"):
         return 0
-    gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
-    if not gmail_ok:
-        return 0
-    batch_size = int(os.environ.get("AUTO_EMAIL_BATCH_SIZE", "10") or "10")
-    sent = 0
+    cfg = aic.load_config()
+    planned = 0
     for event in em.load_events():
-        if sent >= batch_size:
-            break
-        targets = [c for c in event.contacts if c.status == ContactStatus.NOT_CONTACTED and _is_valid_email(c.email)]
+        targets = [
+            c for c in event.contacts
+            if c.status == ContactStatus.NOT_CONTACTED and _is_valid_email(c.email)
+            and not outreach_queue.already_queued(event.id, c.id, "email_initial")
+        ]
         if not targets:
             continue
-        ids_to_update = []
         for c in targets:
-            if sent >= batch_size:
-                break
             ctx = _person_context_for_contact(c)
             gen = generate_initial_email(
                 event.name, event.date, event.description,
                 event.audience_type, c.name,
                 contact_role=c.contact_role.value, **ctx,
             )
-            log.log_outreach(
-                event.id, c.id, c.name, EmailType.INITIAL,
-                gen.body, subject=gen.subject,
-            )
-            email_sender.send_email(c.email, gen.subject, gen.body)
-            ids_to_update.append(c.id)
-            sent += 1
-        if ids_to_update:
-            em.update_contacts_status_batch(event.id, ids_to_update, ContactStatus.CONTACTED)
-    return sent
-
-
-def _auto_followup_emails() -> int:
-    """Auto-send follow-ups for CONTACTED contacts after a delay."""
-    if not _env_bool("AUTO_SEND_EMAILS"):
-        return 0
-    gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
-    if not gmail_ok:
-        return 0
-    delay_days = int(os.environ.get("AUTO_FOLLOWUP_DAYS", "3") or "3")
-    batch_size = int(os.environ.get("AUTO_EMAIL_BATCH_SIZE", "10") or "10")
-    cutoff = datetime.now(timezone.utc).isoformat()
-    sent = 0
-    for event in em.load_events():
-        if sent >= batch_size:
-            break
-        for c in event.contacts:
-            if sent >= batch_size:
-                break
-            if c.status != ContactStatus.CONTACTED:
-                continue
-            if not _is_valid_email(c.email):
-                continue
-            last_log = log.get_last_outreach(event.id, c.id) if hasattr(log, "get_last_outreach") else None
-            if last_log:
-                from datetime import timedelta
-                try:
-                    last_ts = datetime.fromisoformat(last_log.get("timestamp", ""))
-                    if datetime.now(timezone.utc) - last_ts < timedelta(days=delay_days):
-                        continue
-                except Exception:
-                    pass
-            ctx = _person_context_for_contact(c)
-            gen = generate_followup_email(
-                event.name, event.date, c.name,
-                contact_role=c.contact_role.value, **ctx,
-            )
-            log.log_outreach(
-                event.id, c.id, c.name, EmailType.FOLLOW_UP,
-                gen.body, subject=gen.subject,
-            )
-            email_sender.send_email(c.email, gen.subject, gen.body)
-            sent += 1
-    return sent
-
-
-def _auto_schedule_calls() -> int:
-    """AI-suggest call schedule for contacts that haven't responded to emails."""
-    if not _env_bool("AUTO_SCHEDULE_CALLS", "false"):
-        return 0
-    delay = int(os.environ.get("CALL_DELAY_AFTER_EMAIL_DAYS", "2") or "2")
-    scheduled = 0
-    for event in em.load_events():
-        for c in event.contacts:
-            if c.status != ContactStatus.CONTACTED:
-                continue
-            phone = _person_phone_for_contact(c)
-            if not phone:
-                continue
-            if call_scheduler.already_scheduled(event.id, c.id, "invite"):
-                continue
-            from datetime import timedelta
-            call_time = (datetime.now(timezone.utc) + timedelta(days=delay)).replace(
-                hour=10, minute=0, second=0, microsecond=0
-            ).isoformat()
-            call_scheduler.add_scheduled_call(
+            preview = f"Subject: {gen.subject}\n\n{gen.body}"
+            auto_approve = cfg.get("auto_approve_emails", False)
+            status = "approved" if auto_approve else "planned"
+            now = datetime.now(timezone.utc)
+            blackout_end = cfg.get("blackout_hours_end", 8)
+            blackout_start = cfg.get("blackout_hours_start", 22)
+            email_time = outreach_queue._next_good_slot(now, blackout_start, blackout_end)
+            outreach_queue.add_action(
                 event_id=event.id, contact_id=c.id,
-                contact_name=c.name, call_type="invite",
-                scheduled_at=call_time, suggested_by="ai",
+                contact_name=c.name, contact_email=c.email,
+                action_type="email_initial", scheduled_at=email_time,
+                ai_reason="Initial outreach — auto-planned by automation pipeline",
+                preview=preview, status=status,
             )
-            scheduled += 1
-    return scheduled
+            planned += 1
+
+            from datetime import timedelta
+            followup_delay = cfg.get("followup_delay_days", 3)
+            followup_time = outreach_queue._next_good_slot(
+                datetime.fromisoformat(email_time.replace("Z", "+00:00")) + timedelta(days=followup_delay),
+                blackout_start, blackout_end,
+            )
+            if not outreach_queue.already_queued(event.id, c.id, "email_followup"):
+                outreach_queue.add_action(
+                    event_id=event.id, contact_id=c.id,
+                    contact_name=c.name, contact_email=c.email,
+                    action_type="email_followup", scheduled_at=followup_time,
+                    ai_reason=f"Follow-up {followup_delay} days after initial email",
+                    preview="", status=status,
+                )
+                planned += 1
+
+            call_delay = cfg.get("call_delay_after_email_days", 2)
+            call_time = outreach_queue._next_good_slot(
+                datetime.fromisoformat(email_time.replace("Z", "+00:00")) + timedelta(days=call_delay),
+                blackout_start, blackout_end,
+            )
+            if not outreach_queue.already_queued(event.id, c.id, "call_invite"):
+                call_status = "approved" if cfg.get("auto_approve_calls", False) else "planned"
+                outreach_queue.add_action(
+                    event_id=event.id, contact_id=c.id,
+                    contact_name=c.name, contact_email=c.email,
+                    action_type="call_invite", scheduled_at=call_time,
+                    ai_reason=f"Phone follow-up {call_delay} days after email",
+                    preview="", status=call_status,
+                )
+                planned += 1
+
+    return planned
 
 
-def _auto_execute_calls() -> int:
-    """Execute scheduled calls whose time has arrived."""
-    if not _env_bool("AUTO_SCHEDULE_CALLS", "false"):
-        return 0
-    now = datetime.now(timezone.utc).isoformat()
-    due = call_scheduler.get_pending_due(now)
+def _execute_approved_actions() -> int:
+    """Execute approved queue actions whose scheduled time has passed."""
+    cfg = aic.load_config()
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    due = outreach_queue.get_due_approved(now_iso)
     executed = 0
-    for item in due:
-        event = em.get_event(item["event_id"])
-        if not event:
-            call_scheduler.update_status(item["id"], "failed", result="Event not found")
-            continue
-        contact = next((c for c in event.contacts if c.id == item["contact_id"]), None)
-        if not contact:
-            call_scheduler.update_status(item["id"], "failed", result="Contact not found")
-            continue
-        phone = _person_phone_for_contact(contact)
-        if not phone:
-            call_scheduler.update_status(item["id"], "failed", result="No phone")
-            continue
-        ctx = _person_context_for_contact(contact)
-        bg_parts = []
-        if ctx.get("company"):
-            bg_parts.append(f"Works at {ctx['company']}")
-        if ctx.get("title"):
-            bg_parts.append(f"Title: {ctx['title']}")
-        call_fn = vapi_caller.call_invite if item["call_type"] == "invite" else vapi_caller.call_followup
-        result = call_fn(
-            phone=phone, recipient_name=contact.name,
-            event_name=event.name, event_date=event.date,
-            contact_role=contact.contact_role.value,
-            company=ctx.get("company", ""),
-            title=ctx.get("title", ""),
-            background_notes=". ".join(bg_parts) if bg_parts else "",
-        )
-        if result.get("ok"):
-            call_scheduler.update_status(item["id"], "completed", call_id=result["call_id"])
-            call_monitor.log_call(
-                call_id=result["call_id"], event_id=event.id,
-                contact_id=contact.id, contact_name=contact.name,
-                call_type=item["call_type"],
-                listen_url=result.get("listen_url", ""),
-                control_url=result.get("control_url", ""),
-            )
-            etype = EmailType.INITIAL if item["call_type"] == "invite" else EmailType.FOLLOW_UP
-            log.log_outreach(
-                event.id, contact.id, contact.name, etype,
-                f"[AI CALL — AUTO] Call placed to {phone}",
-                subject=f"AI Call: {event.name}",
-            )
+    emails_today = 0
+    calls_today = 0
+    max_emails = cfg.get("max_emails_per_day", 20)
+    max_calls = cfg.get("max_calls_per_day", 10)
+
+    gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
+
+    for action in due:
+        atype = action["action_type"]
+
+        if atype in ("email_initial", "email_followup"):
+            if not gmail_ok or emails_today >= max_emails:
+                continue
+            if not _is_valid_email(action.get("contact_email", "")):
+                outreach_queue.update_status(action["id"], "failed")
+                continue
+
+            event = em.get_event(action["event_id"])
+            if not event:
+                outreach_queue.update_status(action["id"], "failed")
+                continue
+
+            contact = next((c for c in event.contacts if c.id == action["contact_id"]), None)
+            if not contact:
+                outreach_queue.update_status(action["id"], "failed")
+                continue
+
+            preview = action.get("preview", "")
+            if preview and "\n\n" in preview:
+                subj_line, body = preview.split("\n\n", 1)
+                subject = subj_line.replace("Subject: ", "").strip()
+            else:
+                ctx = _person_context_for_contact(contact)
+                if atype == "email_initial":
+                    gen = generate_initial_email(
+                        event.name, event.date, event.description,
+                        event.audience_type, contact.name,
+                        contact_role=contact.contact_role.value, **ctx,
+                    )
+                else:
+                    gen = generate_followup_email(
+                        event.name, event.date, contact.name,
+                        contact_role=contact.contact_role.value, **ctx,
+                    )
+                subject, body = gen.subject, gen.body
+
+            etype = EmailType.INITIAL if atype == "email_initial" else EmailType.FOLLOW_UP
+            log.log_outreach(event.id, contact.id, contact.name, etype, body, subject=subject)
+            email_sender.send_email(contact.email, subject, body)
+
+            if atype == "email_initial":
+                em.update_contact_status(event.id, contact.id, "contacted")
+
+            outreach_queue.update_status(action["id"], "sent")
+            emails_today += 1
             executed += 1
-        else:
-            call_scheduler.update_status(item["id"], "failed", result=result.get("error", ""))
+
+        elif atype in ("call_invite", "call_followup"):
+            if calls_today >= max_calls:
+                continue
+            event = em.get_event(action["event_id"])
+            if not event:
+                outreach_queue.update_status(action["id"], "failed")
+                continue
+            contact = next((c for c in event.contacts if c.id == action["contact_id"]), None)
+            if not contact:
+                outreach_queue.update_status(action["id"], "failed")
+                continue
+            phone = _person_phone_for_contact(contact)
+            if not phone:
+                outreach_queue.update_status(action["id"], "failed")
+                continue
+            ctx = _person_context_for_contact(contact)
+            bg_parts = []
+            if ctx.get("company"):
+                bg_parts.append(f"Works at {ctx['company']}")
+            if ctx.get("title"):
+                bg_parts.append(f"Title: {ctx['title']}")
+            call_type = "invite" if atype == "call_invite" else "followup"
+            call_fn = vapi_caller.call_invite if call_type == "invite" else vapi_caller.call_followup
+            result = call_fn(
+                phone=phone, recipient_name=contact.name,
+                event_name=event.name, event_date=event.date,
+                contact_role=contact.contact_role.value,
+                company=ctx.get("company", ""),
+                title=ctx.get("title", ""),
+                background_notes=". ".join(bg_parts) if bg_parts else "",
+            )
+            if result.get("ok"):
+                call_monitor.log_call(
+                    call_id=result["call_id"], event_id=event.id,
+                    contact_id=contact.id, contact_name=contact.name,
+                    call_type=call_type,
+                    listen_url=result.get("listen_url", ""),
+                    control_url=result.get("control_url", ""),
+                )
+                log.log_outreach(
+                    event.id, contact.id, contact.name,
+                    EmailType.INITIAL if call_type == "invite" else EmailType.FOLLOW_UP,
+                    f"[AI CALL — AUTO] Call placed to {phone}",
+                    subject=f"AI Call: {event.name}",
+                )
+                outreach_queue.update_status(action["id"], "sent")
+                calls_today += 1
+                executed += 1
+            else:
+                outreach_queue.update_status(action["id"], "failed")
+
     return executed
 
 
@@ -1752,10 +1959,8 @@ def _monitor_loop() -> None:
                     except Exception:
                         pass
 
-            _auto_outreach_emails()
-            _auto_followup_emails()
-            _auto_schedule_calls()
-            _auto_execute_calls()
+            _auto_plan_outreach()
+            _execute_approved_actions()
 
             call_monitor.sync_all_active()
             _auto_analyze_completed_calls()

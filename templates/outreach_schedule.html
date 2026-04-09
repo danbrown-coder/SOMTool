@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Outreach Schedule — SOM Event OS{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <h2>Outreach Schedule</h2>
+    <p class="muted text-sm">AI-planned emails and calls — review, approve, or adjust</p>
+  </div>
+  <div style="display:flex;gap:.5rem;">
+    <form method="post" action="{{ url_for('plan_all_outreach') }}" style="margin:0;">
+      <button type="submit" class="btn btn-primary btn-sm">Plan all events</button>
+    </form>
+    <form method="post" action="{{ url_for('approve_all_outreach') }}" style="margin:0;">
+      <button type="submit" class="btn btn-secondary btn-sm">Approve all planned</button>
+    </form>
+    <a href="{{ url_for('ai_settings_page') }}" class="btn btn-ghost btn-sm">AI Settings</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.action-badge {
+  display: inline-block;
+  padding: .2rem .6rem;
+  font-size: .72rem;
+  font-weight: 600;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+.action-badge.email { background: #dbeafe; color: #1e40af; }
+.action-badge.call { background: #fef3c7; color: #92400e; }
+.status-pill {
+  display: inline-block;
+  padding: .15rem .55rem;
+  font-size: .72rem;
+  font-weight: 600;
+  border-radius: 100px;
+}
+.status-pill.planned { background: #e0e7ff; color: #3730a3; }
+.status-pill.approved { background: #d1fae5; color: #065f46; }
+.status-pill.sent { background: #f3f4f6; color: #374151; }
+.status-pill.skipped { background: #fee2e2; color: #991b1b; }
+.status-pill.failed { background: #fee2e2; color: #991b1b; }
+.preview-box {
+  background: var(--input-bg);
+  border-radius: var(--radius-sm);
+  padding: .75rem 1rem;
+  font-size: .82rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: .5rem;
+  display: none;
+}
+.preview-box.open { display: block; }
+.date-header {
+  font-size: .82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+  padding: .6rem 0;
+  border-bottom: 1.5px solid var(--border);
+  margin-top: 1rem;
+  margin-bottom: .5rem;
+}
+.q-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: .85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.q-row:last-child { border-bottom: none; }
+.q-info { flex: 1; min-width: 0; }
+.q-actions { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card" style="padding:.85rem 1.2rem;">
+  <form method="get" action="{{ url_for('outreach_schedule_page') }}" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+    <select name="status" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      <option value="planned" {% if status_filter == 'planned' %}selected{% endif %}>Planned</option>
+      <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+      <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent</option>
+      <option value="skipped" {% if status_filter == 'skipped' %}selected{% endif %}>Skipped</option>
+      <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+    </select>
+    <select name="type" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+      <option value="">All types</option>
+      <option value="email_initial" {% if type_filter == 'email_initial' %}selected{% endif %}>Initial Email</option>
+      <option value="email_followup" {% if type_filter == 'email_followup' %}selected{% endif %}>Follow-up Email</option>
+      <option value="call_invite" {% if type_filter == 'call_invite' %}selected{% endif %}>Invite Call</option>
+      <option value="call_followup" {% if type_filter == 'call_followup' %}selected{% endif %}>Follow-up Call</option>
+    </select>
+    <select name="event" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;max-width:220px;" onchange="this.form.submit()">
+      <option value="">All events</option>
+      {% for e in events %}
+      <option value="{{ e.id }}" {% if event_filter == e.id %}selected{% endif %}>{{ e.name|truncate(35) }}</option>
+      {% endfor %}
+    </select>
+    {% if status_filter or type_filter or event_filter %}
+    <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Metrics bar -->
+{% set planned_count = queue|selectattr('status', 'eq', 'planned')|list|length %}
+{% set approved_count = queue|selectattr('status', 'eq', 'approved')|list|length %}
+{% set sent_count = queue|selectattr('status', 'eq', 'sent')|list|length %}
+<div class="metrics-grid" style="margin-bottom:1rem;">
+  <div class="metric-card mc-1">
+    <div class="metric-value">{{ queue|length }}</div>
+    <div class="metric-label">Total actions</div>
+  </div>
+  <div class="metric-card mc-2">
+    <div class="metric-value">{{ planned_count }}</div>
+    <div class="metric-label">Awaiting review</div>
+  </div>
+  <div class="metric-card mc-3">
+    <div class="metric-value">{{ approved_count }}</div>
+    <div class="metric-label">Approved</div>
+  </div>
+  <div class="metric-card mc-5">
+    <div class="metric-value">{{ sent_count }}</div>
+    <div class="metric-label">Sent</div>
+  </div>
+</div>
+
+<!-- Queue timeline -->
+<div class="card">
+  {% if queue %}
+  {% set ns = namespace(current_date='') %}
+  {% for item in queue %}
+    {% set item_date = item.scheduled_at[:10] if item.scheduled_at else 'Unscheduled' %}
+    {% if item_date != ns.current_date %}
+      {% set ns.current_date = item_date %}
+      <div class="date-header">{{ item_date }}</div>
+    {% endif %}
+    <div class="q-row">
+      <div style="width:54px;text-align:center;flex-shrink:0;padding-top:.15rem;">
+        <div style="font-size:.78rem;font-weight:600;color:var(--text-secondary);">
+          {{ item.scheduled_at[11:16] if item.scheduled_at|length > 11 else '--:--' }}
+        </div>
+        <div style="margin-top:.25rem;">
+          {% if 'email' in item.action_type %}
+            <span class="action-badge email">Email</span>
+          {% else %}
+            <span class="action-badge call">Call</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="q-info">
+        <div style="font-weight:600;font-size:.92rem;">{{ item.contact_name }}</div>
+        <div class="muted text-sm">
+          {{ event_map.get(item.event_id, 'Unknown event') }}
+          · {{ item.action_type|replace('_', ' ')|title }}
+        </div>
+        {% if item.ai_reason %}
+        <div class="muted" style="font-size:.78rem;margin-top:.2rem;font-style:italic;">{{ item.ai_reason }}</div>
+        {% endif %}
+        <div style="margin-top:.3rem;">
+          <span class="status-pill {{ item.status }}">{{ item.status|title }}</span>
+        </div>
+        {% if item.preview %}
+        <button class="btn btn-ghost btn-sm" style="margin-top:.3rem;font-size:.78rem;" onclick="this.nextElementSibling.classList.toggle('open');this.textContent = this.nextElementSibling.classList.contains('open') ? 'Hide preview' : 'Show preview';">Show preview</button>
+        <div class="preview-box">{{ item.preview }}</div>
+        {% endif %}
+      </div>
+      <div class="q-actions">
+        {% if item.status == 'planned' %}
+        <form method="post" action="{{ url_for('approve_queue_action', action_id=item.id) }}" style="margin:0;">
+          <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+        </form>
+        <form method="post" action="{{ url_for('skip_queue_action', action_id=item.id) }}" style="margin:0;">
+          <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Skip</button>
+        </form>
+        {% endif %}
+        {% if item.status in ('planned', 'approved') %}
+        <div style="position:relative;">
+          <button class="btn btn-ghost btn-sm" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='block'?'none':'block';" type="button">Reschedule</button>
+          <div style="display:none;position:absolute;right:0;top:100%;z-index:10;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);padding:.75rem;min-width:220px;">
+            <form method="post" action="{{ url_for('reschedule_queue_action', action_id=item.id) }}">
+              <label style="font-size:.7rem;">New date &amp; time</label>
+              <input type="datetime-local" name="scheduled_at" style="height:34px;font-size:.82rem;margin-bottom:.5rem;">
+              <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Save</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        {% if 'email' in item.action_type and item.status in ('planned', 'approved') %}
+        <form method="post" action="{{ url_for('regenerate_queue_action', action_id=item.id) }}" style="margin:0;">
+          <button type="submit" class="btn btn-ghost btn-sm" title="Regenerate email with AI">Regen</button>
+        </form>
+        {% endif %}
+        <form method="post" action="{{ url_for('delete_queue_action', action_id=item.id) }}" style="margin:0;" onsubmit="return confirm('Delete this action?');">
+          <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);" title="Delete">Del</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+  {% else %}
+  <p class="empty-state">
+    No outreach actions in the queue yet.
+    {% if not status_filter and not type_filter and not event_filter %}
+    Click <strong>Plan all events</strong> to have AI generate a schedule.
+    {% else %}
+    <a href="{{ url_for('outreach_schedule_page') }}">Clear filters</a>
+    {% endif %}
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -35,6 +35,27 @@ _HUMAN_SYSTEM_BASE = (
 )
 
 
+def _get_system_prompt() -> str:
+    """Build the full system prompt by combining the base with admin AI config."""
+    try:
+        import ai_config
+        cfg = ai_config.load_config()
+    except Exception:
+        return _HUMAN_SYSTEM_BASE
+
+    extra_parts: list[str] = []
+    personality = cfg.get("personality", "")
+    if personality:
+        extra_parts.append(f"ADMIN PERSONALITY INSTRUCTIONS: {personality}")
+    email_rules = cfg.get("email_rules", "")
+    if email_rules:
+        extra_parts.append(f"ADMIN EMAIL RULES: {email_rules}")
+
+    if not extra_parts:
+        return _HUMAN_SYSTEM_BASE
+    return _HUMAN_SYSTEM_BASE + "\n\n" + "\n".join(extra_parts)
+
+
 def _build_recipient_context(
     recipient_name: str,
     company: str = "",
@@ -342,7 +363,7 @@ def generate_initial_email(
         resp = client.chat.completions.create(
             model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
             messages=[
-                {"role": "system", "content": _HUMAN_SYSTEM_BASE},
+                {"role": "system", "content": _get_system_prompt()},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.8,
@@ -389,7 +410,7 @@ def generate_followup_email(
         resp = client.chat.completions.create(
             model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
             messages=[
-                {"role": "system", "content": _HUMAN_SYSTEM_BASE},
+                {"role": "system", "content": _get_system_prompt()},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.8,
@@ -441,7 +462,7 @@ def generate_event_update_email(
         resp = client.chat.completions.create(
             model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
             messages=[
-                {"role": "system", "content": _HUMAN_SYSTEM_BASE},
+                {"role": "system", "content": _get_system_prompt()},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.7,
@@ -510,7 +531,7 @@ def generate_referral_request_email(
         resp = client.chat.completions.create(
             model=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
             messages=[
-                {"role": "system", "content": _HUMAN_SYSTEM_BASE},
+                {"role": "system", "content": _get_system_prompt()},
                 {"role": "user", "content": user_prompt},
             ],
             temperature=0.85,
