@@ -1,0 +1,12 @@
+[
+  {
+    "id": "90ac09f0-2208-496e-bf99-283ec719186a",
+    "event_id": "som-spmg-fields-2026",
+    "event_name": "Fields of Opp",
+    "source_url": "https://x.com",
+    "change_type": "registration_opened",
+    "description": "Registration opened for Fields of Opportunity",
+    "detected_at": "2026-04-01T23:08:15.245955+00:00",
+    "dismissed": true
+  }
+]

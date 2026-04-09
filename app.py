@@ -44,9 +44,16 @@ load_dotenv()
 
 
 def _seed_data_if_missing() -> None:
-    """Copy seed files into data/ when they don't exist yet (first deploy)."""
+    """Copy seed files into data/ when missing or empty (first deploy)."""
     import shutil
     from pathlib import Path
+
+    def _is_empty_json(path: Path) -> bool:
+        try:
+            content = path.read_text(encoding="utf-8").strip()
+            return content in ("[]", "{}", "")
+        except Exception:
+            return False
 
     seed_dir = Path(__file__).resolve().parent / "seed_data"
     data_dir = Path(__file__).resolve().parent / "data"
@@ -56,7 +63,7 @@ def _seed_data_if_missing() -> None:
     for src in seed_dir.iterdir():
         if src.is_file():
             dest = data_dir / src.name
-            if not dest.exists():
+            if not dest.exists() or _is_empty_json(dest):
                 shutil.copy2(src, dest)
 
 
@@ -1170,7 +1177,7 @@ def _auto_notify_for_changes(new_changes: list[dict]) -> None:
         if not event_id:
             continue
         events = em.load_events()
-        event = next((e for e in events if e.id == event_id), None)
+        event = next((e for e in events if e.som_event_id == event_id), None)
         if not event or not event.contacts:
             continue
         for c in event.contacts:

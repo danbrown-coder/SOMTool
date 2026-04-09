@@ -158,14 +158,153 @@ def _extract_registration_links(html: str, base_url: str) -> list[dict]:
     return links
 
 
+# ── AI event extraction ──────────────────────────────────────
+
+_EVENT_SCHEMA_DESCRIPTION = """\
+Return a JSON array of event objects found on this page. Each object must have:
+- "id": a short slug like "som-series-name-YYYY" (lowercase, hyphens, no spaces)
+- "series": which series/program this belongs to (e.g. "Sports Management", "CERF Events")
+- "name": event title
+- "date": "YYYY-MM-DD" or "TBA"
+- "time": time range or "TBA"
+- "location": venue or "TBA"
+- "description": 1-3 sentence summary
+- "speakers": array of "Name – Title, Organization" strings (empty array if none)
+- "registration_url": URL or ""
+- "registration_status": "open", "closed", or "tba"
+- "cost": pricing info or "Free"
+- "source_url": will be filled in by caller, leave as ""
+- "status": "upcoming" if date is in the future or TBA, "past" if date has passed
+- "contact": organizer contact info or ""
+- "extra_details": any other notable details (1-3 sentences, or "")
+- "last_updated": will be filled in by caller, leave as ""
+
+If the page has NO identifiable events, return an empty array [].
+Only return valid JSON, no markdown fences or commentary."""
+
+
+def _extract_events_with_ai(
+    html: str, source_url: str, label: str, existing: list[dict]
+) -> list[dict] | None:
+    """Use OpenAI to extract structured events from page HTML.
+
+    Returns list of event dicts on success, None on failure/skip.
+    """
+    import os
+
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return None
+    try:
+        from openai import OpenAI
+        from bs4 import BeautifulSoup
+    except Exception:
+        return None
+
+    text = BeautifulSoup(html, "html.parser").get_text(separator="\n", strip=True)
+    if len(text) > 30_000:
+        text = text[:30_000]
+
+    existing_for_url = [e for e in existing if e.get("source_url") == source_url]
+    existing_context = ""
+    if existing_for_url:
+        existing_context = (
+            "\n\nExisting catalog entries for this page (update if details changed, "
+            "keep IDs stable when updating):\n"
+            + json.dumps(existing_for_url, indent=2, ensure_ascii=False)
+        )
+
+    try:
+        client = OpenAI(api_key=api_key)
+        model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": _EVENT_SCHEMA_DESCRIPTION,
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Source: {label} ({source_url})\n"
+                        f"Today's date: {__import__('datetime').date.today().isoformat()}\n\n"
+                        f"Page text:\n{text}"
+                        f"{existing_context}"
+                    ),
+                },
+            ],
+            temperature=0.1,
+            timeout=30,
+        )
+        raw = resp.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```\w*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+        parsed = json.loads(raw)
+        if not isinstance(parsed, list):
+            return None
+        return parsed
+    except Exception:
+        return None
+
+
+def _merge_ai_events(
+    existing: list[dict], ai_events: list[dict], source_url: str
+) -> bool:
+    """Merge AI-extracted events into the catalog. Returns True if catalog changed."""
+    changed = False
+    now = utc_now_iso()
+    existing_by_id = {e["id"]: e for e in existing}
+
+    for ai_evt in ai_events:
+        if not isinstance(ai_evt, dict) or not ai_evt.get("name"):
+            continue
+        ai_evt["source_url"] = source_url
+        ai_evt["last_updated"] = now
+
+        eid = ai_evt.get("id", "")
+        matched = existing_by_id.get(eid)
+        if not matched:
+            for e in existing:
+                if (
+                    e.get("source_url") == source_url
+                    and e.get("name", "").strip().lower()
+                    == ai_evt.get("name", "").strip().lower()
+                ):
+                    matched = e
+                    break
+
+        if matched:
+            for key in (
+                "date", "time", "location", "description", "speakers",
+                "registration_url", "registration_status", "cost",
+                "status", "contact", "extra_details",
+            ):
+                new_val = ai_evt.get(key)
+                if new_val is not None and new_val != matched.get(key):
+                    matched[key] = new_val
+                    changed = True
+            matched["last_updated"] = now
+        else:
+            if not eid:
+                slug = re.sub(r"[^a-z0-9]+", "-", ai_evt["name"].lower()).strip("-")
+                ai_evt["id"] = f"som-{slug}"[:60]
+            existing.append(ai_evt)
+            changed = True
+
+    return changed
+
+
 # ── Refresh logic ────────────────────────────────────────────
 
 def refresh_from_web() -> tuple[int, list[dict]]:
-    """Scrape all sources, detect changes. Returns (pages_checked, new_changes)."""
+    """Scrape all sources, detect changes, AI-update catalog. Returns (pages_checked, new_changes)."""
     old_state = load_scrape_state()
     new_state: dict = {}
     new_changes: list[dict] = []
     events = load_som_events()
+    catalog_changed = False
 
     pages_checked = 0
     for src in SOURCES:
@@ -191,9 +330,16 @@ def refresh_from_web() -> tuple[int, list[dict]]:
 
         old_entry = old_state.get(url)
         if not old_entry:
+            ai_events = _extract_events_with_ai(html, url, src["label"], events)
+            if ai_events and _merge_ai_events(events, ai_events, url):
+                catalog_changed = True
             continue
         if old_entry.get("hash") == h:
             continue
+
+        ai_events = _extract_events_with_ai(html, url, src["label"], events)
+        if ai_events and _merge_ai_events(events, ai_events, url):
+            catalog_changed = True
 
         matching = [e for e in events if e.get("source_url") == url]
         event_label = matching[0]["name"] if matching else src["label"]
@@ -228,6 +374,8 @@ def refresh_from_web() -> tuple[int, list[dict]]:
         time.sleep(0.5)
 
     save_scrape_state(new_state)
+    if catalog_changed:
+        save_som_events(events)
     if new_changes:
         all_changes = load_changes()
         all_changes.extend(new_changes)

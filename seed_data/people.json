@@ -1,0 +1,5496 @@
+[
+  {
+    "id": "dae5f3cf-c713-4cce-a276-328f3a3b35e6",
+    "name": "Aaron Anderson",
+    "email": "aaron.anderson@placeholder.clu-demo",
+    "company": "Brandes Associates Inc.",
+    "role": "President",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "TechTalk; ETMF 2024 industry keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "5e0db7ab-f2e3-4c76-b818-d738c2a218d6",
+    "name": "Ade Adesanya",
+    "email": "ade.adesanya@placeholder.clu-demo",
+    "company": "Moving Analytics Inc.",
+    "role": "Co-founder and President",
+    "linkedin_url": "https://www.linkedin.com/in/ade-adesanya/",
+    "tags": [
+      "ess-speaker",
+      "healthcare",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "2d150b35-76a1-46ce-b91d-a7c4b8ede702",
+    "name": "Adriana Sekulovic",
+    "email": "asekulovic@placeholder.clu-demo",
+    "company": "California Lutheran University School of Management",
+    "role": "Lecturer/Director, MS Sport Management",
+    "linkedin_url": "",
+    "tags": [
+      "faculty",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "556760b3-ae6b-4b48-b1ab-1a33bdbccbdf",
+    "name": "Adrin Jeremy Masmela",
+    "email": "aj.masmela@placeholder.clu-demo",
+    "company": "PennyMac",
+    "role": "Corporate Analyst, Internal Audit",
+    "linkedin_url": "https://www.linkedin.com/in/ajmasmela",
+    "tags": [
+      "alumni",
+      "finance",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "ae743561-1a15-42f9-b265-632453d65cee",
+    "name": "Alan Cohen",
+    "email": "alan.cohen@placeholder.clu-demo",
+    "company": "",
+    "role": "Chief Marketing Officer, Consultant",
+    "linkedin_url": "",
+    "tags": [
+      "marketing",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "6e131483-8871-4cb4-9411-d4cf87433809",
+    "name": "Alan Scally",
+    "email": "alan.scally@placeholder.clu-demo",
+    "company": "Spotify",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "entertainment",
+      "industry",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "476e1d6d-370d-4053-b157-5a1d25c44055",
+    "name": "Alexander Balkin",
+    "email": "alexander.balkin@placeholder.clu-demo",
+    "company": "U.S. Navy (ret.)",
+    "role": "Former Command Inspector General",
+    "linkedin_url": "https://www.linkedin.com/in/alexbalkin/",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "d1935552-f835-4d14-bad9-6af6c1d61e8a",
+    "name": "Ali Sadreameli",
+    "email": "ali.sadreameli@placeholder.clu-demo",
+    "company": "Livingston Memorial Visiting Nurse Association",
+    "role": "Director of Development",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry",
+      "nonprofit"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "63fcaa21-1780-45ec-92bc-b7f8fc5ef5f7",
+    "name": "Alice Galstian",
+    "email": "alice.galstian@placeholder.clu-demo",
+    "company": "IFS (Individual Food Service)",
+    "role": "CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "2760e28a-6edb-4c5b-a8fd-f9da447a0558",
+    "name": "Allison Payne",
+    "email": "allison.payne@placeholder.clu-demo",
+    "company": "Takeda Pharmaceuticals",
+    "role": "Sr Financial Analyst",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2021 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "dc435610-411e-486b-8a2c-15a9734be344",
+    "name": "Alon Goren",
+    "email": "alon.goren@placeholder.clu-demo",
+    "company": "Draper Goren Blockchain",
+    "role": "Partner",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "sdcie-council",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "7ed0b31c-4896-41d0-b94e-9df28cd846f2",
+    "name": "Amie Krause",
+    "email": "amie.krause@placeholder.clu-demo",
+    "company": "The Cheesecake Factory / Revance / Atara",
+    "role": "SVP CIO (Dean's Exec); past CPO roles",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "c-suite",
+      "deans-executive-council",
+      "distinguished-alumni",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Alumna of Year 2023; DEIJ panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "016adcd1-d0d4-4c30-980c-42df66a26bd3",
+    "name": "Anastasia Martinez",
+    "email": "anastasia.martinez@placeholder.clu-demo",
+    "company": "Libra Leaders / Boys and Girls Club",
+    "role": "Chief of Staff; Resource Development",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "distinguished-alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "00e92355-5db4-4717-91c9-2181f5ab8205",
+    "name": "Andrea Brimmer",
+    "email": "andrea.brimmer@placeholder.clu-demo",
+    "company": "Hortitech / Walt Disney (past)",
+    "role": "Global Sales Strategy; Pathways roundtable",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Pathways 2026 Hortitech founder Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "bdb627e5-9411-4923-a198-3d9806f6eacd",
+    "name": "Andrea Godinez",
+    "email": "andrea.godinez@placeholder.clu-demo",
+    "company": "Kaiser Permanente",
+    "role": "Department Administrator",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "healthcare",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "d3626bf5-880d-4cac-ab65-beaaa17fadde",
+    "name": "Andrew P. Kiefer",
+    "email": "andrew.kiefer@placeholder.clu-demo",
+    "company": "CBIZ",
+    "role": "Managing Director",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "cerf-board",
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CERF board; Pathways Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "6b602170-34c6-4346-b4ce-265df450d578",
+    "name": "Andrew Powers",
+    "email": "andrew.powers@placeholder.clu-demo",
+    "company": "City of Thousand Oaks",
+    "role": "City Manager",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2024 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "80d797a2-ed98-4940-b0f7-2d8a20eab65a",
+    "name": "Anthony Bradley, PhD",
+    "email": "anthony.bradley@placeholder.clu-demo",
+    "company": "Acton Institute",
+    "role": "Distinguished Research Fellow",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "2025 CERF keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "c3e39c11-8ef6-4dbf-b4c6-117d20e4dd44",
+    "name": "Artis Twyman",
+    "email": "artis.twyman@placeholder.clu-demo",
+    "company": "Los Angeles Rams",
+    "role": "VP Communications",
+    "linkedin_url": "https://www.linkedin.com/in/artis-twyman-0259556",
+    "tags": [
+      "industry",
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Multiple SOM sports events Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "2ec3b7eb-3512-422f-a105-a1f0921b39c9",
+    "name": "Ayinde Alakoye",
+    "email": "ayinde.alakoye@placeholder.clu-demo",
+    "company": "nedl",
+    "role": "Founder and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "3b6766e2-c555-47af-9cdc-9401bd6dfea8",
+    "name": "Ben Kuo",
+    "email": "ben.kuo@placeholder.clu-demo",
+    "company": "socalTECH.com",
+    "role": "Editor and Founder",
+    "linkedin_url": "",
+    "tags": [
+      "ess-speaker",
+      "media",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "1563d633-c53f-4dcd-bd68-d8a69af3c649",
+    "name": "Bernard Bauer",
+    "email": "bernard.bauer@placeholder.clu-demo",
+    "company": "Integrated Lighting Concepts",
+    "role": "CERF Ventura County Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "f17059f7-c149-41fa-a9e9-7cd5ff6a3c64",
+    "name": "Bill Fulton",
+    "email": "bill.fulton@placeholder.clu-demo",
+    "company": "",
+    "role": "Former Mayor of Ventura",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "2025 CERF panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "760f219b-3d1a-4f61-b0fb-40481e5b693b",
+    "name": "Bill Watkins, PhD",
+    "email": "bwatkins@placeholder.clu-demo",
+    "company": "CERF",
+    "role": "Founding Director",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-staff",
+      "economist",
+      "faculty"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "022a7bb9-d7f9-47d9-905c-6b1cb099e7d0",
+    "name": "Billy Carlson",
+    "email": "billy.carlson@placeholder.clu-demo",
+    "company": "iHerb",
+    "role": "Product Designer and UX",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "746dddf3-89d8-49b6-a9b8-ac3718403507",
+    "name": "Bob Pfannkuch",
+    "email": "bob.pfannkuch@placeholder.clu-demo",
+    "company": "",
+    "role": "ret. Entertainment Tech Executive",
+    "linkedin_url": "",
+    "tags": [
+      "industry",
+      "sdcie-council"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "4b5ec794-3146-4d1e-b8e9-de3c97e170d8",
+    "name": "Brandon Dietrich",
+    "email": "brandon.dietrich@placeholder.clu-demo",
+    "company": "Caldera Medical",
+    "role": "VP Finance",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "806367d2-0a26-4f69-a98b-1748591ffa37",
+    "name": "Brendon Norton",
+    "email": "brendon.norton@placeholder.clu-demo",
+    "company": "Tekmetric",
+    "role": "VP Customer Success",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2010 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "7e401b61-dad0-4249-a1a2-cdd73898be3a",
+    "name": "Brian Donahue",
+    "email": "brian.donahue@placeholder.clu-demo",
+    "company": "Hughes Electronics (ret.)",
+    "role": "Retired Vice Chairman",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "44e1a045-795b-4b16-acde-d2d252e4ef7b",
+    "name": "Brian Melanephy",
+    "email": "brian.melanephy@placeholder.clu-demo",
+    "company": "Naval Surface Warfare Center Port Hueneme",
+    "role": "Management Analyst",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MSM/MPPA Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "3be91380-c28c-41ee-bc8c-f157a9776df8",
+    "name": "Briana Shneyder",
+    "email": "briana.shneyder@placeholder.clu-demo",
+    "company": "Netflix",
+    "role": "Associate, Studio FP&A",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "entertainment",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2017 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "71c43a10-e446-4051-9cab-f1d7edeccf57",
+    "name": "Brissa Castaneda",
+    "email": "brissa.castaneda@placeholder.clu-demo",
+    "company": "PureSpectrum",
+    "role": "Marketing Intern",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2024 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "a86c5979-a6f7-45bb-ad5d-77070e77589a",
+    "name": "Brittney Elhard",
+    "email": "brittney.elhard@placeholder.clu-demo",
+    "company": "J.D. Power",
+    "role": "Senior Director of IT",
+    "linkedin_url": "https://www.linkedin.com/in/brittneyelhard/",
+    "tags": [
+      "deij-speaker",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973"
+    ]
+  },
+  {
+    "id": "17068e71-a620-4eea-abe0-e2661f2b008c",
+    "name": "Bruce Stenslie",
+    "email": "bruce@edcollaborative.com",
+    "company": "Economic Development Collaborative",
+    "role": "President and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Public email from EDC site",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "53122ea9-e722-4584-879b-8b1fa1d3f204",
+    "name": "Bryan Bradley",
+    "email": "bryan.bradley@placeholder.clu-demo",
+    "company": "Group One (ret.) / L-Acoustics Americas",
+    "role": "President (ret.); CEO L-Acoustics Americas",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "c-suite",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Spring 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "27060165-7a45-4be2-a193-be3c2e04dcad",
+    "name": "Bryan Palbaum",
+    "email": "bryan.palbaum@placeholder.clu-demo",
+    "company": "Trader Joe's",
+    "role": "Chairman and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "exec-talent-forum",
+      "fireside-chat-speaker",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Spring 2019 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "2d94e211-1616-422f-b95f-a6ca5b81db7d",
+    "name": "Carlos Mestas",
+    "email": "carlos.mestas@placeholder.clu-demo",
+    "company": "",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Confirm org with CERF Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "43890d02-e1af-4bcc-a317-312afaf5ab13",
+    "name": "Carmen Nichols",
+    "email": "carmen.nichols@placeholder.clu-demo",
+    "company": "City of Camarillo",
+    "role": "Assistant City Manager",
+    "linkedin_url": "https://www.linkedin.com/in/carmen-nichols-mppa-bb739b12/",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "852293c2-c3d1-46cb-8270-cbbecbec5594",
+    "name": "Casey Stoops",
+    "email": "casey.stoops@placeholder.clu-demo",
+    "company": "Patagonia",
+    "role": "Head of Global IT Operations and Cyber Security",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "81925d00-33fa-4ab3-ba44-a4b28cccc413",
+    "name": "CeCe Morken",
+    "email": "cece.morken@placeholder.clu-demo",
+    "company": "Headspace",
+    "role": "CEO",
+    "linkedin_url": "",
+    "tags": [
+      "healthcare",
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "bedb21e8-cbcf-4055-836a-9e694e779f17",
+    "name": "Celeste Gehring",
+    "email": "celeste.gehring@placeholder.clu-demo",
+    "company": "Visionary Building",
+    "role": "Owner and Entrepreneur",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "e16fb125-d5ca-4336-aaf6-e1970afc1bb5",
+    "name": "Charles Maxey",
+    "email": "charles.maxey@placeholder.clu-demo",
+    "company": "California Lutheran University (former)",
+    "role": "Former CLU Dean",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "education"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "aebf64dd-30c7-46ed-bf05-44d9f02a09b3",
+    "name": "Charline Zeroual",
+    "email": "charline.zeroual@placeholder.clu-demo",
+    "company": "Charline Zeroual Consulting",
+    "role": "Founder, Personal Stylist",
+    "linkedin_url": "",
+    "tags": [
+      "marketing",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "44f6427b-f15f-4dc4-a35b-6cbf3ee85ade",
+    "name": "Chris Fajardo",
+    "email": "chris.fajardo@placeholder.clu-demo",
+    "company": "Angel City FC",
+    "role": "VP Community Impact",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "6ac71871-f240-411c-9755-13cd78673fb0",
+    "name": "Chris Meissner",
+    "email": "chris.meissner@placeholder.clu-demo",
+    "company": "Meissner Corporation (USA)",
+    "role": "President",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2024 panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "785d53bc-4289-489b-a30c-828be6fa365a",
+    "name": "Christian Haw",
+    "email": "christianhaw@herbalife.com",
+    "company": "Herbalife",
+    "role": "VP Global HR and Talent Management",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "hr-leader",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Listed on CLU Dean's Exec page",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "9573dbb5-13bc-4270-8c40-5577c2093e38",
+    "name": "Christopher Beck",
+    "email": "christopher.beck@placeholder.clu-demo",
+    "company": "Ventura Housing Authority (former)",
+    "role": "Former General Counsel",
+    "linkedin_url": "",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "152f6e9e-bbda-4ee0-ab4c-e4fd11ef33d5",
+    "name": "Christopher Lytton",
+    "email": "christopher.lytton@placeholder.clu-demo",
+    "company": "The Jim Henson Company",
+    "role": "President and COO",
+    "linkedin_url": "https://www.linkedin.com/in/christopher-lytton-065a571a",
+    "tags": [
+      "c-suite",
+      "entertainment",
+      "fireside-chat-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Fall 2024 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": []
+  },
+  {
+    "id": "8da72639-2ae5-426e-be0e-41aa7791641b",
+    "name": "Cindy Liu",
+    "email": "cindy.liu@placeholder.clu-demo",
+    "company": "",
+    "role": "Disability Inclusion Advocate",
+    "linkedin_url": "",
+    "tags": [
+      "deij-speaker",
+      "nonprofit",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973"
+    ]
+  },
+  {
+    "id": "9d326890-af5b-46e4-b5bc-d8ea6a0aaa08",
+    "name": "Claire Cornejo",
+    "email": "claire.cornejo@placeholder.clu-demo",
+    "company": "Rose Bowl Legacy Foundation",
+    "role": "Development Graduate Assistant",
+    "linkedin_url": "https://www.linkedin.com/in/claire-cornejo/",
+    "tags": [
+      "nonprofit",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "4a7290be-eabe-4354-ae3a-32bcef618973"
+    ]
+  },
+  {
+    "id": "90abb94e-110d-4056-8460-8e64a4bd9159",
+    "name": "Corey Mazza",
+    "email": "corey.mazza@placeholder.clu-demo",
+    "company": "UBS",
+    "role": "Senior Vice President",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "finance",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "13076a6c-cd3e-4ea3-84d2-1f57b7c6f661",
+    "name": "Craig Kinzer",
+    "email": "craig.kinzer@placeholder.clu-demo",
+    "company": "Kinzer Capital",
+    "role": "",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "sdcie-council",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "1bebc4e6-6f76-420e-9278-9c0b2ec7497f",
+    "name": "Dada Ngo",
+    "email": "dada.ngo@placeholder.clu-demo",
+    "company": "The Boiling Crab",
+    "role": "Co-founder and Owner",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "28b05c29-68b3-46da-bb5d-dfe811bda4f8",
+    "name": "Dan Hamilton, PhD",
+    "email": "dhamilton@placeholder.clu-demo",
+    "company": "CERF",
+    "role": "Director of Economics",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-staff",
+      "economist",
+      "faculty"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "f5ea3d1b-4313-46b7-b295-74357b05c60e",
+    "name": "Daniel Bednar",
+    "email": "daniel.bednar@placeholder.clu-demo",
+    "company": "CBC Federal Credit Union",
+    "role": "Chief Strategy Officer",
+    "linkedin_url": "https://www.linkedin.com/in/daniel-j-bednar/",
+    "tags": [
+      "finance",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "8dc5fd17-e56b-41f9-839b-db3636fbe993",
+    "name": "Daren Dickerson",
+    "email": "daren.dickerson@placeholder.clu-demo",
+    "company": "Shield Healthcare",
+    "role": "Chief Financial Officer",
+    "linkedin_url": "",
+    "tags": [
+      "healthcare",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "6ecde7b0-9cd5-4cf7-8aac-8efbcd9910af",
+    "name": "Darren Kettle",
+    "email": "darren.kettle@placeholder.clu-demo",
+    "company": "Metrolink",
+    "role": "CEO",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "exec-talent-forum",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "e4dd9e95-0111-4ffb-b2a8-bd35e2eb0528",
+    "name": "Dave C. Lawrence, EdD, MBA",
+    "email": "dave.lawrence@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "VP Administration and Finance",
+    "linkedin_url": "",
+    "tags": [
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "c10a9357-3eee-40ea-9825-b166d110ab01",
+    "name": "David Bahnsen",
+    "email": "david.bahnsen@placeholder.clu-demo",
+    "company": "The Bahnsen Group",
+    "role": "Founder and CIO",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-speaker",
+      "finance",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "2024 CERF forecast keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "defe6a7e-7b8d-4293-94ed-dc3ddb8dbadc",
+    "name": "David Harrington",
+    "email": "david.harrington@placeholder.clu-demo",
+    "company": "Hillcrest Financial Group",
+    "role": "Partner and Wealth Adviser",
+    "linkedin_url": "",
+    "tags": [
+      "finance",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "39a44856-d7bb-45f1-8d2f-fe2233b144f0",
+    "name": "David Pollock",
+    "email": "david.pollock@placeholder.clu-demo",
+    "company": "Green Law Group",
+    "role": "Director of Client Relations",
+    "linkedin_url": "",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "f99d036e-87c6-488d-bf41-edb25a466b60",
+    "name": "David W. Meline",
+    "email": "david.meline@placeholder.clu-demo",
+    "company": "Henkel (ret.)",
+    "role": "Corporate VP Regional Head (ret.)",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Spring 2020 ex-Amgen CFO context Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "f36df84b-e513-4812-8454-e93caab3dd51",
+    "name": "David Wellik",
+    "email": "david.wellik@placeholder.clu-demo",
+    "company": "Citizens Business Bank",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "finance",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "f9e5b713-7b13-40b0-80d1-1b27ee9ec0fc",
+    "name": "Deanna Ball",
+    "email": "deanna.ball@placeholder.clu-demo",
+    "company": "Medtronic",
+    "role": "Head of Global Organizational Effectiveness",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2019 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "018769f7-949f-423b-a560-e7b5ef7d5997",
+    "name": "Deanna Grady",
+    "email": "deanna.grady@placeholder.clu-demo",
+    "company": "SectorBridge",
+    "role": "Principal Consultant",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2005 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "a14744ac-b5b6-489f-833c-1f29f0fd1021",
+    "name": "Deanna Oroz",
+    "email": "deanna.oroz@placeholder.clu-demo",
+    "company": "Kite Pharma",
+    "role": "Director of Procurement Strategy",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "deij-speaker",
+      "healthcare",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MBA 2017 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "26ca871a-fbda-4340-958d-8ff9e305c4a5",
+    "name": "Denise White",
+    "email": "denise.white@placeholder.clu-demo",
+    "company": "EAG Sports Management",
+    "role": "CEO and Founder",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "895dd3b2-0fd2-445e-9b47-61ddb5f5d01c",
+    "name": "Diana Rodriguez",
+    "email": "diana.rodriguez@placeholder.clu-demo",
+    "company": "Google",
+    "role": "Program Manager",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "deij-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2016 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "a72c1777-9225-44a4-894a-321472307547",
+    "name": "Dina Barmasse-Gray",
+    "email": "dina.barmassegray@placeholder.clu-demo",
+    "company": "The Cheesecake Factory",
+    "role": "CHRO",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2017 keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "15fe409d-01c2-451f-bb81-f062a9316900",
+    "name": "Don Armstrong",
+    "email": "don.armstrong@placeholder.clu-demo",
+    "company": "Vitu",
+    "role": "Co-Founder and CEO",
+    "linkedin_url": "https://www.linkedin.com/in/v2gov",
+    "tags": [
+      "alumni",
+      "c-suite",
+      "deans-executive-council",
+      "distinguished-alumni",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Dean's Exec Council; Distinguished Alumnus; Fireside Chat Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "a027b2f4-53c1-4fce-9adc-070e556fd24b",
+    "name": "Don Padilla",
+    "email": "don.padilla@placeholder.clu-demo",
+    "company": "MVP Sports and Entertainment Management",
+    "role": "CEO",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "deij-speaker",
+      "speaker",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2022 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "dc9147b0-228a-49f2-8a7c-819ade22d8f4",
+    "name": "Don Toussaint",
+    "email": "don.toussaint@placeholder.clu-demo",
+    "company": "Citizens Business Bank (ret.)",
+    "role": "ret.",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "finance",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "f54c5f63-2ed7-4fbe-a246-d23cf173fd9c",
+    "name": "Dr. Eric Griego",
+    "email": "eric.griego@placeholder.clu-demo",
+    "company": "",
+    "role": "Scholar; Fulbright Barcelona",
+    "linkedin_url": "",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "23ce0d9a-9bf1-4cf1-ab03-c2dceccd2b62",
+    "name": "Dr. Gabriella Sherman",
+    "email": "gabriella.sherman@placeholder.clu-demo",
+    "company": "Los Robles Health System",
+    "role": "Chief Medical Officer",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "healthcare",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "7d634145-28af-427c-b58a-53967291e016",
+    "name": "Dr. Khodr M. Zaarour",
+    "email": "khodr.zaarour@placeholder.clu-demo",
+    "company": "North Carolina State University",
+    "role": "Assistant Professor",
+    "linkedin_url": "",
+    "tags": [
+      "education",
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "9492dd07-f2e1-40de-8d41-8b041447f69c",
+    "name": "Dr. Markus Tomaschitz",
+    "email": "markus.tomaschitz@placeholder.clu-demo",
+    "company": "Dedicated Sleep",
+    "role": "Chief Strategy Officer",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "99efe093-a2ef-424c-aec9-90932abc1461",
+    "name": "Dr. Wa'ed Alshoubaki",
+    "email": "waed.alshoubaki@placeholder.clu-demo",
+    "company": "University of Jordan",
+    "role": "Assistant Professor",
+    "linkedin_url": "",
+    "tags": [
+      "education",
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "c78ac041-811e-42a7-baf0-66773391f1b0",
+    "name": "Edgar Terry",
+    "email": "edgar.terry@placeholder.clu-demo",
+    "company": "Terry Farms Inc.",
+    "role": "Advisory Board Chair, CERF",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry",
+      "policy"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "fb8b5246-98c7-4919-a263-b552414a7d56",
+    "name": "Edward Egros",
+    "email": "edward.egros@placeholder.clu-demo",
+    "company": "Bally Sports West",
+    "role": "Sports Analytics Expert",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "699a1dbf-dca4-43f2-9247-f1a25df6c556",
+    "name": "Elaine Salewske",
+    "email": "elaine.salewske@placeholder.clu-demo",
+    "company": "Takeda / Elaine Salewske Consulting",
+    "role": "Director Takeda; consulting president",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "b86d8cd9-b0de-4e09-9ae6-381ad254a974",
+    "name": "Elizabeth Salinas",
+    "email": "elizabeth.salinas@placeholder.clu-demo",
+    "company": "Los Angeles Rams",
+    "role": "Coordinator, Guest Experience",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "01a93237-148b-429a-a3ef-87910535d109",
+    "name": "Eric Odero",
+    "email": "eric.odero@placeholder.clu-demo",
+    "company": "Command Health Informatics",
+    "role": "CEO",
+    "linkedin_url": "",
+    "tags": [
+      "healthcare",
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "65f0b1f4-7a65-4b3f-a0e9-6d25c4e5ca2a",
+    "name": "Erika Herrera-Terriquez",
+    "email": "erika.herreraterriquez@placeholder.clu-demo",
+    "company": "City of Fillmore",
+    "role": "Assistant City Manager",
+    "linkedin_url": "https://www.linkedin.com/in/erika-herrera-terriquez-mpa-63214113/",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "5b7ce7c4-b778-4329-b1be-92d8a14d7503",
+    "name": "Evan Brandt",
+    "email": "evan.brandt@placeholder.clu-demo",
+    "company": "VidTech",
+    "role": "Co-founder and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "industry",
+      "sdcie-council"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "e23c5891-7263-4b96-92dd-5bed5bd79eaf",
+    "name": "Evan Flagg",
+    "email": "evan.flagg@placeholder.clu-demo",
+    "company": "Reach Capacity",
+    "role": "Founder; ex-LA Kings",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "b57c8b68-f086-4a0f-93af-491eeb36b5d5",
+    "name": "Evelyn Schultz",
+    "email": "evelyn.schultz@placeholder.clu-demo",
+    "company": "CSMAOR",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "c514fc05-b0df-4c8f-abfe-98b891bab0a4",
+    "name": "Fabiola Lara",
+    "email": "fabiola.lara@placeholder.clu-demo",
+    "company": "EquaNurture",
+    "role": "Founder and Consultant",
+    "linkedin_url": "",
+    "tags": [
+      "healthcare",
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "7aa0c3db-0759-466e-9095-96d4cc5947c5",
+    "name": "Freddie Ravel",
+    "email": "freddie.ravel@placeholder.clu-demo",
+    "company": "",
+    "role": "Grammy-nominated artist; keynote",
+    "linkedin_url": "",
+    "tags": [
+      "entertainment",
+      "forward-together",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Forward Together webinar Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797"
+    ]
+  },
+  {
+    "id": "2cbcaf6e-4263-4a92-bd2f-d4f8ce7614d8",
+    "name": "Garret Koonce",
+    "email": "garret.koonce@placeholder.clu-demo",
+    "company": "UCLA Athletics",
+    "role": "Associate Director, Event Operations",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "a554b52e-d0ee-4569-8d1d-33f84c59910a",
+    "name": "Genevieve Findlay",
+    "email": "genevieve.findlay@placeholder.clu-demo",
+    "company": "HRL Laboratories LLC",
+    "role": "CHRO",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2023 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "b2bcece2-f5d3-454c-afe1-a6554bc15b1a",
+    "name": "Gerhard Apfelthaler, PhD",
+    "email": "gapfelthaler@callutheran.edu",
+    "company": "California Lutheran University",
+    "role": "Dean, School of Management",
+    "linkedin_url": "https://www.linkedin.com/in/apfelthaler",
+    "tags": [
+      "faculty",
+      "leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Dean since 2013",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "1bb97299-f207-4260-a667-1e12c686ce65",
+    "name": "Glenn Llopis",
+    "email": "glenn.llopis@placeholder.clu-demo",
+    "company": "Glenn Llopis Group",
+    "role": "Chairman",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2019 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "c458c343-75fc-44bd-8408-870ca155ac0e",
+    "name": "Grace Martinez",
+    "email": "grace.martinez@placeholder.clu-demo",
+    "company": "Naval Air Warfare Center Pt. Mugu",
+    "role": "Deputy of Operations",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "3a264ca9-46df-402a-b322-91a33ed6b66e",
+    "name": "Greg Van Ness",
+    "email": "greg.vanness@placeholder.clu-demo",
+    "company": "Tolman & Wiker Insurance Services",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "92da1cea-f121-4e59-9a35-39427ac91ab9",
+    "name": "Haider Alawami",
+    "email": "haider.alawami@placeholder.clu-demo",
+    "company": "City of Thousand Oaks",
+    "role": "Economic Development Manager",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry",
+      "policy"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "079e290b-8cd0-45f5-842e-ade7c912f338",
+    "name": "Hayley Pavone",
+    "email": "hayley.pavone@placeholder.clu-demo",
+    "company": "Passion Footwear",
+    "role": "Founder and CEO",
+    "linkedin_url": "https://www.linkedin.com/in/haleypavone/",
+    "tags": [
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "19bc994e-02f0-4e19-9fb4-52c7cb935076",
+    "name": "Hector M. Palacios",
+    "email": "hector.palacios@placeholder.clu-demo",
+    "company": "Los Angeles Dodgers",
+    "role": "Stadium Operations",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "49de5811-e614-4ff6-9b44-e59d5614e38e",
+    "name": "Henry Dubroff",
+    "email": "henry.dubroff@placeholder.clu-demo",
+    "company": "Pacific Coast Business Times",
+    "role": "Owner and Chief Editor",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "c8800086-e938-43d9-a5f2-24f0fb7fdca8",
+    "name": "Holly Roepke",
+    "email": "holly.roepke@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "Director of Athletics",
+    "linkedin_url": "",
+    "tags": [
+      "deij-speaker",
+      "faculty",
+      "speaker",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "a53357ea-490d-469c-99dc-7194452071cf",
+    "name": "Howard Davis",
+    "email": "howard.davis@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "Associate VP and Athletics Director",
+    "linkedin_url": "",
+    "tags": [
+      "sports",
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "8e672827-65c0-47ed-a5e4-c56bafcad373",
+    "name": "Hugh Cassar",
+    "email": "hugh.cassar@placeholder.clu-demo",
+    "company": "Kretek International, Inc.",
+    "role": "CEO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "99c160a2-31c5-4968-a7cf-5907c13380e5",
+    "name": "Ian Hathaway",
+    "email": "ian.hathaway@placeholder.clu-demo",
+    "company": "Far Out Ventures",
+    "role": "Co-Founder and General Partner",
+    "linkedin_url": "",
+    "tags": [
+      "ess-speaker",
+      "speaker",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "d1fc1e7a-e83d-4a58-b285-c8eaccfcb4d5",
+    "name": "Ixora Aristigueta-Becerra",
+    "email": "ixora.aristigueta@placeholder.clu-demo",
+    "company": "The Sobrato Organization",
+    "role": "VP People and Workplace Experience",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "7d7491c0-ba34-4296-8934-f67d39faa78d",
+    "name": "J. Shakir Ramsey",
+    "email": "j.shakir.ramsey@placeholder.clu-demo",
+    "company": "Google",
+    "role": "Senior Growth Manager",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "7290e498-ec2e-4077-a840-67d04903ef20",
+    "name": "Jackie Jones",
+    "email": "jackie.jones@placeholder.clu-demo",
+    "company": "Slalom / Salesforce",
+    "role": "Executive Marketing Director",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "912af9a1-312e-49e3-8dfd-6e7242d7e834",
+    "name": "Jacob Lesner-Buxton",
+    "email": "jacob.lesnerbuxton@placeholder.clu-demo",
+    "company": "Independent Living Resource Center",
+    "role": "Systems Change Coordinator",
+    "linkedin_url": "",
+    "tags": [
+      "deij-speaker",
+      "nonprofit",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973"
+    ]
+  },
+  {
+    "id": "3ad6d6b9-fb05-4170-ace8-ed228752ae62",
+    "name": "Jake Aguilera",
+    "email": "jake.aguilera@placeholder.clu-demo",
+    "company": "Life Plans Financial (Osaic Wealth)",
+    "role": "Financial Advisor",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "finance",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MBA Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "3b66cdda-8eed-42d1-8882-1949b77778d2",
+    "name": "James Werbe",
+    "email": "james.werbe@placeholder.clu-demo",
+    "company": "Wayside Energy",
+    "role": "Founder and CEO",
+    "linkedin_url": "https://www.linkedin.com/in/werbe",
+    "tags": [
+      "alumni",
+      "distinguished-alumni",
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Young Alumnus 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "6a5ba14c-536f-42dd-a019-5d5cb8867ec6",
+    "name": "Jamshid Damooei, PhD",
+    "email": "jdamooei@callutheran.edu",
+    "company": "California Lutheran University",
+    "role": "Professor of Economics",
+    "linkedin_url": "",
+    "tags": [
+      "economist",
+      "faculty"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "MPPA speaker",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "eafdd974-8e3e-40e0-89ba-becdc64dd3a7",
+    "name": "Janet Bava",
+    "email": "janet.bava@placeholder.clu-demo",
+    "company": "AmaWaterways River Cruises",
+    "role": "Chief Marketing Officer",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "travel"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "653b2ce4-7e72-49c0-9b9e-6021248eca16",
+    "name": "Jared Martin",
+    "email": "jared.martin@placeholder.clu-demo",
+    "company": "BrightPath Wealth Planning",
+    "role": "Associate",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "finance",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2022 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "8cd9521e-f590-4042-a788-6549b7d9dc78",
+    "name": "Jay Bakerink",
+    "email": "jay.bakerink@placeholder.clu-demo",
+    "company": "Haylett Entertainment and Marketing",
+    "role": "Emmy-nominated Producer",
+    "linkedin_url": "",
+    "tags": [
+      "entertainment",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "662a485f-96ad-4a50-9825-81f3e113df41",
+    "name": "Jay Bradshaw",
+    "email": "jay.bradshaw@placeholder.clu-demo",
+    "company": "The Walt Disney Company",
+    "role": "Manager, Enterprise Strategic Programs",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "entertainment",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "15141867-8858-4bf3-8b09-3eb7408b5b1d",
+    "name": "Jeanne Sikoff",
+    "email": "jeanne.sikoff@placeholder.clu-demo",
+    "company": "Zander's Game House",
+    "role": "Founder and Owner",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "074f14eb-4b40-48ea-a518-d5ad3632dd61",
+    "name": "Jeannette Pugh",
+    "email": "jeannette.pugh@placeholder.clu-demo",
+    "company": "Cedars Sinai",
+    "role": "Executive Search Lead",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "healthcare",
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Pathways roundtable Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "6206c924-d58d-4528-b887-d08a91062a5a",
+    "name": "Jeff Higgins",
+    "email": "jeff.higgins@placeholder.clu-demo",
+    "company": "Human Capital Management Institute",
+    "role": "Founder and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2018 keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "97f1a06f-6321-450f-9a8d-0baac2f199f3",
+    "name": "Jeff Moeller",
+    "email": "jeff.moeller@placeholder.clu-demo",
+    "company": "Los Angeles Angels",
+    "role": "Editor of Publications; ex-LA Kings comms",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "11a6c8a8-e06b-4977-8e4c-55fbffb8a36a",
+    "name": "Jeff Speakes, PhD",
+    "email": "jspeakes@placeholder.clu-demo",
+    "company": "CERF",
+    "role": "Director of Financial Markets",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-staff",
+      "economist",
+      "faculty"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "5fe43d4a-4ef8-469d-ab72-0610906f0240",
+    "name": "Jeff Stepler",
+    "email": "jeff.stepler@placeholder.clu-demo",
+    "company": "The Cheesecake Factory",
+    "role": "VP Talent Selection and Engagement",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2023 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "7a51a4a5-0d80-4759-a581-bf0f4db49ab1",
+    "name": "Jeffrey Brouelette",
+    "email": "jeffrey.brouelette@placeholder.clu-demo",
+    "company": "Arroyo Capital, LLC",
+    "role": "Principal/President",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "c-suite",
+      "deans-executive-council",
+      "distinguished-alumni",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "0d0a92f7-7005-419b-b403-c0fcf3720393",
+    "name": "Jennifer Strong",
+    "email": "jennifer.strong@placeholder.clu-demo",
+    "company": "Montecito Bank & Trust Advisers",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "finance",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "7e33325c-3957-45fc-a4a6-1eff116c333d",
+    "name": "Jeremy Greene",
+    "email": "jeremy.greene@placeholder.clu-demo",
+    "company": "Retina AI",
+    "role": "VP and Head of Data Science",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "910bc694-768f-444b-b271-f467c13797a4",
+    "name": "Jerry Knotts",
+    "email": "jerry.knotts@placeholder.clu-demo",
+    "company": "California Coast Venture Forum",
+    "role": "President",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "c86cd156-7799-4e69-96c5-6e42b5668af8",
+    "name": "Jerry Pelton",
+    "email": "jerry.pelton@placeholder.clu-demo",
+    "company": "J&P Development",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "0818805f-a896-475c-8f0f-3528d4ea6f7b",
+    "name": "Jes Alatiz",
+    "email": "jes.alatiz@placeholder.clu-demo",
+    "company": "County of Ventura",
+    "role": "Risk Management Analyst",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MPPA 2020 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "1d9b6430-56f4-4fc2-b065-608c69c2db6e",
+    "name": "Jesse Hillman",
+    "email": "jesse.hillman@placeholder.clu-demo",
+    "company": "SteadyIQ",
+    "role": "Board Member, Executive, Technologist",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "b6fae0f6-0cc3-4e3f-941d-26e66c494332",
+    "name": "Jesse Martinez",
+    "email": "jesse.martinez@placeholder.clu-demo",
+    "company": "Latino Start Alliance",
+    "role": "",
+    "linkedin_url": "",
+    "tags": [
+      "ess-speaker",
+      "nonprofit",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "7a5ea34d-3e42-40b7-be1b-7525c14ff0b9",
+    "name": "Jim Cathcart",
+    "email": "jim.cathcart@placeholder.clu-demo",
+    "company": "Cathcart Institute",
+    "role": "Author; EIR",
+    "linkedin_url": "https://www.linkedin.com/in/cathcartinstitute",
+    "tags": [
+      "entrepreneur-in-residence",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Sales Hall of Fame Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "700bad98-156e-4f13-8ce2-22af5cfece7a",
+    "name": "Joel Silva",
+    "email": "joel.silva.avl@placeholder.clu-demo",
+    "company": "AVL",
+    "role": "Chief People Officer",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Dean's Executive Council; not Vallarta CFO Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "7bbeebb8-a042-4650-b2c1-fc398f1e7707",
+    "name": "Joel Silva",
+    "email": "joel.silva.vallarta@placeholder.clu-demo",
+    "company": "Vallarta Supermarkets",
+    "role": "Chief Financial Officer",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "fireside-chat-speaker",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Executive Fireside Chat Fall 2025 (separate person from AVL CPO) Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "8209ac66-32ea-433e-9dd6-9b322a13b76c",
+    "name": "John A. Nunes, PhD",
+    "email": "john.nunes@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "President",
+    "linkedin_url": "",
+    "tags": [
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "9th president, effective June 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "69945dce-3af6-4b1a-adea-781f3306efbe",
+    "name": "John Buccola",
+    "email": "john.buccola@placeholder.clu-demo",
+    "company": "E78",
+    "role": "CTO",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "sdcie-council",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "5a99d596-f5ae-40c4-9b63-e8244371859e",
+    "name": "John Garcia",
+    "email": "jgarcia@callutheran.edu",
+    "company": "California Lutheran University School of Management",
+    "role": "Assistant Professor, Finance & Analytics",
+    "linkedin_url": "",
+    "tags": [
+      "faculty"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "DEIJ series moderator",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "e8ad46d2-ef55-4080-b8eb-36cfecc29901",
+    "name": "John Maier",
+    "email": "john.maier@placeholder.clu-demo",
+    "company": "Bose Professional / Verb Consulting",
+    "role": "CEO Bose Professional; founder Verb Consulting",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "industry",
+      "sdcie-council",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Forward Together webinar Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "1da1f36b-c946-4d8e-b1e1-62c9bd81055a",
+    "name": "John Motz",
+    "email": "john.motz@placeholder.clu-demo",
+    "company": "NetDocuments",
+    "role": "CTO",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "5ba8a250-ece6-4307-bb9a-f9ccf78069bb",
+    "name": "John Tone",
+    "email": "john.tone@placeholder.clu-demo",
+    "company": "PennyMac Loan Services",
+    "role": "Managing Director, Default Servicing",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "finance",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "e46800f7-af86-4d87-a124-2adf97e902bd",
+    "name": "Johnny Fayad",
+    "email": "johnny.fayad@placeholder.clu-demo",
+    "company": "Eat Your Coffee",
+    "role": "CEO and Co-Founder",
+    "linkedin_url": "https://www.linkedin.com/in/johnnyfayad/",
+    "tags": [
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "b97af1c7-ed0d-4a31-9115-03a85f0497e0",
+    "name": "Jon Baker",
+    "email": "jon.baker@placeholder.clu-demo",
+    "company": "Cove Communities",
+    "role": "Global CIO; former Disney VP",
+    "linkedin_url": "",
+    "tags": [
+      "entertainment",
+      "pathways-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "c9ca9809-1c66-4b14-a3f9-dd8cc5524396",
+    "name": "Jonathon Dong",
+    "email": "jonathon.dong@placeholder.clu-demo",
+    "company": "The Walt Disney Company",
+    "role": "Financial Reporting Analyst",
+    "linkedin_url": "",
+    "tags": [
+      "entertainment",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "3af33775-7408-4f30-9ae1-a39b266794aa",
+    "name": "Jordan Orlick",
+    "email": "jordan.orlick@placeholder.clu-demo",
+    "company": "LetzChat",
+    "role": "Co-Founder",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "bf405af7-fe90-4073-88e4-c9c83545a4f7",
+    "name": "Josh Rosen",
+    "email": "josh.rosen@placeholder.clu-demo",
+    "company": "TRG Sports and Entertainment",
+    "role": "Founder and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "f7a55579-be5b-4f21-9a28-7df38cf40e25",
+    "name": "Judith Sanchez",
+    "email": "judith.sanchez@placeholder.clu-demo",
+    "company": "PM International (LATAM)",
+    "role": "General Manager of Sales",
+    "linkedin_url": "https://www.linkedin.com/in/judith-sanchez-lopez-a10b11167/",
+    "tags": [
+      "advisory-council",
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Pathways 2024 keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "0d2de2e7-ed4b-4d0d-a044-49fb5f616ebf",
+    "name": "Justin Lambros",
+    "email": "justin.lambros@placeholder.clu-demo",
+    "company": "Netflix",
+    "role": "Director, Games Licensing",
+    "linkedin_url": "",
+    "tags": [
+      "entertainment",
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "c54543e0-3f44-49dd-a1c6-a2f447e3a537",
+    "name": "Karen Boublis",
+    "email": "karen.boublis@placeholder.clu-demo",
+    "company": "HR Business Solutionz",
+    "role": "Founder and Principal Consultant",
+    "linkedin_url": "",
+    "tags": [
+      "hr-leader",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "240e3554-7948-4622-bc66-e6174fce3f9e",
+    "name": "Karen D. King",
+    "email": "karen.king@placeholder.clu-demo",
+    "company": "Opus Regulatory",
+    "role": "Principal Consultant; Regulatory Strategy Lead",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "deij-speaker",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "001bd3a5-6752-4055-8806-7946237f7147",
+    "name": "Karina Herold",
+    "email": "karina.herold@placeholder.clu-demo",
+    "company": "LA Sports and Entertainment Commission",
+    "role": "VP Major Events",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "3deb97a8-4278-4b15-8817-a62ea5dd10b3",
+    "name": "Katherine Jansen",
+    "email": "katherine.jansen@placeholder.clu-demo",
+    "company": "",
+    "role": "Innovation Catalyst",
+    "linkedin_url": "",
+    "tags": [
+      "industry",
+      "speaker",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "f12ef39f-bf4c-429f-8db3-e1b23ec5fd79",
+    "name": "Kelly Kimball",
+    "email": "kelly.kimball@placeholder.clu-demo",
+    "company": "Vitu",
+    "role": "Co-Founder and Executive Chairman",
+    "linkedin_url": "https://www.linkedin.com/in/kelly-kimball-993553b/",
+    "tags": [
+      "entrepreneur",
+      "entrepreneur-in-residence",
+      "exec-talent-forum",
+      "industry",
+      "sdcie-council",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "ee330e44-b4eb-452b-909e-c4d92dfd3a83",
+    "name": "Kevin Elms",
+    "email": "kevin.elms@placeholder.clu-demo",
+    "company": "Dole Packaged Foods",
+    "role": "VP and CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "exec-talent-forum",
+      "fireside-chat-speaker",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF keynote/panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "98ea3b13-6468-4f3d-8980-07dc48fdee5c",
+    "name": "Kevin Manion",
+    "email": "kevin.manion@placeholder.clu-demo",
+    "company": "AeroVironment",
+    "role": "EVP and CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "6ce84e96-3299-499b-aa4a-00b4cd030695",
+    "name": "Kevin McDonnell, J.D.",
+    "email": "kevin.mcdonnell@placeholder.clu-demo",
+    "company": "AeroVironment",
+    "role": "EVP and CFO; former Moderna CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Spring 2026 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "1556ad2d-0399-4066-9ceb-347fd6b15f2a",
+    "name": "Kiaan Bharwani",
+    "email": "kiaan.bharwani@placeholder.clu-demo",
+    "company": "NBA 2K",
+    "role": "Global Social Media Sports Marketer",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "53e6ccc0-d4c1-4773-a521-cef12ead40ad",
+    "name": "Kim Congden",
+    "email": "kim.congden@placeholder.clu-demo",
+    "company": "Marina Landscape Inc. / Herbalife",
+    "role": "CFO Marina Landscape (Dean's Exec); VP Global HR Herbalife (ETMF advisory)",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "exec-talent-forum",
+      "hr-leader",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU pages list both roles; verify current Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "ed223f1c-28b4-47fc-8c26-af63ce89cca4",
+    "name": "Kristen Upton",
+    "email": "kristen.upton@placeholder.clu-demo",
+    "company": "The Partnering Group",
+    "role": "Partner",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "exec-talent-forum",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF panelist past Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "54bb8667-3d01-4232-ae53-b6b2267a807a",
+    "name": "Kristin Caltrider",
+    "email": "kristin.caltrider@placeholder.clu-demo",
+    "company": "Spinal Elements",
+    "role": "CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "487fb358-5871-4867-805a-e8f228acebc2",
+    "name": "Kristin Decas",
+    "email": "kristin.decas@placeholder.clu-demo",
+    "company": "Port of Hueneme",
+    "role": "CEO and Port Director",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "03e896e4-9714-484e-b8fb-916218f0049b",
+    "name": "Kristin Fischer",
+    "email": "kristin.fischer@placeholder.clu-demo",
+    "company": "Amgen",
+    "role": "Executive Director, Global Talent Acquisition",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2022 keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "185a354b-4c9a-4dd7-b343-9469f6cabb52",
+    "name": "Kyle McIntosh",
+    "email": "kmcintosh@placeholder.clu-demo",
+    "company": "California Lutheran University School of Management",
+    "role": "MBA Program Director",
+    "linkedin_url": "",
+    "tags": [
+      "faculty",
+      "leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "a3933088-0a06-450b-bca8-6b8bef41c79f",
+    "name": "Kylie McLogan",
+    "email": "kylie.mclogan@placeholder.clu-demo",
+    "company": "Legends",
+    "role": "Manager, Women's Sports Partnerships",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "c6d614e0-808a-41c2-97f7-c745ae85cf8d",
+    "name": "Laura Moreno Lucas",
+    "email": "laura.moreno@placeholder.clu-demo",
+    "company": "Pandocap / L'ATTITUDE Ventures",
+    "role": "Founder CEO Pandocap; Partner L'ATTITUDE",
+    "linkedin_url": "https://www.linkedin.com/in/lauraemoreno/",
+    "tags": [
+      "entrepreneur",
+      "sdcie-council",
+      "speaker",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ESS Women Entrepreneurship Week Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "45033dce-4563-4ac5-9c6f-9d2b0d125551",
+    "name": "Laureen Hill, MD, MBA",
+    "email": "laureen.hill@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "Chief Strategy and Growth Officer",
+    "linkedin_url": "",
+    "tags": [
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "a41e73dc-aba0-4229-afa9-d965b0381568",
+    "name": "Leanne Neilson, PsyD",
+    "email": "leanne.neilson@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "Provost and VP Academic Affairs",
+    "linkedin_url": "",
+    "tags": [
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "0cf2daed-9670-432b-a8e6-a5a7f11fbc1e",
+    "name": "Lewis Simons",
+    "email": "lewis.simons@placeholder.clu-demo",
+    "company": "Stantec Consulting",
+    "role": "Senior Principal Geologist",
+    "linkedin_url": "",
+    "tags": [
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "1a57418c-e251-4661-8a4b-1672b6b3a210",
+    "name": "Lior Ofir",
+    "email": "lior.ofir@placeholder.clu-demo",
+    "company": "Red Bull North America",
+    "role": "CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "25eaa7c8-0437-4737-b66c-8e23dae6d95c",
+    "name": "Lorena Montoya Caceres",
+    "email": "lorena.montoya@placeholder.clu-demo",
+    "company": "Steady Solutions",
+    "role": "Operations Manager",
+    "linkedin_url": "https://www.linkedin.com/in/lorenamontoyacaceres/",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Hub101 / CLU MBA Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "da6c54a6-48c5-4976-9c14-48d017f9bbe8",
+    "name": "Louis William",
+    "email": "louis.william@placeholder.clu-demo",
+    "company": "City of Hope",
+    "role": "VP Talent Acquisition",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2023 keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "273f187a-239c-4240-8d8f-c6bf10a3e1af",
+    "name": "Majd Abdullah Almaki",
+    "email": "majd.almaki@placeholder.clu-demo",
+    "company": "IPA Gender Balance Center",
+    "role": "Founding Member and Director",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "distinguished-alumni",
+      "policy"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "2cdfb89f-7657-474c-aee1-7bace0b4264d",
+    "name": "Marc Rosenmayr",
+    "email": "marc.rosenmayr@placeholder.clu-demo",
+    "company": "VideoAmp / Red Bull NA",
+    "role": "Board Member and CFO; past Red Bull NA CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Fall 2023 Red Bull NA CFO Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "c9f9b444-1118-46fb-ab36-1628fcd1c7fb",
+    "name": "Maria Mondala-Duncan",
+    "email": "maria.mondaladuncan@placeholder.clu-demo",
+    "company": "City of Simi Valley",
+    "role": "Senior Management Analyst",
+    "linkedin_url": "",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "2af5cdb5-d2d1-44e4-a547-8bc8f86ee2df",
+    "name": "Mariah Zermeno",
+    "email": "mariah.zermeno@placeholder.clu-demo",
+    "company": "Los Angeles Rams",
+    "role": "Studio Operations Coordinator",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "585814e2-e504-4253-aac3-c5c4fdea3306",
+    "name": "Marina Lubinsky",
+    "email": "marina.lubinsky@placeholder.clu-demo",
+    "company": "Capitol Food Company",
+    "role": "CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Spring 2023 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "b9e11cc4-e8cf-431d-a8fc-024b657df846",
+    "name": "Mark Davis",
+    "email": "mark.davis@placeholder.clu-demo",
+    "company": "Sun Hill Properties / Hilton LA Universal",
+    "role": "President and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "hospitality",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "17d98be2-89b5-4881-b46f-d12be45337b8",
+    "name": "Mark Garcia",
+    "email": "mark.garcia@placeholder.clu-demo",
+    "company": "Arctic Cold / Freska Produce",
+    "role": "CFO",
+    "linkedin_url": "",
+    "tags": [
+      "deij-speaker",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973"
+    ]
+  },
+  {
+    "id": "ed71bc43-d2b0-4098-ae8f-391136a7e884",
+    "name": "Mark Orlando, Ed.D.",
+    "email": "morlando@callutheran.edu",
+    "company": "California Lutheran University School of Management",
+    "role": "Director, Sports Management Program",
+    "linkedin_url": "",
+    "tags": [
+      "faculty",
+      "leadership",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "e27ad18a-5775-44ff-8809-a38e712f3881",
+    "name": "Marni Brook",
+    "email": "marni.brook@placeholder.clu-demo",
+    "company": "Women's Economic Ventures",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry",
+      "nonprofit"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "0bb20749-d134-49d3-9aee-2a11131fb569",
+    "name": "Marvin Boateng",
+    "email": "marvin.boateng@placeholder.clu-demo",
+    "company": "Economic Development Collaborative",
+    "role": "Director of Lending",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "deij-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MPPA 2012 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "08a26c6e-b724-499b-b1a9-4e50c1a4ee09",
+    "name": "Marvin E. Richards, Jr., JD",
+    "email": "marvin.richards@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "VP and General Counsel",
+    "linkedin_url": "",
+    "tags": [
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "9d765118-469d-4c32-9c7a-7bafe0febf05",
+    "name": "Matt Lavere",
+    "email": "matt.lavere@placeholder.clu-demo",
+    "company": "Ventura County",
+    "role": "County Supervisor",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "2025 CERF panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "20b1fc7d-aace-472b-80cf-e3943811a37e",
+    "name": "Matthew Fienup, PhD",
+    "email": "mfienup@callutheran.edu",
+    "company": "CERF / California Lutheran University",
+    "role": "Executive Director, CERF; Associate Professor",
+    "linkedin_url": "https://www.linkedin.com/in/matthew-fienup-85139970",
+    "tags": [
+      "cerf-staff",
+      "economist",
+      "faculty",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Latino GDP; forecasting",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "d986cc98-5aba-4491-b46b-5b9bb1bd668f",
+    "name": "Matthew Lowe",
+    "email": "matthew.lowe@placeholder.clu-demo",
+    "company": "Change Maker Academy",
+    "role": "DEI Consultant",
+    "linkedin_url": "",
+    "tags": [
+      "deij-speaker",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "cc553abf-f779-4f99-bc18-791903343d5f",
+    "name": "Matthew Weisman",
+    "email": "matthew.weisman@placeholder.clu-demo",
+    "company": "LetzChat",
+    "role": "Co-Founder",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "dd40cfee-361f-4beb-8913-37271bda9b22",
+    "name": "Maureen McGuire",
+    "email": "maureen.mcguire@placeholder.clu-demo",
+    "company": "Farm Bureau of Ventura County",
+    "role": "CEO",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry",
+      "mppa-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "MPPA speaker Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "b4d44796-1b7e-4cc9-a6ef-550c38c1e4bb",
+    "name": "Melinda Roper, EdD",
+    "email": "melinda.roper@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "VP Student Affairs and Dean of Students",
+    "linkedin_url": "",
+    "tags": [
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "ce6174dc-0e80-4a04-b6c5-0ec63a1df98d",
+    "name": "Michael McCrary",
+    "email": "michael.mccrary@placeholder.clu-demo",
+    "company": "PureSpectrum",
+    "role": "Founder and CEO",
+    "linkedin_url": "https://www.linkedin.com/in/michael-mccrary/",
+    "tags": [
+      "entrepreneur",
+      "entrepreneur-in-residence",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Hub101 incubation Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "38a45a82-0ae9-4fb5-86c8-c828f6e01d14",
+    "name": "Michele Wilson",
+    "email": "michele.wilson@placeholder.clu-demo",
+    "company": "Mompreneur Universe / Velocity Group",
+    "role": "Founder and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "deij-speaker",
+      "entrepreneur",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "29afd042-5541-4c86-b06c-6d52e2c65e68",
+    "name": "Molly Strawn-Carreno",
+    "email": "molly.strawn@placeholder.clu-demo",
+    "company": "aytm",
+    "role": "Senior Growth Marketing Manager",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2018 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "d3fc78e3-66a2-409e-9ea4-c87e60638177",
+    "name": "Nick Bermensolo",
+    "email": "nick.bermensolo@placeholder.clu-demo",
+    "company": "SoFi Stadium and Hollywood Park",
+    "role": "VP Security",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "dbfaf505-5203-4f2e-94e1-97f0cde503d1",
+    "name": "Nick Shauer",
+    "email": "nick.shauer@placeholder.clu-demo",
+    "company": "Tutor Perini (ret.)",
+    "role": "Chief HR Officer (ret.)",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF advisory Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "bbf985d8-c4bc-44e8-b0fc-3143970223ad",
+    "name": "Nick Sondgeroth",
+    "email": "nick.sondgeroth@placeholder.clu-demo",
+    "company": "TSG Wealth Management / Wells Fargo",
+    "role": "Managing Director",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "finance",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "4dd200ed-7601-4cac-95fe-2bad518d837a",
+    "name": "Nigel Kershaw",
+    "email": "nigel.kershaw@placeholder.clu-demo",
+    "company": "LTC Properties",
+    "role": "Co-President, CFO, Secretary",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "90e2e049-b2cc-46b7-aebe-71acb57661f8",
+    "name": "Nina Skorus-Neely",
+    "email": "nina.skorusneely@placeholder.clu-demo",
+    "company": "Women in Technology Hollywood Foundation",
+    "role": "Secretary",
+    "linkedin_url": "",
+    "tags": [
+      "entertainment",
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "5b70eaba-4abc-49bc-94e8-6eb8d76713e5",
+    "name": "Oscar Alvarez",
+    "email": "oscar.alvarez@placeholder.clu-demo",
+    "company": "Los Angeles Rams",
+    "role": "HR Analyst",
+    "linkedin_url": "https://www.linkedin.com/in/oscar-alvarez-44656919a",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "fb25b240-1559-4094-a8a9-1a3651c63ae9",
+    "name": "Pam Kessler",
+    "email": "pam.kessler@placeholder.clu-demo",
+    "company": "Immatics",
+    "role": "Chief People Officer",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Fireside Chat Spring 2022; MPPA panel Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "57d0adab-1573-4f8a-8f89-28ebe72813e3",
+    "name": "Paul Ross",
+    "email": "paul.ross@placeholder.clu-demo",
+    "company": "RKS Design",
+    "role": "President and CEO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "f80fb4ee-b128-4279-b136-84f902eb95c7",
+    "name": "Paul Sheehan",
+    "email": "paul.sheehan@placeholder.clu-demo",
+    "company": "Dyer Sheehan Group, Inc.",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "finance",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "7ae065da-1449-4ab1-b5dc-74bd2683ea07",
+    "name": "Paul Witman",
+    "email": "pwitman@callutheran.edu",
+    "company": "California Lutheran University School of Management",
+    "role": "MSIT Program Director",
+    "linkedin_url": "",
+    "tags": [
+      "faculty",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "4d77ad3a-1030-47f6-8724-2348468f4f1d",
+    "name": "Payal Kamdar",
+    "email": "payal.kamdar@placeholder.clu-demo",
+    "company": "VSolvit LLC",
+    "role": "CEO and Founder",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "1b7ff03a-0475-4eda-b13d-3d2f3ddd8a5c",
+    "name": "Peter Zierhut",
+    "email": "peter.zierhut@placeholder.clu-demo",
+    "company": "Haas Automation, Inc.",
+    "role": "VP Outside Operations",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2020 keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "e5e6414d-8f08-4539-99ac-20c2989c4c18",
+    "name": "Petra Griffith",
+    "email": "petra.griffith@placeholder.clu-demo",
+    "company": "Wedbush Ventures",
+    "role": "Managing Director",
+    "linkedin_url": "https://www.linkedin.com/in/petragriffith",
+    "tags": [
+      "ess-speaker",
+      "speaker",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "e8c4cda0-f017-490a-9c51-30ffbbf68e50",
+    "name": "Philippe Eskandar",
+    "email": "philippe.eskandar@placeholder.clu-demo",
+    "company": "City of Westlake Village",
+    "role": "Deputy City Manager",
+    "linkedin_url": "https://www.linkedin.com/in/philippeeskandar/",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "47d245ac-3b0d-43b8-97f2-109c5ac9f51f",
+    "name": "Phoenix Ha",
+    "email": "phoenix.ha@placeholder.clu-demo",
+    "company": "Ad Beacon",
+    "role": "CEO",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78"
+    ]
+  },
+  {
+    "id": "2c5932b7-b4e8-42bc-9016-cfdf825532bd",
+    "name": "Preston Geeting",
+    "email": "preston.geeting@placeholder.clu-demo",
+    "company": "Packform",
+    "role": "Co-Founder",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "sdcie-council"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ESS past speaker Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "bd7e5238-3355-490f-8529-c9d23b917829",
+    "name": "Primo Custodio",
+    "email": "primo.custodio@placeholder.clu-demo",
+    "company": "NBC Universal (ret.)",
+    "role": "Retired VP HR Operations and Technical Services",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "exec-talent-forum",
+      "hr-leader",
+      "industry",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF moderator/panelist Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "9d99b873-8570-48b3-ac86-58c811938f89",
+    "name": "Rachel Ronning Lindgren",
+    "email": "rachel.lindgren@placeholder.clu-demo",
+    "company": "California Lutheran University",
+    "role": "Interim VP Advancement",
+    "linkedin_url": "",
+    "tags": [
+      "university-leadership"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "23aa1ea1-e2a9-48c9-9822-b3aa3c3875e2",
+    "name": "Rafael Cordero",
+    "email": "rafael.cordero@placeholder.clu-demo",
+    "company": "The Rivera Ridge School",
+    "role": "Director of IT",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "deij-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MSIT Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "84609922-b732-44f1-811a-f38a2d674681",
+    "name": "Ram Prayaga",
+    "email": "ram.prayaga@placeholder.clu-demo",
+    "company": "Cafethink LLC",
+    "role": "Principal",
+    "linkedin_url": "",
+    "tags": [
+      "consulting",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "a0debda5-07f7-45f5-afbb-e5618e1050df",
+    "name": "Ravi K. Sawhney",
+    "email": "ravi.sawhney@placeholder.clu-demo",
+    "company": "Vallarta Supermarkets",
+    "role": "CFO",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "47a53e65-5c10-4d17-96e3-5f1a99de8222",
+    "name": "Rhonda Vetere",
+    "email": "rhonda.vetere@placeholder.clu-demo",
+    "company": "Herbalife Nutrition",
+    "role": "EVP and CIO",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2021 keynote Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "32d4fd4c-ba35-4f30-878f-1c75d7747938",
+    "name": "Robbie Nock",
+    "email": "robbie.nock@placeholder.clu-demo",
+    "company": "ArtCenter",
+    "role": "Director of Entrepreneurship and Professional Practice",
+    "linkedin_url": "https://www.linkedin.com/in/robbie-nock/",
+    "tags": [
+      "education",
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "3d49681b-4727-4e2a-8be6-8f71b48094c5",
+    "name": "Robert (Bob) Bushnell",
+    "email": "bob.bushnell@placeholder.clu-demo",
+    "company": "Raytheon",
+    "role": "Business Development Executive",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "aeea0f88-f0d8-4214-896d-d6791528c8dc",
+    "name": "Robert Pieroni",
+    "email": "robert.pieroni@placeholder.clu-demo",
+    "company": "gener8tor",
+    "role": "Director of Italian Business Development",
+    "linkedin_url": "",
+    "tags": [
+      "ess-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "e739744e-2739-4b54-80f9-e82bb36ca660",
+    "name": "Rosie Baker",
+    "email": "rlbaker@callutheran.edu",
+    "company": "California Lutheran University School of Management",
+    "role": "Communications Coordinator; PRME",
+    "linkedin_url": "",
+    "tags": [
+      "leadership",
+      "staff"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "591aaf62-9055-4040-ba68-cfdc3bc60bab",
+    "name": "Russ Young",
+    "email": "russ.young@placeholder.clu-demo",
+    "company": "Lyondell Chemical (ret.)",
+    "role": "ret. CFO",
+    "linkedin_url": "",
+    "tags": [
+      "industry",
+      "sdcie-council"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "fda58382-a832-4c0f-8ce5-48f74c72e397",
+    "name": "Ryan Douglas",
+    "email": "ryan.douglas@placeholder.clu-demo",
+    "company": "UCLA Sports Bowl Properties",
+    "role": "Coordinator, Partnership Services",
+    "linkedin_url": "https://www.linkedin.com/in/rvdouglas/",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "0e3ec3d1-5f3c-4e6b-ad28-cd1d79613158",
+    "name": "Sabith Khan",
+    "email": "skhan@callutheran.edu",
+    "company": "California Lutheran University School of Management",
+    "role": "MPPA Program Director",
+    "linkedin_url": "",
+    "tags": [
+      "faculty",
+      "policy"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "102fd117-1019-4178-9001-73c453caa39d",
+    "name": "Sevet Johnson",
+    "email": "sevet.johnson@placeholder.clu-demo",
+    "company": "Ventura County",
+    "role": "County Executive Officer",
+    "linkedin_url": "",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "62955869-57c8-4100-b80a-409fd07f5788",
+    "name": "Shafia Hayek",
+    "email": "shafia.hayek@placeholder.clu-demo",
+    "company": "PennyMac Loan Services",
+    "role": "VP HR and Admin Technology",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2024 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "241ac884-bb7d-4563-a0ff-3c028f66f15d",
+    "name": "Shannon Martin",
+    "email": "shannon.martin@placeholder.clu-demo",
+    "company": "Marconi Automotive Museum",
+    "role": "Operations and Events Manager",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2020 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "3b708d2f-d905-4328-af62-24de988e7bf8",
+    "name": "Shannon Shapiro",
+    "email": "shannon.shapiro@placeholder.clu-demo",
+    "company": "Ember Technologies",
+    "role": "VP Global Marketing",
+    "linkedin_url": "https://www.linkedin.com/in/shannon-shapiro-7265a122",
+    "tags": [
+      "alumni",
+      "fireside-chat-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MBA alumna; Fireside Spring 2024 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "a9fca15f-a52c-406b-83eb-0aaf179fa1a0",
+    "name": "Sharena Rice, PhD",
+    "email": "sharena.rice@placeholder.clu-demo",
+    "company": "Stealth Mode Biotech",
+    "role": "Research Scientist",
+    "linkedin_url": "",
+    "tags": [
+      "sdcie-council",
+      "speaker",
+      "tech",
+      "techtalk-speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "TechTalk neuroscientist Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "a38e563b-1bf9-41f1-b9f3-12eaa5a73159",
+    "name": "Sharon Faltemier",
+    "email": "sharon.faltemier@placeholder.clu-demo",
+    "company": "Semtech",
+    "role": "Senior VP HR",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2019 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "8e6ef4ab-e3d7-4cf8-be3c-2b621bf4cb2a",
+    "name": "Shauna Vernal",
+    "email": "shauna.vernal@placeholder.clu-demo",
+    "company": "",
+    "role": "Member, Dean's Executive Council",
+    "linkedin_url": "",
+    "tags": [
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Title/org on CLU site; confirm with SOM Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "4f01d485-6775-42d0-b724-b46edc19414c",
+    "name": "Sireen Moriarty",
+    "email": "sireen.moriarty@placeholder.clu-demo",
+    "company": "Amgen",
+    "role": "Financial Planning Analyst / Finance roles",
+    "linkedin_url": "https://www.linkedin.com/in/sireenmoriarty/",
+    "tags": [
+      "advisory-council",
+      "finance",
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "LinkedIn from Pathways Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "ea6c79a9-0c6f-4c1a-b265-de371db9381c",
+    "name": "Sophie Harlan",
+    "email": "sophie.harlan@placeholder.clu-demo",
+    "company": "Los Angeles Rams",
+    "role": "Director of Football Operations",
+    "linkedin_url": "https://www.linkedin.com/in/sophie-harlan-072b954b",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "579ede49-5455-4a03-bf1a-b28e5d41e822",
+    "name": "Stefan L. Mund",
+    "email": "stefan.mund@placeholder.clu-demo",
+    "company": "PennyMac (ret.)",
+    "role": "Sr MD and CIO (ret.)",
+    "linkedin_url": "",
+    "tags": [
+      "c-suite",
+      "deans-executive-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "bcbc503e-98fd-41c7-83a1-24953a4e67e0",
+    "name": "Stender Sweeney",
+    "email": "stender.sweeney@placeholder.clu-demo",
+    "company": "Pasadena Angels",
+    "role": "Angel Investor",
+    "linkedin_url": "",
+    "tags": [
+      "sdcie-council",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "d4eab9c7-48b3-4fd6-a15f-eb0d3c46bd27",
+    "name": "Stephen Boggs",
+    "email": "stephen.boggs@placeholder.clu-demo",
+    "company": "The Boggs Group, LLC",
+    "role": "CERF Board",
+    "linkedin_url": "https://www.linkedin.com/pub/steve-boggs/a/a23/995",
+    "tags": [
+      "cerf-board",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "LinkedIn legacy URL on CERF site Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "1238b0ee-191a-461a-9906-29a963b46632",
+    "name": "Steven D. Dorfman",
+    "email": "steven.dorfman@placeholder.clu-demo",
+    "company": "Providence / Hughes (ret.)",
+    "role": "CFO Philanthropy; former Vice Chairman Hughes",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "c-suite",
+      "deans-executive-council",
+      "industry",
+      "sdcie-council"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Multiple SOM councils Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "dfd013f6-93d8-4fbb-be5c-2242b07aa2d2",
+    "name": "Sue Chadwick",
+    "email": "sue.chadwick@placeholder.clu-demo",
+    "company": "NBC Universal (ret.)",
+    "role": "Retired VP HR",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "hr-leader",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "a50c886b-5e32-42a1-8eb6-4be602e8209a",
+    "name": "Sue J. Liu",
+    "email": "sue.liu@placeholder.clu-demo",
+    "company": "Mercer",
+    "role": "Principal Senior Consultant",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "hr-leader",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "d32621ee-aefb-4656-bf3d-93cbc46e8781",
+    "name": "Susan Lundeen",
+    "email": "susan.lundeen@placeholder.clu-demo",
+    "company": "Allogene Therapeutics",
+    "role": "Chief People Officer",
+    "linkedin_url": "",
+    "tags": [
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF 2024 moderator Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "9e31286a-3cd8-47df-be8c-e45e2bf2f9bb",
+    "name": "Susan Van Vleet",
+    "email": "susan.vanvleet@placeholder.clu-demo",
+    "company": "Susan Van Vleet Consultants, Inc.",
+    "role": "President",
+    "linkedin_url": "",
+    "tags": [
+      "deij-speaker",
+      "exec-talent-forum",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ETMF advisory; DEIJ moderator Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b"
+    ]
+  },
+  {
+    "id": "9f6eebe6-4fec-4821-8fcf-7bb867b174e0",
+    "name": "Susan Wolf",
+    "email": "susan.wolf@placeholder.clu-demo",
+    "company": "WRiiG",
+    "role": "Founder and President",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "sdcie-council"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "ESS past with Line 6 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "5a17b27d-faa8-406c-986d-e157e1c2adf0",
+    "name": "Sushma Vasudevan",
+    "email": "sushma.vasudevan@placeholder.clu-demo",
+    "company": "PureSpectrum",
+    "role": "SVP Analytics and Data Science; CERF board; adjunct",
+    "linkedin_url": "https://www.linkedin.com/in/sushmavasudevananalytics/",
+    "tags": [
+      "alumni",
+      "cerf-board",
+      "distinguished-alumni",
+      "faculty",
+      "industry",
+      "tech"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Distinguished Alumna 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "7dcd7468-d1e1-438a-8d36-6e3de243fd78",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "47810156-fb65-4463-8eb8-23ce276322e9",
+    "name": "Sylvia Kokiousis",
+    "email": "sylvia.kokiousis@placeholder.clu-demo",
+    "company": "Answer Financial",
+    "role": "Director, Partner Solutions",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MBA Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "837cf03d-cd1c-4e46-bd81-7ce6e9fdd367",
+    "name": "Taj Ahmad Eldridge",
+    "email": "taj.eldridge@placeholder.clu-demo",
+    "company": "Include Ventures",
+    "role": "General Partner",
+    "linkedin_url": "",
+    "tags": [
+      "entrepreneur",
+      "sdcie-council",
+      "venture-capital"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3e4152e4-7846-491f-a49a-7c2a878e6384",
+      "e2b09987-d473-4d12-b75c-230d7377f01c"
+    ]
+  },
+  {
+    "id": "861d2a37-eb05-451e-8117-e5d967e8b0fe",
+    "name": "Ted Glick",
+    "email": "ted.glick@placeholder.clu-demo",
+    "company": "Washington Commanders",
+    "role": "VP Premium Hospitality",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "sports"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "e1620246-fd9e-450e-bc0c-b3371e9840bc",
+    "name": "Tim Gallagher",
+    "email": "tim.gallagher@placeholder.clu-demo",
+    "company": "Gallagher Public Relations",
+    "role": "CERF Board",
+    "linkedin_url": "",
+    "tags": [
+      "cerf-board",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729"
+    ]
+  },
+  {
+    "id": "12b3b667-e5b4-4d37-9242-6013e8c8147c",
+    "name": "Timmy The Dreamer Bishop",
+    "email": "timmy.dreamer@placeholder.clu-demo",
+    "company": "",
+    "role": "Youth keynote speaker",
+    "linkedin_url": "https://www.linkedin.com/in/timmy-the-dreamer-bishop-58508b108/",
+    "tags": [
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Pathways March 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "43672443-409e-4423-9836-38f42eff62d1",
+    "name": "Timothy Thompson",
+    "email": "timothy.thompson@placeholder.clu-demo",
+    "company": "Los Angeles Rams",
+    "role": "Manager, 50/50",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "pathways-speaker",
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU Sports Management Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "ae0838d1-3bd7-4907-91f2-91299e1aa1f5",
+    "name": "Tommie Joe",
+    "email": "tommie.joe@placeholder.clu-demo",
+    "company": "EMS Inc. / PMG",
+    "role": "Chief Operating Officer",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "60ceb69b-5568-4450-83a9-e6a806509b99",
+    "name": "Troy Brown",
+    "email": "troy.brown@placeholder.clu-demo",
+    "company": "City of Moorpark",
+    "role": "City Manager",
+    "linkedin_url": "https://www.linkedin.com/in/troy-brown-icma-cm-10b00818/",
+    "tags": [
+      "mppa-speaker",
+      "policy",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "05c81ac8-bc25-4e1c-87cf-3a5bff3f4729",
+      "c7a6777e-7967-457c-b6f5-05c6ab3b1f30"
+    ]
+  },
+  {
+    "id": "b4078db8-4dfc-463d-8304-6ae0503ca9a9",
+    "name": "Tyler Lucas",
+    "email": "tyler.lucas@placeholder.clu-demo",
+    "company": "AltSpot Capital",
+    "role": "Founder",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "finance",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU 2017 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "451f2a4b-6363-427b-859e-2ab8b7a1de86",
+    "name": "Tyler Potts",
+    "email": "tyler.potts@placeholder.clu-demo",
+    "company": "Los Angeles Rams",
+    "role": "Senior Director, Partnerships",
+    "linkedin_url": "",
+    "tags": [
+      "speaker",
+      "sports",
+      "sports-management-judge"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "3f9cf199-33bd-4b2d-81d4-40f488289dc6",
+      "acb24ddd-acc0-4d09-accd-0daaa736f4e0"
+    ]
+  },
+  {
+    "id": "6ba30fc5-06dc-4c4e-a9c9-931a1d8cc0e1",
+    "name": "Valeria Makarova",
+    "email": "vmakarova@placeholder.clu-demo",
+    "company": "California Lutheran University School of Management",
+    "role": "PRME Project Lead; Teaching Effectiveness",
+    "linkedin_url": "",
+    "tags": [
+      "leadership",
+      "staff"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "f24ef6e3-a209-4ab6-ae3f-8af21feed6c8",
+    "name": "Victor Fakrogha",
+    "email": "victor.fakrogha@placeholder.clu-demo",
+    "company": "Community West Bank",
+    "role": "Regional Market Manager",
+    "linkedin_url": "",
+    "tags": [
+      "alumni",
+      "deij-speaker",
+      "finance",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "CLU MBA 2005 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7"
+    ]
+  },
+  {
+    "id": "e8ec5756-9e17-4244-a49e-4e8405f688dd",
+    "name": "Vlad Vaiman, PhD",
+    "email": "vvaiman@callutheran.edu",
+    "company": "California Lutheran University",
+    "role": "Professor; Executive Talent Management Forum lead",
+    "linkedin_url": "",
+    "tags": [
+      "faculty",
+      "hr-leader",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Talent management scholar; ETMF organizer",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "4a7290be-eabe-4354-ae3a-32bcef618973",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "b596dea5-c136-437d-ae9c-6f29ea277c9b",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "30740b2c-a93e-4404-bfa5-c3c446bd6af7",
+    "name": "Warren Spieker",
+    "email": "warren.spieker@placeholder.clu-demo",
+    "company": "Continuing Life",
+    "role": "Managing Partner",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  },
+  {
+    "id": "b64efc5e-17c2-40e2-ab84-f3f087eaf175",
+    "name": "William (Bill) Burkley",
+    "email": "bill.burkley@placeholder.clu-demo",
+    "company": "Agilent Technologies",
+    "role": "Senior Business Executive",
+    "linkedin_url": "",
+    "tags": [
+      "advisory-council",
+      "industry",
+      "pathways-speaker",
+      "speaker"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Pathways 2025 Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31",
+      "382a487d-d557-4963-8776-86bf38d20797",
+      "a2bf7c83-425a-4d67-8fbd-71161b13c1c7",
+      "c0be93f0-7308-41cf-82c5-15da65bd72fd"
+    ]
+  },
+  {
+    "id": "24e3e6f7-9a91-40d7-bc9f-9c6675ea9533",
+    "name": "Yuliana Gonzalez",
+    "email": "yuliana.gonzalez@placeholder.clu-demo",
+    "company": "Camarillo Hotel and Tourism Association",
+    "role": "Executive Director",
+    "linkedin_url": "",
+    "tags": [
+      "pathways-speaker",
+      "speaker",
+      "travel"
+    ],
+    "source": "clu_web_seed",
+    "referred_by": "",
+    "notes": "Placeholder email from public web seed — confirm with SOM before outreach.",
+    "added_at": "2026-04-02T02:38:03.370289+00:00",
+    "events_participated": [
+      "0b12d8c8-9e8b-4e58-82bd-28012d6e2e31"
+    ]
+  }
+]

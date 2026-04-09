@@ -1,0 +1,177 @@
+{
+  "https://www.callutheran.edu/management/events/": {
+    "hash": "0e3083dd624f52e7bff5ef643e293567c511246ddd7385eb432f74c06b349d7b",
+    "dates": [],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:45.901755+00:00",
+    "label": "SOM Events Main"
+  },
+  "https://www.callutheran.edu/management/events/spmg.html": {
+    "hash": "5e59064295d3d949f532bb6d1d4337fb8f0f38718f6e86771c4849e472367b1a",
+    "dates": [
+      "Saturday, April 11, 2026"
+    ],
+    "registration_links": [
+      "https://host.nxt.blackbaud.com/registration-form/?formId=2b2086ac-bb44-4808-83eb-5e35f8f60aaf&envId=p-0i0lPz-1WkKyHrjTeSq9yw&zone=usa"
+    ],
+    "last_scraped": "2026-04-09T05:36:46.323516+00:00",
+    "label": "Sports Management"
+  },
+  "https://www.callutheran.edu/management/events/ess.html": {
+    "hash": "6fe0f087a5521cf9904d9c78fd04b314bed0fabcbe8c0d4c95616ea81fedd8cb",
+    "dates": [
+      "Wednesday, February 11, 2026",
+      "Tuesday, February 11, 2025",
+      "Wednesday, February 21, 2024",
+      "Thursday, October 5, 2023",
+      "Thursday, October 5, 2023",
+      "Monday, October 17, 2022"
+    ],
+    "registration_links": [
+      "https://airtable.com/appkqhRZTU8Enr0vF/pag7l9Ivy6SHppTAh/form"
+    ],
+    "last_scraped": "2026-04-09T05:36:46.766126+00:00",
+    "label": "Entrepreneur Speaker Series"
+  },
+  "https://www.callutheran.edu/management/events/forward.html": {
+    "hash": "dfb254268736382a0b506727faadc3b396300b1cf71d08d79e58b4bc08b7def8",
+    "dates": [
+      "Tuesday, April 22, 2025",
+      "Wednesday, October 2, 2024",
+      "Wednesday, November 15, 2023",
+      "Wednesday, September 20, 2023",
+      "Tuesday, March 28, 2023",
+      "Wednesday, November 30, 2022",
+      "Thursday, February 17, 2022",
+      "Wednesday, January 26, 2022",
+      "Wednesday, September 29, 2021",
+      "Wednesday, May 26, 2021",
+      "Wednesday, May 12, 2021",
+      "Wednesday, April 21, 2021",
+      " February 15, 2016",
+      "Wednesday, March 24, 2021",
+      "Wednesday, March 10, 2021",
+      "Wednesday, January 27, 2021",
+      "Wednesday, January 13th, 2021",
+      "Wednesday, November 18, 2020",
+      "Wednesday, November 4, 2020",
+      "Friday, October 23, 2020",
+      "Wednesday, September 30, 2020",
+      "Wednesday, September 2, 2020",
+      "Wednesday, August 12, 2020",
+      "Monday, June 22, 2020",
+      "Friday, June 12, 2020",
+      "Wednesday, May 27, 2020",
+      "Wednesday, May 13, 2020",
+      "Wednesday, April 22, 2020",
+      "Wednesday, April 17, 2020"
+    ],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:47.192151+00:00",
+    "label": "Forward Together"
+  },
+  "https://www.callutheran.edu/management/events/banquet.html": {
+    "hash": "2a8bcaebb9f0e1d7d4bbfc518ee0833eeff3bc8a1c3f12cfadb283dff76b2b10",
+    "dates": [
+      " March 22, 2026",
+      "Wednesday, May 13, 2026",
+      "Wednesday, May 13, 2026",
+      " May 14th, 2025"
+    ],
+    "registration_links": [
+      "https://host.nxt.blackbaud.com/registration-form/?formId=46de220b-982b-456a-8a4c-9f480b2c6795&envId=p-0i0lPz-1WkKyHrjTeSq9yw&zone=usa",
+      "https://host.nxt.blackbaud.com/registration-form/?formId=46de220b-982b-456a-8a4c-9f480b2c6795&envId=p-0i0lPz-1WkKyHrjTeSq9yw&zone=usa"
+    ],
+    "last_scraped": "2026-04-09T05:36:47.621216+00:00",
+    "label": "Graduation Banquet"
+  },
+  "https://www.callutheran.edu/management/events/mppa-events.html": {
+    "hash": "30586a57cc2c182c667493cfad6429ba5ee1d3a9dd273d121ecd1e6ee5598181",
+    "dates": [
+      "Thursday, January 16, 2025",
+      "Tuesday, September 17, 2024",
+      "Thursday, February 29, 2024",
+      "Thursday, March 14, 2024"
+    ],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:48.054136+00:00",
+    "label": "MPPA Events"
+  },
+  "https://www.callutheran.edu/management/events/deij.html": {
+    "hash": "acae20afff9768fc9e7b1030e1af53d921f678a1463de92b86bf3a09288ac67c",
+    "dates": [
+      "Tuesday, October 10th, 2023",
+      "Tuesday, April 18th, 2023"
+    ],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:48.459335+00:00",
+    "label": "DEIJB in the Workplace"
+  },
+  "https://www.callutheran.edu/management/events/techtalk.html": {
+    "hash": "41abf48fe410b9b27f8c610e9f1d1d44e1a155fc8bfba004f5b0c0ab078a7030",
+    "dates": [
+      "Wednesday, November 13, 2024",
+      "Wednesday, November 19, 2023",
+      "Monday, May 23, 2022",
+      "Monday, February 28, 2022",
+      "Monday, November 22, 2021",
+      "Monday, August 16, 2021",
+      "Monday, May 17, 2021",
+      "Monday, March 1, 2021",
+      "Monday, November 16, 2020"
+    ],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:48.922820+00:00",
+    "label": "TechTalk Series"
+  },
+  "https://www.callutheran.edu/management/events/pathways-and-possibilities.html": {
+    "hash": "cc609c6625de6fda1281ee22a57ac9defa7005cb02336ced81dbfb8069a55e44",
+    "dates": [],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:49.387472+00:00",
+    "label": "Pathways & Possibilities"
+  },
+  "https://www.callutheran.edu/centers/entrepreneurship/programs/new-venture-fair.html": {
+    "hash": "239ad1fdd93d1d00f297271d640b99b17ed99106c1167e4f4555ebf5410684b7",
+    "dates": [
+      " May 6, 2026"
+    ],
+    "registration_links": [
+      "https://airtable.com/appktsIMQbFYP7Rru/pagI8Qe52Jee4OwLe/form"
+    ],
+    "last_scraped": "2026-04-09T05:36:49.762770+00:00",
+    "label": "New Venture Fair"
+  },
+  "https://clucerf.org/events/": {
+    "hash": "9ebf686b320705e1356eb41d72c1de290788f4953ce124105ef7beefd5ad27be",
+    "dates": [
+      "Tuesday, February 24th, 2026"
+    ],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:50.160455+00:00",
+    "label": "CERF Events"
+  },
+  "https://www.executivetalent.net/": {
+    "hash": "412a61e65ab214c4065ab65e11f750398fe3f58cd20ce553bd5602c26b86d3b8",
+    "dates": [],
+    "registration_links": [
+      "https://host.nxt.blackbaud.com/registration-form/?formId=85d670d6-81fe-4850-9c2e-ab23987e8057&envId=p-0i0lPz-1WkKyHrjTeSq9yw&zone=usa"
+    ],
+    "last_scraped": "2026-04-09T05:36:50.650564+00:00",
+    "label": "Executive Talent Mgmt Forum"
+  },
+  "https://www.callutheran.edu/management/events/sponsor.html": {
+    "hash": "787a4e753a6383a1afe82f9ddabee8cc709c7a3482290c976b653793b7b06111",
+    "dates": [],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:51.014399+00:00",
+    "label": "Sponsorship"
+  },
+  "https://www.callutheran.edu/management/prime/": {
+    "hash": "93b2d847c9ca6018b502c1aec21064dc26db9323ba787c0d3a96629e92d986bf",
+    "dates": [],
+    "registration_links": [],
+    "last_scraped": "2026-04-09T05:36:51.420086+00:00",
+    "label": "PRME @ SOM"
+  }
+}
