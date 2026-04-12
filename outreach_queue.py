@@ -227,6 +227,59 @@ def plan_outreach_for_event(event, contacts, ai_config: dict | None = None) -> i
             )
             added += 1
 
+    added += _plan_post_event_followups(event, contacts, auto_approve_emails)
+    return added
+
+
+def _plan_post_event_followups(event, contacts, auto_approve_emails: bool) -> int:
+    """Schedule thank-you and survey emails for after the event date."""
+    if not event.date or event.date.upper() == "TBA":
+        return 0
+    try:
+        event_dt = datetime.fromisoformat(event.date).replace(tzinfo=timezone.utc)
+    except (ValueError, TypeError):
+        try:
+            event_dt = datetime.strptime(event.date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            return 0
+
+    if event_dt < datetime.now(timezone.utc):
+        return 0
+
+    added = 0
+    thankyou_time = (event_dt + timedelta(days=1)).replace(hour=10, minute=0).isoformat()
+    survey_time = (event_dt + timedelta(days=2)).replace(hour=10, minute=0).isoformat()
+    status = "approved" if auto_approve_emails else "planned"
+
+    eligible = [c for c in contacts if c.email]
+    for c in eligible:
+        if not already_queued(event.id, c.id, "email_thankyou"):
+            add_action(
+                event_id=event.id,
+                contact_id=c.id,
+                contact_name=c.name,
+                contact_email=c.email,
+                action_type="email_thankyou",
+                scheduled_at=thankyou_time,
+                ai_reason="Thank-you email sent 1 day after event",
+                preview="",
+                status=status,
+            )
+            added += 1
+        if not already_queued(event.id, c.id, "email_survey"):
+            add_action(
+                event_id=event.id,
+                contact_id=c.id,
+                contact_name=c.name,
+                contact_email=c.email,
+                action_type="email_survey",
+                scheduled_at=survey_time,
+                ai_reason="Feedback survey sent 2 days after event",
+                preview="",
+                status=status,
+            )
+            added += 1
+
     return added
 
 

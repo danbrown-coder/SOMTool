@@ -163,4 +163,99 @@
   {% endfor %}
 </div>
 {% endif %}
+
+<!-- ── Year-over-Year Trends ── -->
+{% if yoy %}
+<div class="card">
+  <h2>Year-over-Year Trends</h2>
+  <table class="analytics-table" style="width:100%;border-collapse:collapse;font-size:.88rem;">
+    <thead>
+      <tr style="text-align:left;border-bottom:2px solid var(--border);">
+        <th style="padding:.5rem;">Year</th>
+        <th style="padding:.5rem;">Events</th>
+        <th style="padding:.5rem;">Registrations</th>
+        <th style="padding:.5rem;">Attendance</th>
+        <th style="padding:.5rem;">Rate</th>
+        <th style="padding:.5rem;">Avg Rating</th>
+        <th style="padding:.5rem;">Feedback</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in yoy %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:.5rem;font-weight:600;">{{ row.year }}</td>
+        <td style="padding:.5rem;">{{ row.events }}</td>
+        <td style="padding:.5rem;">{{ row.registrations }}</td>
+        <td style="padding:.5rem;">{{ row.attendance }}</td>
+        <td style="padding:.5rem;">
+          <div style="display:flex;align-items:center;gap:.4rem;">
+            <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+              <div style="width:{{ row.attendance_rate }}%;height:100%;background:{% if row.attendance_rate >= 80 %}#059669{% elif row.attendance_rate >= 50 %}#f59e0b{% else %}#dc2626{% endif %};border-radius:4px;"></div>
+            </div>
+            <span>{{ row.attendance_rate }}%</span>
+          </div>
+        </td>
+        <td style="padding:.5rem;">{% if row.avg_rating %}<span style="color:#f59e0b;">&#9733;</span> {{ row.avg_rating }}{% else %}—{% endif %}</td>
+        <td style="padding:.5rem;">{{ row.total_feedback }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- ── Budget Overview ── -->
+{% if budget_overview.total_planned or budget_overview.total_actual %}
+<div class="card">
+  <h2>Budget Overview</h2>
+  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.9rem;">
+    <div>
+      <span style="color:var(--text-secondary);">Total Planned:</span>
+      <strong>${{ '%.2f'|format(budget_overview.total_planned) }}</strong>
+    </div>
+    <div>
+      <span style="color:var(--text-secondary);">Total Spent:</span>
+      <strong style="color:{% if budget_overview.total_actual > budget_overview.total_planned %}#dc2626{% else %}var(--text){% endif %};">${{ '%.2f'|format(budget_overview.total_actual) }}</strong>
+    </div>
+    <div>
+      <span style="color:var(--text-secondary);">Total Sponsorship:</span>
+      <strong>${{ '%.2f'|format(budget_overview.total_sponsorship) }}</strong>
+    </div>
+    <div>
+      <span style="color:var(--text-secondary);">Net:</span>
+      <strong style="color:{% if budget_overview.net >= 0 %}#059669{% else %}#dc2626{% endif %};">${{ '%.2f'|format(budget_overview.net) }}</strong>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Feedback Overview ── -->
+{% if fb_overview.total > 0 %}
+<div class="card">
+  <h2>Feedback Overview</h2>
+  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.9rem;">
+    <div>
+      <span style="color:var(--text-secondary);">Total Responses:</span>
+      <strong>{{ fb_overview.total }}</strong>
+    </div>
+    <div>
+      <span style="color:var(--text-secondary);">Avg Rating:</span>
+      <strong style="color:#f59e0b;">&#9733; {{ fb_overview.avg_rating }}/5</strong>
+    </div>
+    {% if fb_overview.best_event %}
+    <div>
+      <span style="color:var(--text-secondary);">Best Rated:</span>
+      <strong>{{ fb_overview.best_event }}</strong>
+    </div>
+    {% endif %}
+    {% if fb_overview.worst_event and fb_overview.worst_event != fb_overview.best_event %}
+    <div>
+      <span style="color:var(--text-secondary);">Needs Improvement:</span>
+      <strong>{{ fb_overview.worst_event }}</strong>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

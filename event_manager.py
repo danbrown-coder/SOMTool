@@ -111,6 +111,7 @@ def create_event(
     registration_deadline: str = "",
     late_fee: float = 0.0,
     late_fee_note: str = "",
+    **kwargs,
 ) -> Event:
     events = load_events()
     event = Event(
@@ -130,6 +131,15 @@ def create_event(
         registration_deadline=registration_deadline.strip() if registration_deadline else "",
         late_fee=late_fee,
         late_fee_note=late_fee_note.strip() if late_fee_note else "",
+        goal_registrations=kwargs.get("goal_registrations", 0),
+        goal_attendance=kwargs.get("goal_attendance", 0),
+        goal_sponsorship=kwargs.get("goal_sponsorship", 0.0),
+        goal_budget=kwargs.get("goal_budget", 0.0),
+        custom_goals=kwargs.get("custom_goals", []),
+        planned_budget=kwargs.get("planned_budget", 0.0),
+        actual_spend=kwargs.get("actual_spend", 0.0),
+        sponsorship_revenue=kwargs.get("sponsorship_revenue", 0.0),
+        expenses=kwargs.get("expenses", []),
     )
     events.append(event)
     save_events(events)
@@ -150,6 +160,7 @@ def update_event(
     registration_deadline: str = "",
     late_fee: float = 0.0,
     late_fee_note: str = "",
+    **kwargs,
 ) -> bool:
     events = load_events()
     for i, e in enumerate(events):
@@ -166,6 +177,15 @@ def update_event(
             e.registration_deadline = registration_deadline.strip() if registration_deadline else ""
             e.late_fee = late_fee
             e.late_fee_note = late_fee_note.strip() if late_fee_note else ""
+            e.goal_registrations = kwargs.get("goal_registrations", e.goal_registrations)
+            e.goal_attendance = kwargs.get("goal_attendance", e.goal_attendance)
+            e.goal_sponsorship = kwargs.get("goal_sponsorship", e.goal_sponsorship)
+            e.goal_budget = kwargs.get("goal_budget", e.goal_budget)
+            e.custom_goals = kwargs.get("custom_goals", e.custom_goals)
+            e.planned_budget = kwargs.get("planned_budget", e.planned_budget)
+            e.actual_spend = kwargs.get("actual_spend", e.actual_spend)
+            e.sponsorship_revenue = kwargs.get("sponsorship_revenue", e.sponsorship_revenue)
+            e.expenses = kwargs.get("expenses", e.expenses)
             events[i] = e
             save_events(events)
             return True

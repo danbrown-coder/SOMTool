@@ -206,6 +206,17 @@ class Event:
     registration_deadline: str = ""
     late_fee: float = 0.0
     late_fee_note: str = ""
+    # Goals
+    goal_registrations: int = 0
+    goal_attendance: int = 0
+    goal_sponsorship: float = 0.0
+    goal_budget: float = 0.0
+    custom_goals: list[dict] = field(default_factory=list)
+    # Budget
+    planned_budget: float = 0.0
+    actual_spend: float = 0.0
+    sponsorship_revenue: float = 0.0
+    expenses: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -222,6 +233,15 @@ class Event:
             "registration_deadline": self.registration_deadline,
             "late_fee": self.late_fee,
             "late_fee_note": self.late_fee_note,
+            "goal_registrations": self.goal_registrations,
+            "goal_attendance": self.goal_attendance,
+            "goal_sponsorship": self.goal_sponsorship,
+            "goal_budget": self.goal_budget,
+            "custom_goals": self.custom_goals,
+            "planned_budget": self.planned_budget,
+            "actual_spend": self.actual_spend,
+            "sponsorship_revenue": self.sponsorship_revenue,
+            "expenses": self.expenses,
         }
         if self.som_event_id:
             d["som_event_id"] = self.som_event_id
@@ -243,6 +263,16 @@ class Event:
             late_fee = float(d.get("late_fee", 0) or 0)
         except (ValueError, TypeError):
             late_fee = 0.0
+        def _float(key, default=0.0):
+            try:
+                return float(d.get(key, default) or default)
+            except (ValueError, TypeError):
+                return default
+        def _int(key, default=0):
+            try:
+                return int(d.get(key, default) or default)
+            except (ValueError, TypeError):
+                return default
         return cls(
             id=d["id"],
             name=d["name"],
@@ -256,11 +286,20 @@ class Event:
             sender_name=d.get("sender_name", ""),
             sender_title=d.get("sender_title", ""),
             sender_email=d.get("sender_email", ""),
-            venue_capacity=int(d.get("venue_capacity", 0) or 0),
-            walkin_buffer_pct=int(d.get("walkin_buffer_pct", 15) or 15),
+            venue_capacity=_int("venue_capacity"),
+            walkin_buffer_pct=_int("walkin_buffer_pct", 15),
             registration_deadline=d.get("registration_deadline", ""),
             late_fee=late_fee,
             late_fee_note=d.get("late_fee_note", ""),
+            goal_registrations=_int("goal_registrations"),
+            goal_attendance=_int("goal_attendance"),
+            goal_sponsorship=_float("goal_sponsorship"),
+            goal_budget=_float("goal_budget"),
+            custom_goals=d.get("custom_goals") or [],
+            planned_budget=_float("planned_budget"),
+            actual_spend=_float("actual_spend"),
+            sponsorship_revenue=_float("sponsorship_revenue"),
+            expenses=d.get("expenses") or [],
         )
 
 

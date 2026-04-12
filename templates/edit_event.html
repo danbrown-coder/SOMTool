@@ -70,6 +70,68 @@
       </div>
     </details>
 
+    <details style="margin-bottom:1rem;" {% if event.goal_registrations or event.goal_attendance or event.goal_sponsorship or event.goal_budget or event.custom_goals %}open{% endif %}>
+      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Goals</summary>
+      <p class="muted text-sm" style="margin:.4rem 0;">Set targets to track event success.</p>
+      <div class="form-row">
+        <div class="field" style="width:150px;">
+          <label for="goal_reg">Target registrations</label>
+          <input type="number" id="goal_reg" name="goal_registrations" min="0" value="{{ event.goal_registrations }}">
+        </div>
+        <div class="field" style="width:150px;">
+          <label for="goal_att">Target attendance</label>
+          <input type="number" id="goal_att" name="goal_attendance" min="0" value="{{ event.goal_attendance }}">
+        </div>
+        <div class="field" style="width:150px;">
+          <label for="goal_spon">Target sponsorship $</label>
+          <input type="number" id="goal_spon" name="goal_sponsorship" min="0" step="0.01" value="{{ event.goal_sponsorship }}">
+        </div>
+        <div class="field" style="width:150px;">
+          <label for="goal_bud">Target budget $</label>
+          <input type="number" id="goal_bud" name="goal_budget" min="0" step="0.01" value="{{ event.goal_budget }}">
+        </div>
+      </div>
+      <div id="customGoalsEdit">
+        {% for cg in event.custom_goals %}
+        <div class="form-row" style="margin-top:.4rem;">
+          <div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_label" value="{{ cg.label }}" placeholder="Goal name"></div>
+          <div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_target" value="{{ cg.target }}" placeholder="Target value"></div>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:#ef4444;align-self:flex-end;" onclick="this.parentElement.remove()">Remove</button>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:.4rem;" onclick="addCustomGoal('customGoalsEdit','edit')">+ Add custom goal</button>
+    </details>
+
+    <details style="margin-bottom:1rem;" {% if event.planned_budget or event.actual_spend or event.sponsorship_revenue or event.expenses %}open{% endif %}>
+      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Budget</summary>
+      <p class="muted text-sm" style="margin:.4rem 0;">Track planned spending and sponsorship income.</p>
+      <div class="form-row">
+        <div class="field" style="width:180px;">
+          <label for="planned_bud">Planned budget $</label>
+          <input type="number" id="planned_bud" name="planned_budget" min="0" step="0.01" value="{{ event.planned_budget }}">
+        </div>
+        <div class="field" style="width:180px;">
+          <label for="actual_spend">Actual spend $</label>
+          <input type="number" id="actual_spend" name="actual_spend" min="0" step="0.01" value="{{ event.actual_spend }}">
+        </div>
+        <div class="field" style="width:180px;">
+          <label for="spon_rev">Sponsorship revenue $</label>
+          <input type="number" id="spon_rev" name="sponsorship_revenue" min="0" step="0.01" value="{{ event.sponsorship_revenue }}">
+        </div>
+      </div>
+      <div id="expensesEdit">
+        {% for exp in event.expenses %}
+        <div class="form-row" style="margin-top:.4rem;">
+          <div class="field" style="flex:2;min-width:160px;"><input type="text" name="exp_desc" value="{{ exp.description }}" placeholder="Description"></div>
+          <div class="field" style="width:120px;"><input type="number" name="exp_amount" step="0.01" value="{{ exp.amount }}" placeholder="Amount"></div>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:#ef4444;align-self:flex-end;" onclick="this.parentElement.remove()">Remove</button>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:.4rem;" onclick="addExpense('expensesEdit')">+ Add expense</button>
+    </details>
+
     <details style="margin-bottom:1rem;">
       <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Sender Override (optional)</summary>
       <p class="muted text-sm" style="margin:.5rem 0;">Leave blank to use the global defaults from AI Settings.</p>
@@ -112,5 +174,25 @@
   buf.addEventListener('input',upd);
   upd();
 })();
+function addCustomGoal(containerId) {
+  var c = document.getElementById(containerId);
+  var row = document.createElement('div');
+  row.className = 'form-row';
+  row.style.marginTop = '.4rem';
+  row.innerHTML = '<div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_label" placeholder="Goal name"></div>' +
+    '<div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_target" placeholder="Target value"></div>' +
+    '<button type="button" class="btn btn-ghost btn-sm" style="color:#ef4444;align-self:flex-end;" onclick="this.parentElement.remove()">Remove</button>';
+  c.appendChild(row);
+}
+function addExpense(containerId) {
+  var c = document.getElementById(containerId);
+  var row = document.createElement('div');
+  row.className = 'form-row';
+  row.style.marginTop = '.4rem';
+  row.innerHTML = '<div class="field" style="flex:2;min-width:160px;"><input type="text" name="exp_desc" placeholder="Description"></div>' +
+    '<div class="field" style="width:120px;"><input type="number" name="exp_amount" step="0.01" placeholder="Amount"></div>' +
+    '<button type="button" class="btn btn-ghost btn-sm" style="color:#ef4444;align-self:flex-end;" onclick="this.parentElement.remove()">Remove</button>';
+  c.appendChild(row);
+}
 </script>
 {% endblock %}

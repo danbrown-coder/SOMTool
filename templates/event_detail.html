@@ -60,6 +60,128 @@
 </div>
 {% endif %}
 
+<!-- ── Goals Review ── -->
+{% if goal_review %}
+<div class="card" id="goals">
+  <h3 style="margin:0 0 .75rem;font-size:1rem;font-weight:700;">Goals</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
+    <thead>
+      <tr style="text-align:left;border-bottom:2px solid var(--border);">
+        <th style="padding:.4rem .6rem;">Goal</th>
+        <th style="padding:.4rem .6rem;">Target</th>
+        <th style="padding:.4rem .6rem;">Actual</th>
+        <th style="padding:.4rem .6rem;text-align:center;">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in goal_review %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:.4rem .6rem;">{{ row.label }}</td>
+        <td style="padding:.4rem .6rem;">{{ row.target }}</td>
+        <td style="padding:.4rem .6rem;">{{ row.actual }}</td>
+        <td style="padding:.4rem .6rem;text-align:center;">
+          {% if row.met == true %}
+          <span style="color:#059669;font-weight:700;">&#10003;</span>
+          {% elif row.met == false %}
+          <span style="color:#dc2626;font-weight:700;">&#10007;</span>
+          {% else %}
+          <span style="color:#9ca3af;">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% set met_count = goal_review|selectattr('met', 'equalto', true)|list|length %}
+  {% set total_goals = goal_review|length %}
+  {% if total_goals > 0 %}
+  <div style="margin-top:.6rem;font-size:.85rem;color:var(--text-secondary);">
+    <strong>{{ met_count }}/{{ total_goals }}</strong> goals met
+    {% if met_count == total_goals %}<span style="color:#059669;font-weight:600;margin-left:.3rem;">All targets hit!</span>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ── Budget ── -->
+{% if event.planned_budget or event.actual_spend or event.sponsorship_revenue or event.expenses %}
+<div class="card" id="budget">
+  <h3 style="margin:0 0 .75rem;font-size:1rem;font-weight:700;">Budget</h3>
+  {% set net = event.sponsorship_revenue - event.actual_spend %}
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.88rem;margin-bottom:.75rem;">
+    <div><span style="color:var(--text-secondary);">Planned:</span> <strong>${{ '%.2f'|format(event.planned_budget) }}</strong></div>
+    <div><span style="color:var(--text-secondary);">Spent:</span> <strong style="color:{% if event.planned_budget and event.actual_spend > event.planned_budget %}#dc2626{% else %}var(--text){% endif %};">${{ '%.2f'|format(event.actual_spend) }}</strong></div>
+    <div><span style="color:var(--text-secondary);">Sponsorship:</span> <strong>${{ '%.2f'|format(event.sponsorship_revenue) }}</strong></div>
+    <div><span style="color:var(--text-secondary);">Net:</span> <strong style="color:{% if net >= 0 %}#059669{% else %}#dc2626{% endif %};">${{ '%.2f'|format(net) }}</strong></div>
+  </div>
+  {% if event.expenses %}
+  <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+    <thead>
+      <tr style="text-align:left;border-bottom:2px solid var(--border);">
+        <th style="padding:.3rem .5rem;">Expense</th>
+        <th style="padding:.3rem .5rem;text-align:right;">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for exp in event.expenses %}
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:.3rem .5rem;">{{ exp.description }}</td>
+        <td style="padding:.3rem .5rem;text-align:right;">${{ '%.2f'|format(exp.amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  {% if can_edit %}
+  <form method="post" action="{{ url_for('add_expense', event_id=event.id) }}" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:flex-end;">
+    <input type="text" name="description" placeholder="Expense description" required style="flex:2;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;font-size:.85rem;">
+    <input type="number" name="amount" step="0.01" placeholder="$0.00" required style="width:100px;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;font-size:.85rem;">
+    <button type="submit" class="btn btn-primary btn-sm">Add</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ── Feedback Summary ── -->
+{% if fb_summary.count > 0 %}
+<div class="card" id="feedback">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
+    <h3 style="margin:0;font-size:1rem;font-weight:700;">Feedback</h3>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="copyFeedbackLink()" id="copyFbBtn" style="font-size:.78rem;">Copy feedback link</button>
+  </div>
+  <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin:.75rem 0;font-size:.88rem;">
+    <div>
+      <span style="color:var(--text-secondary);">Avg rating:</span>
+      <strong style="color:#f59e0b;">
+        {% for s in range(fb_summary.avg_rating|int) %}&#9733;{% endfor %}{% if fb_summary.avg_rating % 1 >= 0.5 %}&#9733;{% endif %}
+      </strong>
+      <span style="font-size:.8rem;color:var(--text-secondary);">{{ fb_summary.avg_rating }}/5</span>
+    </div>
+    <div><span style="color:var(--text-secondary);">Responses:</span> <strong>{{ fb_summary.count }}</strong></div>
+    <div><span style="color:var(--text-secondary);">Would return:</span> <strong>{{ fb_summary.would_return_pct }}%</strong></div>
+  </div>
+  {% if fb_summary.entries %}
+  <div style="font-size:.82rem;">
+    {% for e in fb_summary.entries[:5] %}
+    <div style="padding:.4rem 0;border-top:1px solid var(--border);">
+      <strong>{{ e.respondent_name or 'Anonymous' }}</strong>
+      <span style="color:#f59e0b;">{% for s in range(e.rating) %}&#9733;{% endfor %}</span>
+      {% if e.liked %}<div style="color:var(--text-secondary);margin-top:.2rem;">&#128077; {{ e.liked[:120] }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% elif can_edit %}
+<div class="card" id="feedback">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
+    <h3 style="margin:0;font-size:1rem;font-weight:700;">Feedback</h3>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="copyFeedbackLink()" id="copyFbBtn" style="font-size:.78rem;">Copy feedback link</button>
+  </div>
+  <p style="color:var(--text-secondary);font-size:.85rem;margin:.5rem 0 0;">No feedback yet. Share the link with attendees to collect responses.</p>
+</div>
+{% endif %}
+
 <!-- ── Capacity & Registration ── -->
 {% if metrics.venue_capacity > 0 %}
 <div class="card" id="capacity">
@@ -418,5 +540,13 @@ function closeEditModal() {
 document.getElementById('editContactModal')?.addEventListener('click', function(e) {
   if (e.target === this) closeEditModal();
 });
+function copyFeedbackLink() {
+  var url = window.location.origin + '{{ url_for("event_feedback", event_id=event.id) }}';
+  navigator.clipboard.writeText(url).then(function() {
+    var btn = document.getElementById('copyFbBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = 'Copy feedback link'; }, 2000);
+  });
+}
 </script>
 {% endblock %}

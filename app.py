@@ -47,6 +47,7 @@ import vapi_caller
 import call_scheduler
 import call_monitor
 import outreach_queue
+import feedback_manager
 import ai_config as aic
 
 load_dotenv()
@@ -310,6 +311,50 @@ def index():
 
 @app.post("/events")
 @login_required
+def _parse_goal_budget_form() -> dict:
+    """Extract goal and budget fields from the current request form."""
+    def _f(key, default=0.0):
+        try:
+            return float(request.form.get(key, default) or default)
+        except (ValueError, TypeError):
+            return default
+    def _i(key, default=0):
+        try:
+            return int(request.form.get(key, default) or default)
+        except (ValueError, TypeError):
+            return default
+
+    cg_labels = request.form.getlist("cg_label")
+    cg_targets = request.form.getlist("cg_target")
+    custom_goals = [
+        {"label": l.strip(), "target": t.strip(), "met": False}
+        for l, t in zip(cg_labels, cg_targets) if l.strip()
+    ]
+
+    exp_descs = request.form.getlist("exp_desc")
+    exp_amounts = request.form.getlist("exp_amount")
+    expenses = []
+    for desc, amt in zip(exp_descs, exp_amounts):
+        if desc.strip():
+            try:
+                a = float(amt or 0)
+            except (ValueError, TypeError):
+                a = 0.0
+            expenses.append({"description": desc.strip(), "amount": a})
+
+    return {
+        "goal_registrations": _i("goal_registrations"),
+        "goal_attendance": _i("goal_attendance"),
+        "goal_sponsorship": _f("goal_sponsorship"),
+        "goal_budget": _f("goal_budget"),
+        "custom_goals": custom_goals,
+        "planned_budget": _f("planned_budget"),
+        "actual_spend": _f("actual_spend"),
+        "sponsorship_revenue": _f("sponsorship_revenue"),
+        "expenses": expenses,
+    }
+
+
 def create_event_route():
     name = request.form.get("name", "")
     event_date = request.form.get("date", "")
@@ -330,6 +375,7 @@ def create_event_route():
         late_fee = float(request.form.get("late_fee", 0) or 0)
     except (ValueError, TypeError):
         late_fee = 0.0
+    goal_budget_kwargs = _parse_goal_budget_form()
     ev = em.create_event(
         name, event_date, description, audience,
         owner_id=g.current_user.id,
@@ -341,6 +387,7 @@ def create_event_route():
         registration_deadline=request.form.get("registration_deadline", ""),
         late_fee=late_fee,
         late_fee_note=request.form.get("late_fee_note", ""),
+        **goal_budget_kwargs,
     )
     flash("Event created.", "info")
     return redirect(url_for("index"))
@@ -387,6 +434,7 @@ def edit_event_route(event_id: str):
         late_fee = float(request.form.get("late_fee", 0) or 0)
     except (ValueError, TypeError):
         late_fee = 0.0
+    goal_budget_kwargs = _parse_goal_budget_form()
     em.update_event(
         event_id, name, event_date, description, audience,
         sender_name=request.form.get("sender_name", ""),
@@ -397,6 +445,7 @@ def edit_event_route(event_id: str):
         registration_deadline=request.form.get("registration_deadline", ""),
         late_fee=late_fee,
         late_fee_note=request.form.get("late_fee_note", ""),
+        **goal_budget_kwargs,
     )
     flash("Event updated.", "info")
     return redirect(url_for("index"))
@@ -482,6 +531,31 @@ def share_event_page(event_id: str):
     )
 
 
+def _compute_goal_review(event, metrics: dict) -> list[dict]:
+    """Return a list of dicts: label, target, actual, met (bool|None)."""
+    rows: list[dict] = []
+    if event.goal_registrations:
+        actual = metrics.get("confirmed", 0)
+        rows.append({"label": "Registrations", "target": event.goal_registrations,
+                      "actual": actual, "met": actual >= event.goal_registrations})
+    if event.goal_attendance:
+        actual = metrics.get("attended", 0)
+        rows.append({"label": "Attendance", "target": event.goal_attendance,
+                      "actual": actual, "met": actual >= event.goal_attendance})
+    if event.goal_sponsorship:
+        actual = event.sponsorship_revenue
+        rows.append({"label": "Sponsorship ($)", "target": event.goal_sponsorship,
+                      "actual": actual, "met": actual >= event.goal_sponsorship})
+    if event.goal_budget:
+        actual = event.actual_spend
+        rows.append({"label": "Budget ($)", "target": event.goal_budget,
+                      "actual": actual, "met": actual <= event.goal_budget})
+    for cg in event.custom_goals:
+        rows.append({"label": cg.get("label", ""), "target": cg.get("target", ""),
+                      "actual": "—", "met": cg.get("met")})
+    return rows
+
+
 @app.route("/events/<event_id>")
 @login_required
 def event_detail(event_id: str):
@@ -519,6 +593,9 @@ def event_detail(event_id: str):
         if i.get("scheduled_at", "") >= _now and i["status"] in ("planned", "approved")
     ][:3]
 
+    fb_summary = feedback_manager.compute_feedback_summary(event_id)
+    goal_review = _compute_goal_review(event, metrics)
+
     return render_template(
         "event_detail.html",
         event=event,
@@ -532,6 +609,8 @@ def event_detail(event_id: str):
         can_owner=can_owner,
         sched_metrics=sched_metrics,
         upcoming_actions=upcoming_actions,
+        fb_summary=fb_summary,
+        goal_review=goal_review,
     )
 
 
@@ -806,6 +885,60 @@ def walkin_checkin(event_id: str):
         metrics=metrics,
         priority=priority,
     )
+
+
+# ── Public Feedback Form ────────────────────────────────────
+
+
+@app.route("/events/<event_id>/feedback", methods=["GET", "POST"])
+def event_feedback(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        return "Event not found", 404
+    if request.method == "POST":
+        try:
+            rating = int(request.form.get("rating", 4))
+        except (ValueError, TypeError):
+            rating = 4
+        feedback_manager.save_feedback(
+            event_id=event_id,
+            respondent_name=request.form.get("respondent_name", "").strip(),
+            respondent_email=request.form.get("respondent_email", "").strip(),
+            rating=rating,
+            liked=request.form.get("liked", ""),
+            improve=request.form.get("improve", ""),
+            would_attend_again=request.form.get("would_attend_again", "yes") == "yes",
+        )
+        return render_template("event_feedback.html", event=event, submitted=True)
+    return render_template("event_feedback.html", event=event, submitted=False)
+
+
+@app.route("/events/<event_id>/expenses", methods=["POST"])
+@login_required
+def add_expense(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        return "Event not found", 404
+    role = em.get_event_share_role(g.current_user, event)
+    if not _role_ok(role, "editor"):
+        return "Not allowed", 403
+    desc = request.form.get("description", "").strip()
+    try:
+        amount = float(request.form.get("amount", 0) or 0)
+    except (ValueError, TypeError):
+        amount = 0.0
+    if desc:
+        event.expenses.append({"description": desc, "amount": amount})
+        event.actual_spend = round(sum(exp["amount"] for exp in event.expenses), 2)
+        events = em.load_events()
+        for i, e in enumerate(events):
+            if e.id == event_id:
+                events[i] = event
+                break
+        em.save_events(events)
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return {"ok": True, "actual_spend": event.actual_spend}
+    return redirect(url_for("event_detail", event_id=event_id))
 
 
 # ── Recommend / Discover / Referrals ────────────────────────
@@ -1477,6 +1610,70 @@ def call_detail_page(call_id: str):
     return render_template("call_detail.html", call=entry)
 
 
+def _compute_yoy_trends(events) -> list[dict]:
+    """Group events by year and compute registration/attendance totals."""
+    from collections import defaultdict
+    years: dict[str, dict] = defaultdict(lambda: {
+        "registrations": 0, "attendance": 0, "events": 0, "ratings": [], "total_feedback": 0,
+    })
+    for ev in events:
+        year = ev.date[:4] if ev.date and len(ev.date) >= 4 and ev.date[:4].isdigit() else None
+        if not year:
+            continue
+        m = em.compute_metrics(ev)
+        years[year]["registrations"] += m.get("confirmed", 0)
+        years[year]["attendance"] += m.get("attended", 0)
+        years[year]["events"] += 1
+        fb = feedback_manager.compute_feedback_summary(ev.id)
+        if fb["count"] > 0:
+            years[year]["ratings"].append(fb["avg_rating"])
+            years[year]["total_feedback"] += fb["count"]
+    result = []
+    for y in sorted(years.keys()):
+        d = years[y]
+        rate = round(d["attendance"] / d["registrations"] * 100) if d["registrations"] > 0 else 0
+        avg_r = round(sum(d["ratings"]) / len(d["ratings"]), 1) if d["ratings"] else 0
+        result.append({
+            "year": y, "events": d["events"],
+            "registrations": d["registrations"], "attendance": d["attendance"],
+            "attendance_rate": rate, "avg_rating": avg_r, "total_feedback": d["total_feedback"],
+        })
+    return result
+
+
+def _compute_budget_overview(events) -> dict:
+    total_planned = sum(e.planned_budget for e in events)
+    total_actual = sum(e.actual_spend for e in events)
+    total_sponsorship = sum(e.sponsorship_revenue for e in events)
+    return {
+        "total_planned": round(total_planned, 2),
+        "total_actual": round(total_actual, 2),
+        "total_sponsorship": round(total_sponsorship, 2),
+        "net": round(total_sponsorship - total_actual, 2),
+    }
+
+
+def _compute_feedback_overview(events) -> dict:
+    all_fb = feedback_manager.get_all_feedback()
+    total = len(all_fb)
+    if total == 0:
+        return {"total": 0, "avg_rating": 0, "best_event": "", "worst_event": ""}
+    avg_r = round(sum(f["rating"] for f in all_fb) / total, 1)
+    by_event: dict[str, list] = {}
+    for f in all_fb:
+        by_event.setdefault(f["event_id"], []).append(f["rating"])
+    event_avgs = {eid: sum(rs) / len(rs) for eid, rs in by_event.items()}
+    event_map = {e.id: e.name for e in events}
+    best_eid = max(event_avgs, key=event_avgs.get) if event_avgs else ""
+    worst_eid = min(event_avgs, key=event_avgs.get) if event_avgs else ""
+    return {
+        "total": total,
+        "avg_rating": avg_r,
+        "best_event": event_map.get(best_eid, best_eid),
+        "worst_event": event_map.get(worst_eid, worst_eid),
+    }
+
+
 @app.route("/analytics")
 @login_required
 def analytics_page():
@@ -1492,6 +1689,11 @@ def analytics_page():
         if m["total_invited"] > 0:
             event_stats.append({"name": ev.name, **m})
     event_stats.sort(key=lambda x: -x["rsvp_rate"])
+
+    yoy = _compute_yoy_trends(events)
+    budget_overview = _compute_budget_overview(events)
+    fb_overview = _compute_feedback_overview(events)
+
     return render_template(
         "analytics.html",
         call_metrics=call_metrics,
@@ -1499,6 +1701,9 @@ def analytics_page():
         event_stats=event_stats[:15],
         total_contacts=total_contacts,
         recent_analyses=all_analyses[-10:],
+        yoy=yoy,
+        budget_overview=budget_overview,
+        fb_overview=fb_overview,
     )
 
 
@@ -1792,6 +1997,12 @@ _CAL_COLORS = {
     ("call_followup", "planned"): {"bg": "#f97316", "border": "#ea580c", "text": "#fff"},
     ("call_followup", "approved"): {"bg": "#fb923c", "border": "#f97316", "text": "#fff"},
     ("call_followup", "sent"): {"bg": "#fdba74", "border": "#fb923c", "text": "#7c2d12"},
+    ("email_thankyou", "planned"): {"bg": "#10b981", "border": "#059669", "text": "#fff"},
+    ("email_thankyou", "approved"): {"bg": "#34d399", "border": "#10b981", "text": "#fff"},
+    ("email_thankyou", "sent"): {"bg": "#6ee7b7", "border": "#34d399", "text": "#064e3b"},
+    ("email_survey", "planned"): {"bg": "#8b5cf6", "border": "#7c3aed", "text": "#fff"},
+    ("email_survey", "approved"): {"bg": "#a78bfa", "border": "#8b5cf6", "text": "#fff"},
+    ("email_survey", "sent"): {"bg": "#c4b5fd", "border": "#a78bfa", "text": "#2e1065"},
 }
 _CAL_SKIP = {"bg": "#ef4444", "border": "#dc2626", "text": "#fff"}
 _CAL_FAIL = {"bg": "#9ca3af", "border": "#6b7280", "text": "#fff"}
@@ -1801,6 +2012,8 @@ _ACTION_LABELS = {
     "email_followup": "Follow-up",
     "call_invite": "Call",
     "call_followup": "Call F/U",
+    "email_thankyou": "Thank You",
+    "email_survey": "Survey",
 }
 
 
