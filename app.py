@@ -497,6 +497,12 @@ def event_detail(event_id: str):
         "sent": sum(1 for i in eq if i["status"] == "sent"),
         "total": len(eq),
     }
+    from datetime import datetime as _dt
+    _now = _dt.utcnow().isoformat()
+    upcoming_actions = [
+        i for i in eq
+        if i.get("scheduled_at", "") >= _now and i["status"] in ("planned", "approved")
+    ][:3]
 
     return render_template(
         "event_detail.html",
@@ -509,6 +515,7 @@ def event_detail(event_id: str):
         can_edit=can_edit,
         can_owner=can_owner,
         sched_metrics=sched_metrics,
+        upcoming_actions=upcoming_actions,
     )
 
 

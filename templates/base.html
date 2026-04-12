@@ -651,7 +651,7 @@
       <li><a href="{{ url_for('live_calls_page') }}" class="{% if request.endpoint == 'live_calls_page' or request.endpoint == 'call_detail_page' %}active{% endif %}"><span class="nav-icon">📞</span> Live Calls</a></li>
       <li><a href="{{ url_for('analytics_page') }}" class="{% if request.endpoint == 'analytics_page' %}active{% endif %}"><span class="nav-icon">📊</span> Analytics</a></li>
       <li class="sidebar-section">Automation</li>
-      <li><a href="{{ url_for('outreach_schedule_page') }}" class="{% if request.endpoint == 'outreach_schedule_page' %}active{% endif %}"><span class="nav-icon">📋</span> Outreach Schedule</a></li>
+      <li><a href="{{ url_for('outreach_schedule_page') }}" class="{% if request.endpoint == 'outreach_schedule_page' %}active{% endif %}"><span class="nav-icon">📅</span> Calendar</a></li>
       <li><a href="{{ url_for('ai_settings_page') }}" class="{% if request.endpoint == 'ai_settings_page' %}active{% endif %}"><span class="nav-icon">🤖</span> AI Settings</a></li>
 
       {% block sidebar_extra %}{% endblock %}

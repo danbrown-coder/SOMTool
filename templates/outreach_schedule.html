@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Outreach Schedule — SOM Event OS{% endblock %}
+{% block title %}Calendar — SOM Event OS{% endblock %}
 
 {% block topbar %}
 <div class="topbar">
   <div>
-    <h2>Outreach Schedule</h2>
-    <p class="muted text-sm">AI-planned emails and calls — review, approve, or adjust</p>
+    <h2>Calendar</h2>
+    <p class="muted text-sm">AI-planned outreach across all events</p>
   </div>
   <div style="display:flex;gap:.5rem;">
     <form method="post" action="{{ url_for('plan_all_outreach') }}" style="margin:0;">
@@ -14,22 +14,136 @@
     <form method="post" action="{{ url_for('approve_all_outreach') }}" style="margin:0;">
       <button type="submit" class="btn btn-secondary btn-sm">Approve all planned</button>
     </form>
-    <a href="{{ url_for('ai_settings_page') }}" class="btn btn-ghost btn-sm">AI Settings</a>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
-.action-badge {
-  display: inline-block;
-  padding: .2rem .6rem;
-  font-size: .72rem;
-  font-weight: 600;
-  border-radius: 100px;
+{% set planned_count = queue|selectattr('status', 'eq', 'planned')|list|length %}
+{% set approved_count = queue|selectattr('status', 'eq', 'approved')|list|length %}
+{% set sent_count = queue|selectattr('status', 'eq', 'sent')|list|length %}
+
+.cal-layout {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+}
+.cal-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  padding: 1rem .85rem 1rem 0;
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.cal-main {
+  flex: 1;
+  min-width: 0;
+  padding: 1rem 0 1rem 1.25rem;
+}
+.cal-sidebar-heading {
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+  margin-bottom: .5rem;
+}
+
+/* Event list items */
+.cal-event-list { list-style: none; padding: 0; margin: 0 0 1.25rem; }
+.cal-event-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .35rem .45rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text);
+  transition: background .15s;
+  text-decoration: none;
+}
+.cal-event-item:hover { background: var(--accent-light); color: var(--text); }
+.cal-event-item.active { background: var(--accent-light); font-weight: 600; }
+.cal-event-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cal-event-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
-.action-badge.email { background: #dbeafe; color: #1e40af; }
-.action-badge.call { background: #fef3c7; color: #92400e; }
+.cal-event-count {
+  font-size: .7rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+.cal-event-link {
+  display: block;
+  margin-top: .35rem;
+  font-size: .72rem;
+  font-weight: 500;
+  padding-left: 1.5rem;
+}
+
+/* Mini stats */
+.cal-stats {
+  display: flex;
+  gap: .6rem;
+  margin-bottom: 1.25rem;
+}
+.cal-stat {
+  text-align: center;
+  flex: 1;
+}
+.cal-stat-val {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.cal-stat-label {
+  font-size: .65rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Chip filters */
+.cal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin-bottom: .5rem;
+}
+.cal-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: .2rem .55rem;
+  font-size: .7rem;
+  font-weight: 600;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .15s;
+}
+.cal-chip:hover { border-color: var(--accent); color: var(--accent); }
+.cal-chip.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Status pill (reused in list / popover) */
 .status-pill {
   display: inline-block;
   padding: .15rem .55rem;
@@ -42,238 +156,135 @@
 .status-pill.sent { background: #f3f4f6; color: #374151; }
 .status-pill.skipped { background: #fee2e2; color: #991b1b; }
 .status-pill.failed { background: #fee2e2; color: #991b1b; }
-.preview-box {
-  background: var(--input-bg);
-  border-radius: var(--radius-sm);
-  padding: .75rem 1rem;
-  font-size: .82rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-  max-height: 250px;
-  overflow-y: auto;
-  margin-top: .5rem;
-  display: none;
+
+@media (max-width: 900px) {
+  .cal-layout { flex-direction: column; }
+  .cal-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: none; position: static; padding: .75rem 0; }
+  .cal-main { padding: .75rem 0 0; }
 }
-.preview-box.open { display: block; }
-.date-header {
-  font-size: .82rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--text-secondary);
-  padding: .6rem 0;
-  border-bottom: 1.5px solid var(--border);
-  margin-top: 1rem;
-  margin-bottom: .5rem;
-}
-.q-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: .85rem 0;
-  border-bottom: 1px solid var(--border);
-}
-.q-row:last-child { border-bottom: none; }
-.q-info { flex: 1; min-width: 0; }
-.q-actions { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
-.view-toggle { display:flex; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
-.view-toggle button { padding:.35rem .8rem; font-size:.78rem; font-weight:600; border:none; background:var(--card); color:var(--text-secondary); cursor:pointer; }
-.view-toggle button.active { background:var(--accent); color:#fff; }
-.event-group-header {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:.5rem .8rem; background:var(--input-bg); border-radius:var(--radius-sm);
-  cursor:pointer; margin-top:.75rem; font-weight:600; font-size:.88rem;
-}
-.event-group-header:hover { background:var(--border); }
-.event-group-body { display:block; }
-.event-group-body.collapsed { display:none; }
 {% endblock %}
 
 {% block content %}
-<!-- Filters + View Toggle -->
-<div class="card" style="padding:.85rem 1.2rem;">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
-    <form method="get" action="{{ url_for('outreach_schedule_page') }}" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
-      <select name="status" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
-        <option value="">All statuses</option>
-        <option value="planned" {% if status_filter == 'planned' %}selected{% endif %}>Planned</option>
-        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
-        <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent</option>
-        <option value="skipped" {% if status_filter == 'skipped' %}selected{% endif %}>Skipped</option>
-        <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
-      </select>
-      <select name="type" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
-        <option value="">All types</option>
-        <option value="email_initial" {% if type_filter == 'email_initial' %}selected{% endif %}>Initial Email</option>
-        <option value="email_followup" {% if type_filter == 'email_followup' %}selected{% endif %}>Follow-up Email</option>
-        <option value="call_invite" {% if type_filter == 'call_invite' %}selected{% endif %}>Invite Call</option>
-        <option value="call_followup" {% if type_filter == 'call_followup' %}selected{% endif %}>Follow-up Call</option>
-      </select>
-      <select name="event" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;max-width:220px;" onchange="this.form.submit()">
-        <option value="">All events</option>
-        {% for e in events %}
-        <option value="{{ e.id }}" {% if event_filter == e.id %}selected{% endif %}>{{ e.name|truncate(35) }}</option>
-        {% endfor %}
-      </select>
-      {% if status_filter or type_filter or event_filter %}
-      <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Clear</a>
-      {% endif %}
-    </form>
-    <div class="view-toggle">
-      <button id="btnCalView" class="active" onclick="toggleView('calendar')">Calendar</button>
-      <button id="btnListView" onclick="toggleView('list')">List</button>
+<div class="cal-layout">
+  <!-- ── Left sidebar ── -->
+  <div class="cal-sidebar">
+    <div class="cal-sidebar-heading">Events</div>
+    <ul class="cal-event-list" id="eventList">
+      {% for e in events %}
+      <li class="cal-event-item{% if event_filter == e.id %} active{% endif %}"
+          data-event-id="{{ e.id }}" onclick="filterByEvent('{{ e.id }}')">
+        <span class="cal-event-dot" style="background:var(--ev-color-{{ loop.index0 % 8 }});"></span>
+        <span class="cal-event-name">{{ e.name|truncate(28) }}</span>
+        <span class="cal-event-count">{{ queue|selectattr('event_id','eq',e.id)|list|length }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <div id="eventLinkWrap" style="display:none;">
+      <a id="eventLink" href="#" class="cal-event-link">Open event calendar →</a>
     </div>
-  </div>
-</div>
 
-<!-- Metrics bar -->
-{% set planned_count = queue|selectattr('status', 'eq', 'planned')|list|length %}
-{% set approved_count = queue|selectattr('status', 'eq', 'approved')|list|length %}
-{% set sent_count = queue|selectattr('status', 'eq', 'sent')|list|length %}
-<div class="metrics-grid" style="margin-bottom:1rem;">
-  <div class="metric-card mc-1">
-    <div class="metric-value">{{ queue|length }}</div>
-    <div class="metric-label">Total actions</div>
-  </div>
-  <div class="metric-card mc-2">
-    <div class="metric-value">{{ planned_count }}</div>
-    <div class="metric-label">Awaiting review</div>
-  </div>
-  <div class="metric-card mc-3">
-    <div class="metric-value">{{ approved_count }}</div>
-    <div class="metric-label">Approved</div>
-  </div>
-  <div class="metric-card mc-5">
-    <div class="metric-value">{{ sent_count }}</div>
-    <div class="metric-label">Sent</div>
-  </div>
-</div>
-
-<!-- Calendar View -->
-<div id="calendarView">
-  {% set calendar_event_id = event_filter %}
-  {% set calendar_return_to = "" %}
-  {% include "partials/outreach_calendar.html" %}
-</div>
-
-<!-- List View (hidden by default) -->
-<div id="listView" style="display:none;">
-<div class="card">
-  {% if queue %}
-  {% for eid, items in queue|groupby('event_id') %}
-    {% set ev_name = event_map.get(eid, 'Unknown event') %}
-    <div class="event-group-header" onclick="var b=this.nextElementSibling;b.classList.toggle('collapsed');">
-      <span>{{ ev_name }} <span class="muted" style="font-weight:400;font-size:.78rem;">({{ items|length }} actions)</span></span>
-      <a href="{{ url_for('event_schedule_page', event_id=eid) }}" class="btn btn-ghost btn-sm" style="font-size:.72rem;" onclick="event.stopPropagation();">View event schedule</a>
-    </div>
-    <div class="event-group-body">
-    {% set ns = namespace(current_date='') %}
-    {% for item in items|sort(attribute='scheduled_at') %}
-      {% set item_date = item.scheduled_at[:10] if item.scheduled_at else 'Unscheduled' %}
-      {% if item_date != ns.current_date %}
-        {% set ns.current_date = item_date %}
-        <div class="date-header">{{ item_date }}</div>
-      {% endif %}
-      <div class="q-row">
-        <div style="width:54px;text-align:center;flex-shrink:0;padding-top:.15rem;">
-          <div style="font-size:.78rem;font-weight:600;color:var(--text-secondary);">
-            {{ item.scheduled_at[11:16] if item.scheduled_at|length > 11 else '--:--' }}
-          </div>
-          <div style="margin-top:.25rem;">
-            {% if 'email' in item.action_type %}
-              <span class="action-badge email">Email</span>
-            {% else %}
-              <span class="action-badge call">Call</span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="q-info">
-          <div style="font-weight:600;font-size:.92rem;">{{ item.contact_name }}</div>
-          <div class="muted text-sm">{{ item.action_type|replace('_', ' ')|title }}</div>
-          {% if item.ai_reason %}
-          <div class="muted" style="font-size:.78rem;margin-top:.2rem;font-style:italic;">{{ item.ai_reason }}</div>
-          {% endif %}
-          <div style="margin-top:.3rem;">
-            <span class="status-pill {{ item.status }}">{{ item.status|title }}</span>
-          </div>
-          {% if item.preview %}
-          <button class="btn btn-ghost btn-sm" style="margin-top:.3rem;font-size:.78rem;" onclick="this.nextElementSibling.classList.toggle('open');this.textContent = this.nextElementSibling.classList.contains('open') ? 'Hide preview' : 'Show preview';">Show preview</button>
-          <div class="preview-box">{{ item.preview }}</div>
-          {% endif %}
-        </div>
-        <div class="q-actions">
-          {% if item.status == 'planned' %}
-          <form method="post" action="{{ url_for('approve_queue_action', action_id=item.id) }}" style="margin:0;">
-            <button type="submit" class="btn btn-primary btn-sm">Approve</button>
-          </form>
-          <form method="post" action="{{ url_for('skip_queue_action', action_id=item.id) }}" style="margin:0;">
-            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Skip</button>
-          </form>
-          {% endif %}
-          {% if item.status in ('planned', 'approved') %}
-          <div style="position:relative;">
-            <button class="btn btn-ghost btn-sm" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='block'?'none':'block';" type="button">Reschedule</button>
-            <div style="display:none;position:absolute;right:0;top:100%;z-index:10;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);padding:.75rem;min-width:220px;">
-              <form method="post" action="{{ url_for('reschedule_queue_action', action_id=item.id) }}">
-                <label style="font-size:.7rem;">New date &amp; time</label>
-                <input type="datetime-local" name="scheduled_at" style="height:34px;font-size:.82rem;margin-bottom:.5rem;">
-                <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Save</button>
-              </form>
-            </div>
-          </div>
-          {% endif %}
-          {% if 'email' in item.action_type and item.status in ('planned', 'approved') %}
-          <form method="post" action="{{ url_for('regenerate_queue_action', action_id=item.id) }}" style="margin:0;">
-            <button type="submit" class="btn btn-ghost btn-sm" title="Regenerate email with AI">Regen</button>
-          </form>
-          {% endif %}
-          <form method="post" action="{{ url_for('delete_queue_action', action_id=item.id) }}" style="margin:0;" onsubmit="return confirm('Delete this action?');">
-            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);" title="Delete">Del</button>
-          </form>
-        </div>
+    <div class="cal-sidebar-heading">Summary</div>
+    <div class="cal-stats">
+      <div class="cal-stat">
+        <div class="cal-stat-val">{{ planned_count }}</div>
+        <div class="cal-stat-label">Planned</div>
       </div>
-    {% endfor %}
+      <div class="cal-stat">
+        <div class="cal-stat-val">{{ approved_count }}</div>
+        <div class="cal-stat-label">Approved</div>
+      </div>
+      <div class="cal-stat">
+        <div class="cal-stat-val">{{ sent_count }}</div>
+        <div class="cal-stat-label">Sent</div>
+      </div>
     </div>
-  {% endfor %}
-  {% else %}
-  <p class="empty-state">
-    No outreach actions in the queue yet.
-    {% if not status_filter and not type_filter and not event_filter %}
-    Click <strong>Plan all events</strong> to have AI generate a schedule.
-    {% else %}
-    <a href="{{ url_for('outreach_schedule_page') }}">Clear filters</a>
+
+    <div class="cal-sidebar-heading">Status</div>
+    <div class="cal-chips" id="statusChips">
+      <span class="cal-chip{% if status_filter == '' %} active{% endif %}" data-val="">All</span>
+      <span class="cal-chip{% if status_filter == 'planned' %} active{% endif %}" data-val="planned">Planned</span>
+      <span class="cal-chip{% if status_filter == 'approved' %} active{% endif %}" data-val="approved">Approved</span>
+      <span class="cal-chip{% if status_filter == 'sent' %} active{% endif %}" data-val="sent">Sent</span>
+      <span class="cal-chip{% if status_filter == 'skipped' %} active{% endif %}" data-val="skipped">Skipped</span>
+    </div>
+
+    <div class="cal-sidebar-heading" style="margin-top:.75rem;">Type</div>
+    <div class="cal-chips" id="typeChips">
+      <span class="cal-chip{% if type_filter == '' %} active{% endif %}" data-val="">All</span>
+      <span class="cal-chip{% if type_filter == 'email_initial' %} active{% endif %}" data-val="email_initial">Email</span>
+      <span class="cal-chip{% if type_filter == 'email_followup' %} active{% endif %}" data-val="email_followup">Follow-up</span>
+      <span class="cal-chip{% if type_filter == 'call_invite' %} active{% endif %}" data-val="call_invite">Call</span>
+      <span class="cal-chip{% if type_filter == 'call_followup' %} active{% endif %}" data-val="call_followup">Call F/U</span>
+    </div>
+  </div>
+
+  <!-- ── Main calendar area ── -->
+  <div class="cal-main">
+    {% set calendar_event_id = event_filter %}
+    {% set calendar_return_to = "" %}
+    {% include "partials/outreach_calendar.html" %}
+
+    {% if not queue %}
+    <p class="empty-state" style="margin-top:1rem;">
+      No outreach actions in the queue yet.
+      Click <strong>Plan all events</strong> to have AI generate a schedule.
+    </p>
     {% endif %}
-  </p>
-  {% endif %}
-</div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-function toggleView(view) {
-  var cal = document.getElementById('calendarView');
-  var list = document.getElementById('listView');
-  var btnCal = document.getElementById('btnCalView');
-  var btnList = document.getElementById('btnListView');
-  if (view === 'calendar') {
-    cal.style.display = '';
-    list.style.display = 'none';
-    btnCal.classList.add('active');
-    btnList.classList.remove('active');
-    localStorage.setItem('scheduleView', 'calendar');
-  } else {
-    cal.style.display = 'none';
-    list.style.display = '';
-    btnCal.classList.remove('active');
-    btnList.classList.add('active');
-    localStorage.setItem('scheduleView', 'list');
+<style>
+  :root {
+    --ev-color-0: #3b82f6;
+    --ev-color-1: #10b981;
+    --ev-color-2: #f59e0b;
+    --ev-color-3: #ef4444;
+    --ev-color-4: #8b5cf6;
+    --ev-color-5: #ec4899;
+    --ev-color-6: #14b8a6;
+    --ev-color-7: #f97316;
   }
-}
+</style>
+<script>
 (function(){
-  var saved = localStorage.getItem('scheduleView');
-  if (saved === 'list') toggleView('list');
+  var currentEvent = {{ event_filter|tojson }};
+  var currentStatus = {{ status_filter|tojson }};
+  var currentType = {{ type_filter|tojson }};
+
+  function applyFilters(eventId, status, type) {
+    var params = new URLSearchParams();
+    if (eventId) params.set('event', eventId);
+    if (status) params.set('status', status);
+    if (type) params.set('type', type);
+    window.location.href = '{{ url_for("outreach_schedule_page") }}' + (params.toString() ? '?' + params.toString() : '');
+  }
+
+  window.filterByEvent = function(eid) {
+    var next = (currentEvent === eid) ? '' : eid;
+    applyFilters(next, currentStatus, currentType);
+  };
+
+  document.querySelectorAll('#statusChips .cal-chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      applyFilters(currentEvent, this.dataset.val, currentType);
+    });
+  });
+
+  document.querySelectorAll('#typeChips .cal-chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      applyFilters(currentEvent, currentStatus, this.dataset.val);
+    });
+  });
+
+  /* Show "Open event calendar" link when an event is selected */
+  if (currentEvent) {
+    var wrap = document.getElementById('eventLinkWrap');
+    var link = document.getElementById('eventLink');
+    wrap.style.display = 'block';
+    link.href = '/events/' + currentEvent + '/schedule';
+  }
 })();
 </script>
 {% endblock %}

@@ -6,7 +6,7 @@
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}" class="active" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}#contacts" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">👥</span> Contacts</a></li>
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}#outreach" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">✉️</span> Outreach</a></li>
-  <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📋</span> Schedule</a></li>
+  <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📅</span> Calendar</a></li>
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📊</span> Metrics</a></li>
   <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📜</span> Log</a></li>
 {% endblock %}
@@ -258,17 +258,17 @@
   </p>
 </div>
 
-<!-- ── Outreach Schedule Summary ── -->
+<!-- ── Calendar Summary ── -->
 <div class="card" id="schedule-summary">
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
-    <h2 style="margin:0;">Outreach Schedule</h2>
+    <h2 style="margin:0;">Calendar</h2>
     <div style="display:flex;gap:.4rem;">
       {% if can_edit %}
       <form method="post" action="{{ url_for('plan_event_outreach', event_id=event.id) }}" style="margin:0;">
         <button type="submit" class="btn btn-primary btn-sm">Plan outreach</button>
       </form>
       {% endif %}
-      <a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">View calendar</a>
+      <a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Open calendar</a>
     </div>
   </div>
   <div style="display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap;">
@@ -289,6 +289,18 @@
       <div class="muted" style="font-size:.72rem;">Total</div>
     </div>
   </div>
+  {% if upcoming_actions %}
+  <div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.6rem;">
+    <div style="font-size:.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem;">Upcoming</div>
+    {% for item in upcoming_actions %}
+    <div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;{% if not loop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
+      <span style="font-size:.82rem;">{% if 'email' in item.action_type %}✉️{% else %}📞{% endif %}</span>
+      <span style="flex:1;min-width:0;font-size:.8rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.contact_name }}</span>
+      <span style="font-size:.7rem;color:var(--text-secondary);flex-shrink:0;">{{ item.scheduled_at[5:16]|replace('T', ' ') if item.scheduled_at|length > 16 else item.scheduled_at[:10] }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 
 <!-- ── Metrics ── -->

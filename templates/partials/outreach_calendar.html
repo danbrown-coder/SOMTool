@@ -8,28 +8,216 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
 <style>
-  #fc-calendar { background:var(--card); border-radius:var(--radius); padding:1rem; box-shadow:var(--shadow); }
-  #fc-calendar .fc { font-family:var(--font); }
-  #fc-calendar .fc-toolbar-title { font-size:1.05rem!important; font-weight:700; letter-spacing:-.02em; }
-  #fc-calendar .fc-button { font-size:.78rem; font-weight:600; padding:.3rem .7rem; border-radius:6px; }
-  #fc-calendar .fc-button-primary { background:var(--accent); border-color:var(--accent); }
+  /* ── FullCalendar overrides (Google Calendar feel) ── */
+  #fc-calendar {
+    --fc-border-color: #e5e7eb;
+    --fc-today-bg-color: #eef2ff;
+    --fc-page-bg-color: transparent;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+  }
+  #fc-calendar .fc { font-family: var(--font); }
+  #fc-calendar .fc-toolbar-title {
+    font-size: 1.05rem !important;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+
+  /* Toolbar buttons — match app design tokens */
+  #fc-calendar .fc-button {
+    font-size: .78rem;
+    font-weight: 600;
+    padding: .35rem .75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    box-shadow: none;
+    transition: background .15s, color .15s;
+  }
+  #fc-calendar .fc-button:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
   #fc-calendar .fc-button-primary:not(:disabled).fc-button-active,
-  #fc-calendar .fc-button-primary:not(:disabled):active { background:var(--accent-hover); border-color:var(--accent-hover); }
-  #fc-calendar .fc-event { cursor:pointer; border-radius:4px; font-size:.75rem; font-weight:500; padding:1px 4px; }
-  #fc-calendar .fc-daygrid-event { margin-bottom:1px; }
+  #fc-calendar .fc-button-primary:not(:disabled):active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  #fc-calendar .fc-button-primary:focus { box-shadow: 0 0 0 2px var(--accent-light); }
+  #fc-calendar .fc-button-group > .fc-button {
+    border-radius: 0;
+  }
+  #fc-calendar .fc-button-group > .fc-button:first-child { border-radius: 6px 0 0 6px; }
+  #fc-calendar .fc-button-group > .fc-button:last-child { border-radius: 0 6px 6px 0; }
 
-  .cal-popover-overlay { display:none; position:fixed; inset:0; z-index:600; background:rgba(0,0,0,.35); align-items:center; justify-content:center; }
-  .cal-popover-overlay.open { display:flex; }
-  .cal-popover { background:var(--card); border-radius:var(--radius); padding:1.25rem; width:440px; max-width:95vw; box-shadow:var(--shadow-lg); max-height:80vh; overflow-y:auto; }
-  .cal-popover h3 { font-size:.95rem; font-weight:700; margin-bottom:.6rem; }
-  .cal-popover .meta-row { font-size:.82rem; color:var(--text-secondary); margin-bottom:.25rem; }
-  .cal-popover .meta-row strong { color:var(--text); }
-  .cal-popover .preview-box { background:var(--input-bg); border-radius:var(--radius-sm); padding:.6rem .8rem; font-size:.78rem; line-height:1.5; white-space:pre-wrap; font-family:'SF Mono','Cascadia Code','Consolas',monospace; max-height:180px; overflow-y:auto; margin-top:.5rem; }
-  .cal-popover .action-row { display:flex; gap:.35rem; flex-wrap:wrap; margin-top:.75rem; }
+  /* Day number — light weight, right-aligned */
+  #fc-calendar .fc-daygrid-day-number {
+    font-size: .78rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+  }
+  #fc-calendar .fc-col-header-cell-cushion {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-secondary);
+    padding: 8px 0;
+  }
 
-  .cal-legend { display:flex; gap:1rem; flex-wrap:wrap; padding:.6rem 0; font-size:.75rem; }
-  .cal-legend-item { display:flex; align-items:center; gap:.3rem; }
-  .cal-legend-swatch { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
+  /* Today indicator */
+  #fc-calendar .fc-day-today .fc-daygrid-day-number {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: .75rem;
+  }
+
+  /* Event chips — left-border accent style (month view) */
+  #fc-calendar .fc-daygrid-event {
+    border: none !important;
+    background: transparent !important;
+    border-left: 3px solid var(--fc-event-border-color, var(--accent)) !important;
+    border-radius: 0 4px 4px 0 !important;
+    padding: 1px 6px !important;
+    margin-bottom: 2px !important;
+    font-size: .73rem !important;
+    font-weight: 500;
+    color: var(--text) !important;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  #fc-calendar .fc-daygrid-event:hover {
+    background: var(--accent-light) !important;
+  }
+  #fc-calendar .fc-daygrid-event .fc-event-main {
+    color: var(--text) !important;
+    padding: 0 !important;
+  }
+  #fc-calendar .fc-daygrid-event .fc-event-dot { display: none; }
+
+  /* Week/Day view events — keep pill style */
+  #fc-calendar .fc-timegrid-event {
+    border-radius: 6px !important;
+    padding: 2px 6px !important;
+    font-size: .73rem !important;
+    font-weight: 500;
+    border: none !important;
+  }
+
+  /* "+N more" link */
+  #fc-calendar .fc-daygrid-more-link {
+    font-size: .7rem;
+    font-weight: 600;
+    color: var(--accent);
+    padding: 2px 4px;
+  }
+
+  /* Softer grid lines */
+  #fc-calendar .fc td, #fc-calendar .fc th {
+    border-color: #f0f0f0;
+  }
+  #fc-calendar .fc-scrollgrid { border-color: #e5e7eb; }
+
+  /* ── Popover ── */
+  .cal-popover-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    background: rgba(0,0,0,.35);
+    align-items: center;
+    justify-content: center;
+  }
+  .cal-popover-overlay.open { display: flex; }
+  .cal-popover {
+    background: var(--card);
+    border-radius: var(--radius);
+    width: 440px;
+    max-width: 95vw;
+    box-shadow: var(--shadow-lg);
+    max-height: 80vh;
+    overflow-y: auto;
+    opacity: 0;
+    transform: scale(.96);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .cal-popover-overlay.open .cal-popover {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .cal-popover-strip {
+    height: 6px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .cal-popover-body { padding: 1rem 1.25rem 1.25rem; }
+  .cal-popover h3 { font-size: .95rem; font-weight: 700; margin: 0 0 .1rem; }
+  .cal-popover .pop-datetime {
+    font-size: .78rem;
+    color: var(--text-secondary);
+    margin-bottom: .6rem;
+  }
+  .cal-popover .meta-row {
+    font-size: .82rem;
+    color: var(--text-secondary);
+    margin-bottom: .25rem;
+  }
+  .cal-popover .meta-row strong { color: var(--text); }
+  .cal-popover .preview-box {
+    background: var(--input-bg);
+    border-radius: var(--radius-sm);
+    padding: .6rem .8rem;
+    font-size: .78rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    font-family: 'SF Mono','Cascadia Code','Consolas', monospace;
+    max-height: 180px;
+    overflow-y: auto;
+    margin-top: .5rem;
+  }
+  .cal-popover .action-row {
+    display: flex;
+    gap: .35rem;
+    flex-wrap: wrap;
+    margin-top: .75rem;
+  }
+
+  /* Status pill (shared) */
+  .pop-status-pill {
+    display: inline-block;
+    padding: .15rem .55rem;
+    font-size: .72rem;
+    font-weight: 600;
+    border-radius: 100px;
+  }
+  .pop-status-pill.planned { background: #e0e7ff; color: #3730a3; }
+  .pop-status-pill.approved { background: #d1fae5; color: #065f46; }
+  .pop-status-pill.sent { background: #f3f4f6; color: #374151; }
+  .pop-status-pill.skipped { background: #fee2e2; color: #991b1b; }
+  .pop-status-pill.failed { background: #fee2e2; color: #991b1b; }
+
+  /* Legend */
+  .cal-legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: .6rem 0;
+    font-size: .73rem;
+    color: var(--text-secondary);
+  }
+  .cal-legend-item { display: flex; align-items: center; gap: .3rem; }
+  .cal-legend-swatch { width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0; }
 </style>
 
 <div id="fc-calendar"></div>
@@ -46,21 +234,27 @@
 <!-- Detail popover -->
 <div class="cal-popover-overlay" id="calPopover">
   <div class="cal-popover">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-      <h3 id="popTitle"></h3>
-      <button class="btn btn-ghost btn-sm" onclick="closePopover()" style="font-size:.9rem;padding:.1rem .4rem;">✕</button>
+    <div class="cal-popover-strip" id="popStrip"></div>
+    <div class="cal-popover-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div style="flex:1;min-width:0;">
+          <h3 id="popTitle"></h3>
+          <div class="pop-datetime" id="popDatetime"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="closePopover()" style="font-size:.9rem;padding:.1rem .4rem;flex-shrink:0;">✕</button>
+      </div>
+      <div class="meta-row"><strong>Contact:</strong> <span id="popContact"></span></div>
+      <div class="meta-row"><strong>Email:</strong> <span id="popEmail"></span></div>
+      <div class="meta-row"><strong>Type:</strong> <span id="popType"></span></div>
+      <div class="meta-row"><strong>Status:</strong> <span id="popStatusWrap"></span></div>
+      <div class="meta-row" id="popEventRow"><strong>Event:</strong> <span id="popEvent"></span></div>
+      <div class="meta-row" id="popReasonRow"><strong>AI reason:</strong> <span id="popReason"></span></div>
+      <div id="popPreviewWrap" style="display:none;">
+        <div style="font-size:.78rem;font-weight:600;margin-top:.5rem;color:var(--text-secondary);">Preview</div>
+        <div class="preview-box" id="popPreview"></div>
+      </div>
+      <div class="action-row" id="popActions"></div>
     </div>
-    <div class="meta-row"><strong>Contact:</strong> <span id="popContact"></span></div>
-    <div class="meta-row"><strong>Email:</strong> <span id="popEmail"></span></div>
-    <div class="meta-row"><strong>Type:</strong> <span id="popType"></span></div>
-    <div class="meta-row"><strong>Status:</strong> <span id="popStatus"></span></div>
-    <div class="meta-row" id="popEventRow"><strong>Event:</strong> <span id="popEvent"></span></div>
-    <div class="meta-row" id="popReasonRow"><strong>AI reason:</strong> <span id="popReason"></span></div>
-    <div id="popPreviewWrap" style="display:none;">
-      <div style="font-size:.78rem;font-weight:600;margin-top:.5rem;color:var(--text-secondary);">Preview</div>
-      <div class="preview-box" id="popPreview"></div>
-    </div>
-    <div class="action-row" id="popActions"></div>
   </div>
 </div>
 
@@ -83,6 +277,8 @@
     nowIndicator: true,
     editable: true,
     eventStartEditable: true,
+    dayMaxEvents: 3,
+    eventDisplay: 'block',
     events: function(info, successCallback, failureCallback) {
       var params = new URLSearchParams();
       if (calEventId) params.set('event_id', calEventId);
@@ -92,7 +288,12 @@
       params.set('end', info.endStr);
       fetch('/api/outreach-calendar?' + params.toString())
         .then(function(r){ return r.json(); })
-        .then(successCallback)
+        .then(function(events){
+          events.forEach(function(ev){
+            ev.borderColor = ev.color;
+          });
+          successCallback(events);
+        })
         .catch(failureCallback);
     },
     eventClick: function(info) {
@@ -112,6 +313,8 @@
   });
   calendar.render();
 
+  window._fcCalendar = calendar;
+
   window.closePopover = function(){
     document.getElementById('calPopover').classList.remove('open');
   };
@@ -119,13 +322,31 @@
     if (e.target === this) closePopover();
   });
 
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closePopover();
+  });
+
+  function formatDateTime(dt) {
+    if (!dt) return '';
+    var d = new Date(dt);
+    var opts = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+    return d.toLocaleDateString('en-US', opts);
+  }
+
   window.showPopover = function(ev) {
     var p = ev.extendedProps;
+    var color = ev.borderColor || ev.backgroundColor || '#4f46e5';
+    document.getElementById('popStrip').style.background = color;
     document.getElementById('popTitle').textContent = ev.title;
+    document.getElementById('popDatetime').textContent = formatDateTime(ev.start);
     document.getElementById('popContact').textContent = p.contact_name;
     document.getElementById('popEmail').textContent = p.contact_email;
     document.getElementById('popType').textContent = (p.action_type||'').replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
-    document.getElementById('popStatus').textContent = (p.status||'').replace(/\b\w/g,function(c){return c.toUpperCase();});
+
+    var statusWrap = document.getElementById('popStatusWrap');
+    var statusText = (p.status||'').toLowerCase();
+    statusWrap.innerHTML = '<span class="pop-status-pill ' + statusText + '">' +
+      statusText.charAt(0).toUpperCase() + statusText.slice(1) + '</span>';
 
     var evRow = document.getElementById('popEventRow');
     if (p.event_name) { evRow.style.display=''; document.getElementById('popEvent').textContent=p.event_name; }
