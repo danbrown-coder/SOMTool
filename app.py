@@ -357,6 +357,7 @@ def _parse_goal_budget_form() -> dict:
         "actual_spend": _f("actual_spend"),
         "sponsorship_revenue": _f("sponsorship_revenue"),
         "expenses": expenses,
+        "registration_pin": request.form.get("registration_pin", "").strip(),
     }
 
 
@@ -990,6 +991,135 @@ def request_feedback_route(event_id: str):
     else:
         flash("No eligible contacts to send feedback requests to.", "info")
     return redirect(url_for("event_detail", event_id=event_id))
+
+
+# ── Event Registration Desk ─────────────────────────────────
+
+
+def _reg_authed(event) -> bool:
+    """Check if current request has registration access (editor login OR PIN session)."""
+    uid = auth.current_user_id()
+    if uid:
+        user = auth.get_user_by_id(uid)
+        if user:
+            role = em.get_event_share_role(user, event)
+            if role and _role_ok(role, "editor"):
+                return True
+    return session.get(f"reg_pin_{event.id}") is True
+
+
+@app.route("/events/<event_id>/register")
+def event_register(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        return "Event not found", 404
+    if not event.registration_pin:
+        return "Registration not enabled for this event", 403
+    authed = _reg_authed(event)
+    pin_error = request.args.get("pin_error") == "1"
+    if authed:
+        metrics = em.compute_metrics(event)
+        return render_template("event_register.html", event=event, authed=True,
+                               metrics=metrics, pin_error=False)
+    return render_template("event_register.html", event=event, authed=False, pin_error=pin_error)
+
+
+@app.route("/events/<event_id>/register/pin", methods=["POST"])
+def register_pin(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        return "Event not found", 404
+    pin = request.form.get("pin", "").strip()
+    if pin == event.registration_pin:
+        session[f"reg_pin_{event.id}"] = True
+        return redirect(url_for("event_register", event_id=event_id))
+    return redirect(url_for("event_register", event_id=event_id, pin_error="1"))
+
+
+@app.route("/events/<event_id>/register/checkin", methods=["POST"])
+def register_checkin(event_id: str):
+    event = em.get_event(event_id)
+    if not event or not _reg_authed(event):
+        return "Not authorized", 403
+    contact_id = request.form.get("contact_id", "")
+    events = em.load_events()
+    for i, ev in enumerate(events):
+        if ev.id == event_id:
+            for c in ev.contacts:
+                if c.id == contact_id:
+                    c.attended = True
+                    c.status = ContactStatus.CONFIRMED
+            events[i] = ev
+            em.save_events(events)
+            break
+    flash("Checked in!", "info")
+    return redirect(url_for("event_register", event_id=event_id))
+
+
+@app.route("/events/<event_id>/register/walkin", methods=["POST"])
+def register_walkin(event_id: str):
+    event = em.get_event(event_id)
+    if not event or not _reg_authed(event):
+        return "Not authorized", 403
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip()
+    phone = normalize_phone(request.form.get("phone", ""))
+    if not name:
+        flash("Name is required.", "info")
+        return redirect(url_for("event_register", event_id=event_id))
+    contact = em.add_contact(
+        event_id, name, email or f"walkin+{name.lower().replace(' ', '.')}@pending.local",
+        contact_role=ContactRole.ATTENDEE,
+        phone=phone,
+        registration_type=RegistrationType.WALK_IN,
+        status=ContactStatus.CONFIRMED,
+        attended=True,
+    )
+    flash(f"{name} registered!", "info")
+    if not email and contact:
+        return _walkin_lookup(event_id, event, name, contact.id)
+    return redirect(url_for("event_register", event_id=event_id))
+
+
+def _walkin_lookup(event_id: str, event, name: str, contact_id: str):
+    """Search for walk-in info and render results on registration page."""
+    import discover as disc
+    try:
+        results = disc.search_web_snippets(f"{name} LinkedIn", max_results=5)
+    except Exception:
+        results = []
+    if not results:
+        return redirect(url_for("event_register", event_id=event_id))
+    metrics = em.compute_metrics(event)
+    event = em.get_event(event_id)
+    return render_template("event_register.html", event=event, authed=True,
+                           metrics=metrics, pin_error=False,
+                           lookup_results=results, lookup_name=name,
+                           lookup_contact_id=contact_id)
+
+
+@app.route("/events/<event_id>/register/approve-lookup", methods=["POST"])
+def register_approve_lookup(event_id: str):
+    event = em.get_event(event_id)
+    if not event or not _reg_authed(event):
+        return "Not authorized", 403
+    contact_id = request.form.get("contact_id", "")
+    url = request.form.get("url", "")
+    title = request.form.get("title", "")
+    events = em.load_events()
+    for i, ev in enumerate(events):
+        if ev.id == event_id:
+            for c in ev.contacts:
+                if c.id == contact_id:
+                    if title:
+                        pass
+                    if url and "linkedin.com" in url.lower():
+                        pass
+            events[i] = ev
+            em.save_events(events)
+            break
+    flash(f"Linked web info to contact.", "info")
+    return redirect(url_for("event_register", event_id=event_id))
 
 
 # ── Recommend / Discover / Referrals ────────────────────────

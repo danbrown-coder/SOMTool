@@ -123,13 +123,38 @@ def _fetch(url: str, timeout: int = 12) -> str | None:
         return None
 
 
-def _content_hash(html: str) -> str:
+def _extract_text(html: str) -> str:
     try:
         from bs4 import BeautifulSoup
-        text = BeautifulSoup(html, "html.parser").get_text(separator=" ", strip=True)
+        return BeautifulSoup(html, "html.parser").get_text(separator="\n", strip=True)
     except Exception:
-        text = html
+        return html
+
+
+def _content_hash(html: str) -> str:
+    text = _extract_text(html).replace("\n", " ")
     return hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest()
+
+
+def _compute_diff(old_text: str, new_text: str, max_lines: int = 20) -> tuple[list[str], list[str]]:
+    import difflib
+    old_lines = old_text.splitlines()
+    new_lines = new_text.splitlines()
+    diff = list(difflib.unified_diff(old_lines, new_lines, n=0, lineterm=""))
+    added: list[str] = []
+    removed: list[str] = []
+    for line in diff:
+        if line.startswith("+++") or line.startswith("---") or line.startswith("@@"):
+            continue
+        if line.startswith("+"):
+            text = line[1:].strip()
+            if text and len(added) < max_lines:
+                added.append(text)
+        elif line.startswith("-"):
+            text = line[1:].strip()
+            if text and len(removed) < max_lines:
+                removed.append(text)
+    return added, removed
 
 
 def _extract_dates(html: str) -> list[str]:
@@ -319,12 +344,14 @@ def refresh_from_web() -> tuple[int, list[dict]]:
         dates = _extract_dates(html)
         reg_links = _extract_registration_links(html, url)
 
+        current_text = _extract_text(html)[:5000]
         entry = {
             "hash": h,
             "dates": dates,
             "registration_links": [r["url"] for r in reg_links],
             "last_scraped": utc_now_iso(),
             "label": src["label"],
+            "page_text": current_text,
         }
         new_state[url] = entry
 
@@ -341,6 +368,9 @@ def refresh_from_web() -> tuple[int, list[dict]]:
         if ai_events and _merge_ai_events(events, ai_events, url):
             catalog_changed = True
 
+        old_text = old_entry.get("page_text", "")
+        diff_added, diff_removed = _compute_diff(old_text, current_text) if old_text else ([], [])
+
         matching = [e for e in events if e.get("source_url") == url]
         event_label = matching[0]["name"] if matching else src["label"]
         event_id = matching[0]["id"] if matching else ""
@@ -354,6 +384,8 @@ def refresh_from_web() -> tuple[int, list[dict]]:
             "description": f"Page content changed for {src['label']}",
             "detected_at": utc_now_iso(),
             "dismissed": False,
+            "diff_added": diff_added,
+            "diff_removed": diff_removed,
         }
 
         old_dates = set(old_entry.get("dates", []))

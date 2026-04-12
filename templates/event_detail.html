@@ -9,6 +9,9 @@
   <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📅</span> Calendar</a></li>
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📊</span> Metrics</a></li>
   <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📜</span> Log</a></li>
+  {% if event.registration_pin %}
+  <li><a href="{{ url_for('event_register', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;" target="_blank"><span class="nav-icon" style="font-size:.8rem;">📋</span> Registration Desk</a></li>
+  {% endif %}
 {% endblock %}
 
 {% block topbar %}

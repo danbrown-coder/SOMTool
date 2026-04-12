@@ -35,8 +35,15 @@
       <textarea id="description" name="description">{{ event.description }}</textarea>
     </div>
 
-    <details style="margin-bottom:1rem;" {% if event.venue_capacity or event.registration_deadline or event.late_fee %}open{% endif %}>
-      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Capacity Planning</summary>
+    <details style="margin-bottom:1rem;" {% if event.venue_capacity or event.registration_deadline or event.late_fee or event.registration_pin %}open{% endif %}>
+      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Registration & Capacity</summary>
+      <div class="form-row" style="margin:.5rem 0;">
+        <div class="field" style="width:180px;">
+          <label for="reg_pin">Registration PIN</label>
+          <input type="text" id="reg_pin" name="registration_pin" maxlength="6" pattern="[0-9]*" inputmode="numeric" value="{{ event.registration_pin }}" placeholder="e.g. 1234">
+          <span class="muted text-sm">4-6 digit PIN for staff check-in page</span>
+        </div>
+      </div>
       <p class="muted text-sm" style="margin:.5rem 0;">Set venue capacity and walk-in buffer to plan for last-minute arrivals.</p>
       <div class="form-row">
         <div class="field" style="width:180px;">

@@ -140,6 +140,7 @@ def create_event(
         actual_spend=kwargs.get("actual_spend", 0.0),
         sponsorship_revenue=kwargs.get("sponsorship_revenue", 0.0),
         expenses=kwargs.get("expenses", []),
+        registration_pin=kwargs.get("registration_pin", ""),
     )
     events.append(event)
     save_events(events)
@@ -186,6 +187,7 @@ def update_event(
             e.actual_spend = kwargs.get("actual_spend", e.actual_spend)
             e.sponsorship_revenue = kwargs.get("sponsorship_revenue", e.sponsorship_revenue)
             e.expenses = kwargs.get("expenses", e.expenses)
+            e.registration_pin = kwargs.get("registration_pin", e.registration_pin)
             events[i] = e
             save_events(events)
             return True

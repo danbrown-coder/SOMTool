@@ -96,6 +96,19 @@
     <div class="change-body">
       <strong>{{ c.event_name }}</strong>
       <p>{{ c.description }}</p>
+      {% if c.get('diff_removed') or c.get('diff_added') %}
+      <details style="margin:.5rem 0;">
+        <summary style="cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent);">Show specific changes</summary>
+        <div style="margin-top:.4rem;font-size:.8rem;font-family:monospace;border-radius:6px;overflow:hidden;border:1px solid var(--border);">
+          {% for line in c.get('diff_removed', []) %}
+          <div style="background:#fef2f2;color:#991b1b;padding:.2rem .5rem;border-bottom:1px solid #fecaca;">- {{ line }}</div>
+          {% endfor %}
+          {% for line in c.get('diff_added', []) %}
+          <div style="background:#f0fdf4;color:#166534;padding:.2rem .5rem;border-bottom:1px solid #bbf7d0;">+ {{ line }}</div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
       <div class="gap-row">
         {% if c.event_id %}
         <form method="post" action="{{ url_for('som_notify_change', change_id=c.id) }}" style="display:inline;">

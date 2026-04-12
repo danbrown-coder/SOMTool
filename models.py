@@ -217,6 +217,7 @@ class Event:
     actual_spend: float = 0.0
     sponsorship_revenue: float = 0.0
     expenses: list[dict] = field(default_factory=list)
+    registration_pin: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -242,6 +243,7 @@ class Event:
             "actual_spend": self.actual_spend,
             "sponsorship_revenue": self.sponsorship_revenue,
             "expenses": self.expenses,
+            "registration_pin": self.registration_pin,
         }
         if self.som_event_id:
             d["som_event_id"] = self.som_event_id
@@ -300,6 +302,7 @@ class Event:
             actual_spend=_float("actual_spend"),
             sponsorship_revenue=_float("sponsorship_revenue"),
             expenses=d.get("expenses") or [],
+            registration_pin=d.get("registration_pin", ""),
         )
 
 
