@@ -203,6 +203,9 @@ class Event:
     sender_email: str = ""
     venue_capacity: int = 0
     walkin_buffer_pct: int = 15
+    registration_deadline: str = ""
+    late_fee: float = 0.0
+    late_fee_note: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -216,6 +219,9 @@ class Event:
             "permissions": self.permissions,
             "venue_capacity": self.venue_capacity,
             "walkin_buffer_pct": self.walkin_buffer_pct,
+            "registration_deadline": self.registration_deadline,
+            "late_fee": self.late_fee,
+            "late_fee_note": self.late_fee_note,
         }
         if self.som_event_id:
             d["som_event_id"] = self.som_event_id
@@ -233,6 +239,10 @@ class Event:
         perms = d.get("permissions") or []
         if not isinstance(perms, list):
             perms = []
+        try:
+            late_fee = float(d.get("late_fee", 0) or 0)
+        except (ValueError, TypeError):
+            late_fee = 0.0
         return cls(
             id=d["id"],
             name=d["name"],
@@ -248,6 +258,9 @@ class Event:
             sender_email=d.get("sender_email", ""),
             venue_capacity=int(d.get("venue_capacity", 0) or 0),
             walkin_buffer_pct=int(d.get("walkin_buffer_pct", 15) or 15),
+            registration_deadline=d.get("registration_deadline", ""),
+            late_fee=late_fee,
+            late_fee_note=d.get("late_fee_note", ""),
         )
 
 

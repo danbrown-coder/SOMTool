@@ -326,7 +326,11 @@ def create_event_route():
         walkin_buf = int(request.form.get("walkin_buffer_pct", 15) or 15)
     except (ValueError, TypeError):
         walkin_buf = 15
-    em.create_event(
+    try:
+        late_fee = float(request.form.get("late_fee", 0) or 0)
+    except (ValueError, TypeError):
+        late_fee = 0.0
+    ev = em.create_event(
         name, event_date, description, audience,
         owner_id=g.current_user.id,
         sender_name=request.form.get("sender_name", ""),
@@ -334,6 +338,9 @@ def create_event_route():
         sender_email=request.form.get("sender_email", ""),
         venue_capacity=venue_cap,
         walkin_buffer_pct=walkin_buf,
+        registration_deadline=request.form.get("registration_deadline", ""),
+        late_fee=late_fee,
+        late_fee_note=request.form.get("late_fee_note", ""),
     )
     flash("Event created.", "info")
     return redirect(url_for("index"))
@@ -376,6 +383,10 @@ def edit_event_route(event_id: str):
         walkin_buf = int(request.form.get("walkin_buffer_pct", 15) or 15)
     except (ValueError, TypeError):
         walkin_buf = 15
+    try:
+        late_fee = float(request.form.get("late_fee", 0) or 0)
+    except (ValueError, TypeError):
+        late_fee = 0.0
     em.update_event(
         event_id, name, event_date, description, audience,
         sender_name=request.form.get("sender_name", ""),
@@ -383,6 +394,9 @@ def edit_event_route(event_id: str):
         sender_email=request.form.get("sender_email", ""),
         venue_capacity=venue_cap,
         walkin_buffer_pct=walkin_buf,
+        registration_deadline=request.form.get("registration_deadline", ""),
+        late_fee=late_fee,
+        late_fee_note=request.form.get("late_fee_note", ""),
     )
     flash("Event updated.", "info")
     return redirect(url_for("index"))
@@ -480,6 +494,7 @@ def event_detail(event_id: str):
         flash("You do not have access to this event.", "info")
         return redirect(url_for("index"))
     metrics = em.compute_metrics(event)
+    priority = em.compute_priority(event)
     statuses = list(ContactStatus)
     can_edit = _role_ok(role, "editor")
     can_owner = role == "owner"
@@ -508,6 +523,7 @@ def event_detail(event_id: str):
         "event_detail.html",
         event=event,
         metrics=metrics,
+        priority=priority,
         statuses=statuses,
         contact_roles=contact_roles,
         grouped_contacts=grouped_contacts,
@@ -783,10 +799,12 @@ def walkin_checkin(event_id: str):
         return redirect(url_for("walkin_checkin", event_id=event_id))
 
     metrics = em.compute_metrics(event)
+    priority = em.compute_priority(event)
     return render_template(
         "walkin_checkin.html",
         event=event,
         metrics=metrics,
+        priority=priority,
     )
 
 
@@ -1519,11 +1537,18 @@ def outreach_schedule_page():
     event_counts = {}
     for i in all_items:
         event_counts[i["event_id"]] = event_counts.get(i["event_id"], 0) + 1
+    event_priorities = {e.id: em.compute_priority(e) for e in events}
+    events_sorted = sorted(
+        events,
+        key=lambda e: event_priorities[e.id]["priority_score"],
+        reverse=True,
+    )
     return render_template(
         "outreach_schedule.html",
-        queue=items, event_map=event_map, events=events,
+        queue=items, event_map=event_map, events=events_sorted,
         status_filter=status_filter, type_filter=type_filter,
         event_filter=event_filter, event_counts=event_counts,
+        event_priorities=event_priorities,
     )
 
 
@@ -1787,6 +1812,7 @@ def api_outreach_calendar():
     )
     events = em.load_events()
     event_map = {e.id: e.name for e in events}
+    priority_map = {e.id: em.compute_priority(e) for e in events}
 
     cal_events = []
     for item in items:
@@ -1797,11 +1823,13 @@ def api_outreach_calendar():
             colors = _CAL_SKIP if status == "skipped" else _CAL_FAIL if status == "failed" else {"bg": "#6b7280", "border": "#4b5563", "text": "#fff"}
 
         label = _ACTION_LABELS.get(atype, atype.replace("_", " ").title())
-        ev_name = event_map.get(item.get("event_id", ""), "")
+        item_eid = item.get("event_id", "")
+        ev_name = event_map.get(item_eid, "")
         title = f"{label}: {item.get('contact_name', '?')}"
         if not event_id and ev_name:
             title = f"{ev_name}: {title}"
 
+        ep = priority_map.get(item_eid, {})
         cal_events.append({
             "id": item["id"],
             "title": title,
@@ -1815,9 +1843,11 @@ def api_outreach_calendar():
                 "contact_name": item.get("contact_name", ""),
                 "contact_email": item.get("contact_email", ""),
                 "event_name": ev_name,
-                "event_id": item.get("event_id", ""),
+                "event_id": item_eid,
                 "ai_reason": item.get("ai_reason", ""),
                 "preview": item.get("preview", ""),
+                "urgency": ep.get("urgency", "low"),
+                "priority_score": ep.get("priority_score", 0),
             },
         })
     return jsonify(cal_events)

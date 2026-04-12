@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -107,6 +108,9 @@ def create_event(
     sender_email: str = "",
     venue_capacity: int = 0,
     walkin_buffer_pct: int = 15,
+    registration_deadline: str = "",
+    late_fee: float = 0.0,
+    late_fee_note: str = "",
 ) -> Event:
     events = load_events()
     event = Event(
@@ -123,6 +127,9 @@ def create_event(
         sender_email=sender_email.strip(),
         venue_capacity=venue_capacity,
         walkin_buffer_pct=walkin_buffer_pct,
+        registration_deadline=registration_deadline.strip() if registration_deadline else "",
+        late_fee=late_fee,
+        late_fee_note=late_fee_note.strip() if late_fee_note else "",
     )
     events.append(event)
     save_events(events)
@@ -140,6 +147,9 @@ def update_event(
     sender_email: str = "",
     venue_capacity: int = 0,
     walkin_buffer_pct: int = 15,
+    registration_deadline: str = "",
+    late_fee: float = 0.0,
+    late_fee_note: str = "",
 ) -> bool:
     events = load_events()
     for i, e in enumerate(events):
@@ -153,6 +163,9 @@ def update_event(
             e.sender_email = sender_email.strip()
             e.venue_capacity = venue_capacity
             e.walkin_buffer_pct = walkin_buffer_pct
+            e.registration_deadline = registration_deadline.strip() if registration_deadline else ""
+            e.late_fee = late_fee
+            e.late_fee_note = late_fee_note.strip() if late_fee_note else ""
             events[i] = e
             save_events(events)
             return True
@@ -432,6 +445,19 @@ def compute_metrics(event: Event) -> dict:
     buffer_remaining = max(buffer_slots - buffer_used, 0) if cap else 0
     capacity_pct = round(confirmed / cap * 100, 1) if cap else 0.0
 
+    now = datetime.now(timezone.utc)
+    deadline_passed = False
+    registration_open = True
+    if event.registration_deadline:
+        try:
+            dl = datetime.fromisoformat(event.registration_deadline.replace("Z", "+00:00"))
+            if dl.tzinfo is None:
+                dl = dl.replace(tzinfo=timezone.utc)
+            deadline_passed = now >= dl
+        except ValueError:
+            pass
+    registration_open = not deadline_passed
+
     return {
         "total_invited": total,
         "rsvp_count": rsvp_count,
@@ -450,4 +476,100 @@ def compute_metrics(event: Event) -> dict:
         "buffer_used": buffer_used,
         "buffer_remaining": buffer_remaining,
         "capacity_pct": capacity_pct,
+        "deadline_passed": deadline_passed,
+        "registration_open": registration_open,
+    }
+
+
+def compute_priority(event: Event) -> dict:
+    """Compute priority score, urgency, size tier, and door status for an event."""
+    now = datetime.now(timezone.utc)
+
+    # --- Days until event ---
+    days_until = 999
+    try:
+        event_dt = datetime.fromisoformat(event.date.replace("Z", "+00:00"))
+        if event_dt.tzinfo is None:
+            event_dt = event_dt.replace(tzinfo=timezone.utc)
+        days_until = (event_dt - now).days
+    except (ValueError, AttributeError):
+        pass
+
+    # --- Size tier ---
+    size_ref = event.venue_capacity if event.venue_capacity > 0 else len(event.contacts)
+    if size_ref >= 100:
+        size_tier = "large"
+    elif size_ref >= 30:
+        size_tier = "medium"
+    else:
+        size_tier = "small"
+
+    # --- Urgency ---
+    if days_until < 0:
+        urgency = "low"
+    elif days_until <= 2:
+        urgency = "critical"
+    elif days_until <= 7:
+        urgency = "high"
+    elif days_until <= 21:
+        urgency = "medium"
+    else:
+        urgency = "low"
+
+    # --- Priority score (0-100, higher = more urgent) ---
+    if days_until < 0:
+        time_score = 10
+    elif days_until <= 2:
+        time_score = 100
+    elif days_until <= 7:
+        time_score = 80 - (days_until - 2) * 4
+    elif days_until <= 21:
+        time_score = 55 - (days_until - 7) * 2
+    else:
+        time_score = max(25 - (days_until - 21), 0)
+
+    size_bonus = {"large": 15, "medium": 8, "small": 0}[size_tier]
+    priority_score = min(time_score + size_bonus, 100)
+
+    # --- Deadline status ---
+    deadline_passed = False
+    registration_open = True
+    if event.registration_deadline:
+        try:
+            dl = datetime.fromisoformat(event.registration_deadline.replace("Z", "+00:00"))
+            if dl.tzinfo is None:
+                dl = dl.replace(tzinfo=timezone.utc)
+            deadline_passed = now >= dl
+        except ValueError:
+            pass
+    registration_open = not deadline_passed
+
+    # --- Door status ---
+    cap = event.venue_capacity
+    confirmed = sum(1 for c in event.contacts if c.status == ContactStatus.CONFIRMED)
+    buf_pct = event.walkin_buffer_pct
+    buffer_slots = int(cap * buf_pct / 100) if cap else 0
+    total_capacity = cap + buffer_slots if cap else 0
+    spots_remaining = total_capacity - confirmed if cap else -1
+
+    if cap == 0:
+        door_status = "open"
+    elif spots_remaining > buffer_slots * 0.3:
+        door_status = "open"
+    elif spots_remaining > 0:
+        door_status = "limited"
+    elif spots_remaining == 0:
+        door_status = "full"
+    else:
+        door_status = "over_capacity"
+
+    return {
+        "days_until": days_until,
+        "size_tier": size_tier,
+        "urgency": urgency,
+        "priority_score": priority_score,
+        "deadline_passed": deadline_passed,
+        "registration_open": registration_open,
+        "door_status": door_status,
+        "spots_remaining": spots_remaining,
     }

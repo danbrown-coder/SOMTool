@@ -101,6 +101,20 @@
   #fc-calendar .fc-daygrid-event:hover {
     background: var(--accent-light) !important;
   }
+  /* Urgency-based event styling */
+  #fc-calendar .fc-daygrid-event.urgency-critical {
+    border-left-width: 4px !important;
+    font-weight: 700 !important;
+    animation: urgencyPulse 2s ease-in-out infinite;
+  }
+  #fc-calendar .fc-daygrid-event.urgency-high {
+    border-left-width: 4px !important;
+    font-weight: 600 !important;
+  }
+  @keyframes urgencyPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .7; }
+  }
   #fc-calendar .fc-daygrid-event .fc-event-main {
     color: var(--text) !important;
     padding: 0 !important;
@@ -207,6 +221,21 @@
   .pop-status-pill.skipped { background: #fee2e2; color: #991b1b; }
   .pop-status-pill.failed { background: #fee2e2; color: #991b1b; }
 
+  /* Urgency pills in popover */
+  .pop-urgency-pill {
+    display: inline-block;
+    padding: .1rem .45rem;
+    font-size: .65rem;
+    font-weight: 700;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+  .pop-urgency-pill.critical { background: #fef2f2; color: #dc2626; }
+  .pop-urgency-pill.high { background: #fff7ed; color: #ea580c; }
+  .pop-urgency-pill.medium { background: #fefce8; color: #ca8a04; }
+  .pop-urgency-pill.low { background: #f3f4f6; color: #6b7280; }
+
   /* Legend */
   .cal-legend {
     display: flex;
@@ -248,6 +277,7 @@
       <div class="meta-row"><strong>Type:</strong> <span id="popType"></span></div>
       <div class="meta-row"><strong>Status:</strong> <span id="popStatusWrap"></span></div>
       <div class="meta-row" id="popEventRow"><strong>Event:</strong> <span id="popEvent"></span></div>
+      <div class="meta-row" id="popUrgencyRow"><strong>Priority:</strong> <span id="popUrgency"></span></div>
       <div class="meta-row" id="popReasonRow"><strong>AI reason:</strong> <span id="popReason"></span></div>
       <div id="popPreviewWrap" style="display:none;">
         <div style="font-size:.78rem;font-weight:600;margin-top:.5rem;color:var(--text-secondary);">Preview</div>
@@ -295,6 +325,12 @@
           successCallback(events);
         })
         .catch(failureCallback);
+    },
+    eventDidMount: function(info) {
+      var urg = info.event.extendedProps.urgency;
+      if (urg === 'critical' || urg === 'high') {
+        info.el.classList.add('urgency-' + urg);
+      }
     },
     eventClick: function(info) {
       info.jsEvent.preventDefault();
@@ -351,6 +387,13 @@
     var evRow = document.getElementById('popEventRow');
     if (p.event_name) { evRow.style.display=''; document.getElementById('popEvent').textContent=p.event_name; }
     else evRow.style.display='none';
+
+    var urgRow = document.getElementById('popUrgencyRow');
+    if (p.urgency) {
+      urgRow.style.display='';
+      document.getElementById('popUrgency').innerHTML =
+        '<span class="pop-urgency-pill ' + p.urgency + '">' + p.urgency.charAt(0).toUpperCase() + p.urgency.slice(1) + '</span>';
+    } else urgRow.style.display='none';
 
     var rRow = document.getElementById('popReasonRow');
     if (p.ai_reason) { rRow.style.display=''; document.getElementById('popReason').textContent=p.ai_reason; }

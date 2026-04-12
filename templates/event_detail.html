@@ -38,6 +38,19 @@
 .reg-badge.pre { background:#dbeafe; color:#1e40af; }
 .reg-badge.dayof { background:#fef3c7; color:#92400e; }
 .reg-badge.walkin { background:#fce7f3; color:#9d174d; }
+.urgency-pill { display:inline-block; padding:.15rem .55rem; font-size:.7rem; font-weight:700; border-radius:100px; text-transform:uppercase; letter-spacing:.03em; }
+.urgency-pill.critical { background:#fef2f2; color:#dc2626; }
+.urgency-pill.high { background:#fff7ed; color:#ea580c; }
+.urgency-pill.medium { background:#fefce8; color:#ca8a04; }
+.urgency-pill.low { background:#f3f4f6; color:#6b7280; }
+.door-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.3rem .65rem; border-radius:var(--radius-sm); font-size:.78rem; font-weight:600; }
+.door-badge.open { background:#d1fae5; color:#065f46; }
+.door-badge.limited { background:#fef3c7; color:#92400e; }
+.door-badge.full { background:#fee2e2; color:#991b1b; }
+.door-badge.over_capacity { background:#fecaca; color:#7f1d1d; }
+.reg-status { display:inline-flex; align-items:center; gap:.3rem; font-size:.78rem; font-weight:600; }
+.reg-status.open-status { color:#059669; }
+.reg-status.closed-status { color:#dc2626; }
 {% endblock %}
 
 {% block content %}
@@ -47,18 +60,42 @@
 </div>
 {% endif %}
 
-<!-- ── Capacity Planning ── -->
+<!-- ── Capacity & Registration ── -->
 {% if metrics.venue_capacity > 0 %}
 <div class="card" id="capacity">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
     <div>
-      <h2 style="margin-bottom:.25rem;">Capacity Planning</h2>
-      <p class="muted text-sm">{{ metrics.venue_capacity }} seats · {{ metrics.walkin_buffer_pct }}% walk-in buffer ({{ metrics.buffer_slots }} extra spots)</p>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+        <h2 style="margin:0;">Capacity Planning</h2>
+        <span class="urgency-pill {{ priority.urgency }}">{{ priority.urgency|title }}</span>
+      </div>
+      <p class="muted text-sm" style="margin-top:.2rem;">{{ metrics.venue_capacity }} seats · {{ metrics.walkin_buffer_pct }}% walk-in buffer ({{ metrics.buffer_slots }} extra spots)</p>
     </div>
     {% if can_edit %}
     <a href="{{ url_for('walkin_checkin', event_id=event.id) }}" class="btn btn-primary btn-sm" style="white-space:nowrap;">Walk-in Check-in</a>
     {% endif %}
   </div>
+
+  <!-- Registration status + door status row -->
+  <div style="display:flex;gap:1rem;margin-top:.75rem;flex-wrap:wrap;align-items:center;">
+    {% if event.registration_deadline %}
+    <span class="reg-status {% if priority.registration_open %}open-status{% else %}closed-status{% endif %}">
+      {% if priority.registration_open %}● Registration open{% else %}● Registration closed{% endif %}
+    </span>
+    <span class="muted text-sm">Deadline: {{ event.registration_deadline[:16]|replace('T', ' ') }}</span>
+    {% endif %}
+    <span class="door-badge {{ priority.door_status }}">
+      {% if priority.door_status == 'open' %}🟢 Open{% elif priority.door_status == 'limited' %}🟡 Limited spots{% elif priority.door_status == 'full' %}🔴 Full{% else %}🔴 Over capacity{% endif %}
+      {% if priority.spots_remaining >= 0 %}· {{ priority.spots_remaining }} spot{{ 's' if priority.spots_remaining != 1 }} remaining{% endif %}
+    </span>
+  </div>
+
+  {% if event.late_fee > 0 %}
+  <div style="margin-top:.6rem;padding:.4rem .7rem;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);font-size:.82rem;">
+    <strong>Late / walk-in fee: ${{ '%.2f'|format(event.late_fee) }}</strong>
+    {% if event.late_fee_note %}<span class="muted" style="margin-left:.5rem;">{{ event.late_fee_note }}</span>{% endif %}
+  </div>
+  {% endif %}
 
   <div style="margin-top:.75rem;">
     <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;">

@@ -35,7 +35,7 @@
       <textarea id="description" name="description">{{ event.description }}</textarea>
     </div>
 
-    <details style="margin-bottom:1rem;" {% if event.venue_capacity %}open{% endif %}>
+    <details style="margin-bottom:1rem;" {% if event.venue_capacity or event.registration_deadline or event.late_fee %}open{% endif %}>
       <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Capacity Planning</summary>
       <p class="muted text-sm" style="margin:.5rem 0;">Set venue capacity and walk-in buffer to plan for last-minute arrivals.</p>
       <div class="form-row">
@@ -49,6 +49,23 @@
         </div>
         <div class="field" style="display:flex;align-items:flex-end;min-width:200px;">
           <span class="muted text-sm" id="buffer_hint_edit" style="padding-bottom:.5rem;"></span>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:.5rem;">
+        <div class="field" style="width:240px;">
+          <label for="reg_deadline">Registration deadline</label>
+          <input type="datetime-local" id="reg_deadline" name="registration_deadline" value="{{ event.registration_deadline[:16] if event.registration_deadline else '' }}">
+        </div>
+        <div class="field" style="width:150px;">
+          <label for="late_fee">Late / walk-in fee</label>
+          <div style="display:flex;align-items:center;gap:.25rem;">
+            <span style="font-weight:600;color:var(--text-secondary);">$</span>
+            <input type="number" id="late_fee" name="late_fee" min="0" step="0.01" value="{{ event.late_fee }}" placeholder="0.00">
+          </div>
+        </div>
+        <div class="field" style="flex:1;min-width:160px;">
+          <label for="late_fee_note">Fee note</label>
+          <input type="text" id="late_fee_note" name="late_fee_note" value="{{ event.late_fee_note }}" placeholder="e.g. Cash only at the door">
         </div>
       </div>
     </details>

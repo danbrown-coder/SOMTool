@@ -75,6 +75,10 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
+.cal-event-dot.critical { background: #dc2626; }
+.cal-event-dot.high { background: #ea580c; }
+.cal-event-dot.medium { background: #ca8a04; }
+.cal-event-dot.low { background: #9ca3af; }
 .cal-event-name {
   flex: 1;
   min-width: 0;
@@ -86,6 +90,51 @@
   font-size: .7rem;
   color: var(--text-secondary);
   font-weight: 400;
+}
+
+/* Priority ranking */
+.pri-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pri-toggle .arrow { font-size: .65rem; transition: transform .2s; }
+.pri-toggle .arrow.open { transform: rotate(90deg); }
+.pri-list { list-style: none; padding: 0; margin: .4rem 0 1rem; }
+.pri-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .3rem .35rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .75rem;
+  transition: background .15s;
+}
+.pri-item:hover { background: var(--accent-light); }
+.pri-urgency {
+  display: inline-block;
+  padding: .1rem .35rem;
+  font-size: .6rem;
+  font-weight: 700;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  flex-shrink: 0;
+}
+.pri-urgency.critical { background: #fef2f2; color: #dc2626; }
+.pri-urgency.high { background: #fff7ed; color: #ea580c; }
+.pri-urgency.medium { background: #fefce8; color: #ca8a04; }
+.pri-urgency.low { background: #f3f4f6; color: #6b7280; }
+.pri-meta {
+  font-size: .65rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.pri-door {
+  font-size: .6rem;
+  flex-shrink: 0;
 }
 /* Mini stats */
 .cal-stats {
@@ -163,14 +212,32 @@
     <div class="cal-sidebar-heading">Events</div>
     <ul class="cal-event-list" id="eventList">
       {% for e in events %}
+      {% set ep = event_priorities.get(e.id, {}) %}
       <li class="cal-event-item{% if event_filter == e.id %} active{% endif %}"
           data-event-id="{{ e.id }}" onclick="filterByEvent('{{ e.id }}')">
-        <span class="cal-event-dot" style="background:var(--ev-color-{{ loop.index0 % 8 }});"></span>
+        <span class="cal-event-dot {{ ep.get('urgency', 'low') }}"></span>
         <span class="cal-event-name">{{ e.name|truncate(28) }}</span>
         <span class="cal-event-count">{{ event_counts.get(e.id, 0) }}</span>
       </li>
       {% endfor %}
     </ul>
+
+    <div class="pri-toggle cal-sidebar-heading" onclick="var l=document.getElementById('priList');var a=this.querySelector('.arrow');l.style.display=l.style.display==='none'?'':'none';a.classList.toggle('open');">
+      Priority <span class="arrow open">▶</span>
+    </div>
+    <ul class="pri-list" id="priList">
+      {% for e in events %}
+      {% set ep = event_priorities.get(e.id, {}) %}
+      <li class="pri-item" onclick="filterByEvent('{{ e.id }}')">
+        <span class="pri-urgency {{ ep.get('urgency', 'low') }}">{{ ep.get('urgency', 'low')|upper }}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.name|truncate(20) }}</span>
+        <span class="pri-meta">{{ ep.get('days_until', '?') }}d</span>
+        <span class="pri-door">{% if ep.get('door_status') == 'open' %}🟢{% elif ep.get('door_status') == 'limited' %}🟡{% elif ep.get('door_status') == 'full' %}🔴{% elif ep.get('door_status') == 'over_capacity' %}🔴{% else %}⚪{% endif %}</span>
+        {% if ep.get('spots_remaining', -1) >= 0 %}<span class="pri-meta">{{ ep.spots_remaining }}sp</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+
     <div class="cal-sidebar-heading">Summary</div>
     <div class="cal-stats">
       <div class="cal-stat">
