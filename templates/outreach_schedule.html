@@ -87,14 +87,6 @@
   color: var(--text-secondary);
   font-weight: 400;
 }
-.cal-event-link {
-  display: block;
-  margin-top: .35rem;
-  font-size: .72rem;
-  font-weight: 500;
-  padding-left: 1.5rem;
-}
-
 /* Mini stats */
 .cal-stats {
   display: flex;
@@ -179,10 +171,6 @@
       </li>
       {% endfor %}
     </ul>
-    <div id="eventLinkWrap" style="display:none;">
-      <a id="eventLink" href="#" class="cal-event-link">Open event calendar →</a>
-    </div>
-
     <div class="cal-sidebar-heading">Summary</div>
     <div class="cal-stats">
       <div class="cal-stat">
@@ -278,13 +266,6 @@
     });
   });
 
-  /* Show "Open event calendar" link when an event is selected */
-  if (currentEvent) {
-    var wrap = document.getElementById('eventLinkWrap');
-    var link = document.getElementById('eventLink');
-    wrap.style.display = 'block';
-    link.href = '/events/' + currentEvent + '/schedule';
-  }
 })();
 </script>
 {% endblock %}
