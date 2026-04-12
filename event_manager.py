@@ -486,12 +486,16 @@ def compute_priority(event: Event) -> dict:
     now = datetime.now(timezone.utc)
 
     # --- Days until event ---
-    days_until = 999
+    days_until = None
+    is_tba = True
+    is_past = False
     try:
         event_dt = datetime.fromisoformat(event.date.replace("Z", "+00:00"))
         if event_dt.tzinfo is None:
             event_dt = event_dt.replace(tzinfo=timezone.utc)
         days_until = (event_dt - now).days
+        is_tba = False
+        is_past = days_until < 0
     except (ValueError, AttributeError):
         pass
 
@@ -505,8 +509,10 @@ def compute_priority(event: Event) -> dict:
         size_tier = "small"
 
     # --- Urgency ---
-    if days_until < 0:
-        urgency = "low"
+    if is_tba:
+        urgency = "tba"
+    elif is_past:
+        urgency = "past"
     elif days_until <= 2:
         urgency = "critical"
     elif days_until <= 7:
@@ -517,8 +523,10 @@ def compute_priority(event: Event) -> dict:
         urgency = "low"
 
     # --- Priority score (0-100, higher = more urgent) ---
-    if days_until < 0:
-        time_score = 10
+    if is_tba:
+        time_score = 5
+    elif is_past:
+        time_score = 0
     elif days_until <= 2:
         time_score = 100
     elif days_until <= 7:
@@ -565,6 +573,8 @@ def compute_priority(event: Event) -> dict:
 
     return {
         "days_until": days_until,
+        "is_past": is_past,
+        "is_tba": is_tba,
         "size_tier": size_tier,
         "urgency": urgency,
         "priority_score": priority_score,

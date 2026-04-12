@@ -79,6 +79,8 @@
 .cal-event-dot.high { background: #ea580c; }
 .cal-event-dot.medium { background: #ca8a04; }
 .cal-event-dot.low { background: #9ca3af; }
+.cal-event-dot.past { background: #d1d5db; }
+.cal-event-dot.tba { background: #38bdf8; }
 .cal-event-name {
   flex: 1;
   min-width: 0;
@@ -127,6 +129,8 @@
 .pri-urgency.high { background: #fff7ed; color: #ea580c; }
 .pri-urgency.medium { background: #fefce8; color: #ca8a04; }
 .pri-urgency.low { background: #f3f4f6; color: #6b7280; }
+.pri-urgency.past { background: #f3f4f6; color: #9ca3af; }
+.pri-urgency.tba { background: #f0f9ff; color: #0284c7; }
 .pri-meta {
   font-size: .65rem;
   color: var(--text-secondary);
@@ -229,11 +233,21 @@
       {% for e in events %}
       {% set ep = event_priorities.get(e.id, {}) %}
       <li class="pri-item" onclick="filterByEvent('{{ e.id }}')">
+        {% if ep.get('is_past') %}
+        <span class="pri-urgency past">PAST</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.6;">{{ e.name|truncate(20) }}</span>
+        <span class="pri-meta" style="opacity:.5;">Closed</span>
+        {% elif ep.get('is_tba') %}
+        <span class="pri-urgency tba">TBA</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.name|truncate(20) }}</span>
+        <span class="pri-meta">TBA</span>
+        {% else %}
         <span class="pri-urgency {{ ep.get('urgency', 'low') }}">{{ ep.get('urgency', 'low')|upper }}</span>
         <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.name|truncate(20) }}</span>
         <span class="pri-meta">{{ ep.get('days_until', '?') }}d</span>
         <span class="pri-door">{% if ep.get('door_status') == 'open' %}🟢{% elif ep.get('door_status') == 'limited' %}🟡{% elif ep.get('door_status') == 'full' %}🔴{% elif ep.get('door_status') == 'over_capacity' %}🔴{% else %}⚪{% endif %}</span>
         {% if ep.get('spots_remaining', -1) >= 0 %}<span class="pri-meta">{{ ep.spots_remaining }}sp</span>{% endif %}
+        {% endif %}
       </li>
       {% endfor %}
     </ul>

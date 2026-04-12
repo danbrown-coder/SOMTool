@@ -1538,11 +1538,14 @@ def outreach_schedule_page():
     for i in all_items:
         event_counts[i["event_id"]] = event_counts.get(i["event_id"], 0) + 1
     event_priorities = {e.id: em.compute_priority(e) for e in events}
-    events_sorted = sorted(
-        events,
-        key=lambda e: event_priorities[e.id]["priority_score"],
-        reverse=True,
-    )
+    def _event_sort_key(e):
+        ep = event_priorities[e.id]
+        if ep["is_past"]:
+            return (2, e.date)
+        if ep["is_tba"]:
+            return (3, "")
+        return (1, e.date)
+    events_sorted = sorted(events, key=_event_sort_key)
     return render_template(
         "outreach_schedule.html",
         queue=items, event_map=event_map, events=events_sorted,
