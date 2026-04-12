@@ -309,8 +309,6 @@ def index():
     )
 
 
-@app.post("/events")
-@login_required
 def _parse_goal_budget_form() -> dict:
     """Extract goal and budget fields from the current request form."""
     def _f(key, default=0.0):
@@ -355,6 +353,8 @@ def _parse_goal_budget_form() -> dict:
     }
 
 
+@app.post("/events")
+@login_required
 def create_event_route():
     name = request.form.get("name", "")
     event_date = request.form.get("date", "")
