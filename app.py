@@ -1513,13 +1513,17 @@ def outreach_schedule_page():
     items = outreach_queue.get_queue_filtered(
         status=status_filter, action_type=type_filter, event_id=event_filter,
     )
+    all_items = outreach_queue.get_queue_filtered()
     events = em.load_events()
     event_map = {e.id: e.name for e in events}
+    event_counts = {}
+    for i in all_items:
+        event_counts[i["event_id"]] = event_counts.get(i["event_id"], 0) + 1
     return render_template(
         "outreach_schedule.html",
         queue=items, event_map=event_map, events=events,
         status_filter=status_filter, type_filter=type_filter,
-        event_filter=event_filter,
+        event_filter=event_filter, event_counts=event_counts,
     )
 
 

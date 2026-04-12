@@ -167,7 +167,7 @@
           data-event-id="{{ e.id }}" onclick="filterByEvent('{{ e.id }}')">
         <span class="cal-event-dot" style="background:var(--ev-color-{{ loop.index0 % 8 }});"></span>
         <span class="cal-event-name">{{ e.name|truncate(28) }}</span>
-        <span class="cal-event-count">{{ queue|selectattr('event_id','eq',e.id)|list|length }}</span>
+        <span class="cal-event-count">{{ event_counts.get(e.id, 0) }}</span>
       </li>
       {% endfor %}
     </ul>
