@@ -5,7 +5,10 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from models import Contact, ContactRole, ContactStatus, Event, new_id
+from models import (
+    Contact, ContactRole, ContactStatus, Event, RegistrationType,
+    new_id, utc_now_iso,
+)
 
 if TYPE_CHECKING:
     from models import User
@@ -102,6 +105,8 @@ def create_event(
     sender_name: str = "",
     sender_title: str = "",
     sender_email: str = "",
+    venue_capacity: int = 0,
+    walkin_buffer_pct: int = 15,
 ) -> Event:
     events = load_events()
     event = Event(
@@ -116,6 +121,8 @@ def create_event(
         sender_name=sender_name.strip(),
         sender_title=sender_title.strip(),
         sender_email=sender_email.strip(),
+        venue_capacity=venue_capacity,
+        walkin_buffer_pct=walkin_buffer_pct,
     )
     events.append(event)
     save_events(events)
@@ -131,6 +138,8 @@ def update_event(
     sender_name: str = "",
     sender_title: str = "",
     sender_email: str = "",
+    venue_capacity: int = 0,
+    walkin_buffer_pct: int = 15,
 ) -> bool:
     events = load_events()
     for i, e in enumerate(events):
@@ -142,6 +151,8 @@ def update_event(
             e.sender_name = sender_name.strip()
             e.sender_title = sender_title.strip()
             e.sender_email = sender_email.strip()
+            e.venue_capacity = venue_capacity
+            e.walkin_buffer_pct = walkin_buffer_pct
             events[i] = e
             save_events(events)
             return True
@@ -163,6 +174,9 @@ def add_contact(
     email: str,
     contact_role: ContactRole = ContactRole.ATTENDEE,
     phone: str = "",
+    registration_type: RegistrationType = RegistrationType.PRE_REGISTERED,
+    status: ContactStatus = ContactStatus.NOT_CONTACTED,
+    attended: bool = False,
 ) -> Contact | None:
     events = load_events()
     for i, e in enumerate(events):
@@ -171,10 +185,12 @@ def add_contact(
                 id=new_id(),
                 name=name.strip(),
                 email=email.strip(),
-                status=ContactStatus.NOT_CONTACTED,
-                attended=False,
+                status=status,
+                attended=attended,
                 contact_role=contact_role,
                 phone=phone.strip(),
+                registration_type=registration_type,
+                registered_at=utc_now_iso(),
             )
             e.contacts.append(contact)
             events[i] = e
@@ -345,8 +361,10 @@ def add_contacts_bulk(
     event_id: str,
     rows: list[tuple[str, str]],
     contact_role: ContactRole = ContactRole.ATTENDEE,
+    registration_type: RegistrationType = RegistrationType.PRE_REGISTERED,
 ) -> int:
     """Add contacts (name, email) skipping duplicates by email. Returns count added."""
+    now = utc_now_iso()
     events = load_events()
     added = 0
     for i, e in enumerate(events):
@@ -365,6 +383,8 @@ def add_contacts_bulk(
                     status=ContactStatus.NOT_CONTACTED,
                     attended=False,
                     contact_role=contact_role,
+                    registration_type=registration_type,
+                    registered_at=now,
                 )
             )
             existing_emails.add(em)
@@ -377,10 +397,9 @@ def add_contacts_bulk(
 
 
 def compute_metrics(event: Event) -> dict:
-    """Counts and rates for dashboard."""
+    """Counts and rates for dashboard, including capacity and walk-in stats."""
     contacts = event.contacts
     total = len(contacts)
-    # RSVPs: responded or confirmed (they engaged with RSVP flow)
     rsvp_count = sum(
         1
         for c in contacts
@@ -391,6 +410,28 @@ def compute_metrics(event: Event) -> dict:
     attended = sum(1 for c in contacts if c.attended)
     rsvp_rate = (rsvp_count / total * 100) if total else 0.0
     attendance_rate = (attended / total * 100) if total else 0.0
+
+    pre_registered_count = sum(
+        1 for c in contacts
+        if c.registration_type == RegistrationType.PRE_REGISTERED
+    )
+    day_of_count = sum(
+        1 for c in contacts
+        if c.registration_type == RegistrationType.DAY_OF
+    )
+    walkin_count = sum(
+        1 for c in contacts
+        if c.registration_type == RegistrationType.WALK_IN
+    )
+
+    cap = event.venue_capacity
+    buf_pct = event.walkin_buffer_pct
+    buffer_slots = int(cap * buf_pct / 100) if cap else 0
+    planned_total = cap + buffer_slots if cap else 0
+    buffer_used = walkin_count + day_of_count
+    buffer_remaining = max(buffer_slots - buffer_used, 0) if cap else 0
+    capacity_pct = round(confirmed / cap * 100, 1) if cap else 0.0
+
     return {
         "total_invited": total,
         "rsvp_count": rsvp_count,
@@ -399,4 +440,14 @@ def compute_metrics(event: Event) -> dict:
         "attended": attended,
         "rsvp_rate": round(rsvp_rate, 1),
         "attendance_rate": round(attendance_rate, 1),
+        "pre_registered_count": pre_registered_count,
+        "day_of_count": day_of_count,
+        "walkin_count": walkin_count,
+        "venue_capacity": cap,
+        "walkin_buffer_pct": buf_pct,
+        "buffer_slots": buffer_slots,
+        "planned_total": planned_total,
+        "buffer_used": buffer_used,
+        "buffer_remaining": buffer_remaining,
+        "capacity_pct": capacity_pct,
     }

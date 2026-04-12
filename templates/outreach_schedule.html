@@ -77,37 +77,54 @@
 .q-row:last-child { border-bottom: none; }
 .q-info { flex: 1; min-width: 0; }
 .q-actions { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.view-toggle { display:flex; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; }
+.view-toggle button { padding:.35rem .8rem; font-size:.78rem; font-weight:600; border:none; background:var(--card); color:var(--text-secondary); cursor:pointer; }
+.view-toggle button.active { background:var(--accent); color:#fff; }
+.event-group-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:.5rem .8rem; background:var(--input-bg); border-radius:var(--radius-sm);
+  cursor:pointer; margin-top:.75rem; font-weight:600; font-size:.88rem;
+}
+.event-group-header:hover { background:var(--border); }
+.event-group-body { display:block; }
+.event-group-body.collapsed { display:none; }
 {% endblock %}
 
 {% block content %}
-<!-- Filters -->
+<!-- Filters + View Toggle -->
 <div class="card" style="padding:.85rem 1.2rem;">
-  <form method="get" action="{{ url_for('outreach_schedule_page') }}" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
-    <select name="status" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
-      <option value="">All statuses</option>
-      <option value="planned" {% if status_filter == 'planned' %}selected{% endif %}>Planned</option>
-      <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
-      <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent</option>
-      <option value="skipped" {% if status_filter == 'skipped' %}selected{% endif %}>Skipped</option>
-      <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
-    </select>
-    <select name="type" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
-      <option value="">All types</option>
-      <option value="email_initial" {% if type_filter == 'email_initial' %}selected{% endif %}>Initial Email</option>
-      <option value="email_followup" {% if type_filter == 'email_followup' %}selected{% endif %}>Follow-up Email</option>
-      <option value="call_invite" {% if type_filter == 'call_invite' %}selected{% endif %}>Invite Call</option>
-      <option value="call_followup" {% if type_filter == 'call_followup' %}selected{% endif %}>Follow-up Call</option>
-    </select>
-    <select name="event" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;max-width:220px;" onchange="this.form.submit()">
-      <option value="">All events</option>
-      {% for e in events %}
-      <option value="{{ e.id }}" {% if event_filter == e.id %}selected{% endif %}>{{ e.name|truncate(35) }}</option>
-      {% endfor %}
-    </select>
-    {% if status_filter or type_filter or event_filter %}
-    <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Clear</a>
-    {% endif %}
-  </form>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+    <form method="get" action="{{ url_for('outreach_schedule_page') }}" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+      <select name="status" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        <option value="planned" {% if status_filter == 'planned' %}selected{% endif %}>Planned</option>
+        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+        <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent</option>
+        <option value="skipped" {% if status_filter == 'skipped' %}selected{% endif %}>Skipped</option>
+        <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+      </select>
+      <select name="type" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+        <option value="">All types</option>
+        <option value="email_initial" {% if type_filter == 'email_initial' %}selected{% endif %}>Initial Email</option>
+        <option value="email_followup" {% if type_filter == 'email_followup' %}selected{% endif %}>Follow-up Email</option>
+        <option value="call_invite" {% if type_filter == 'call_invite' %}selected{% endif %}>Invite Call</option>
+        <option value="call_followup" {% if type_filter == 'call_followup' %}selected{% endif %}>Follow-up Call</option>
+      </select>
+      <select name="event" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;max-width:220px;" onchange="this.form.submit()">
+        <option value="">All events</option>
+        {% for e in events %}
+        <option value="{{ e.id }}" {% if event_filter == e.id %}selected{% endif %}>{{ e.name|truncate(35) }}</option>
+        {% endfor %}
+      </select>
+      {% if status_filter or type_filter or event_filter %}
+      <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Clear</a>
+      {% endif %}
+    </form>
+    <div class="view-toggle">
+      <button id="btnCalView" class="active" onclick="toggleView('calendar')">Calendar</button>
+      <button id="btnListView" onclick="toggleView('list')">List</button>
+    </div>
+  </div>
 </div>
 
 <!-- Metrics bar -->
@@ -133,76 +150,90 @@
   </div>
 </div>
 
-<!-- Queue timeline -->
+<!-- Calendar View -->
+<div id="calendarView">
+  {% set calendar_event_id = event_filter %}
+  {% set calendar_return_to = "" %}
+  {% include "partials/outreach_calendar.html" %}
+</div>
+
+<!-- List View (hidden by default) -->
+<div id="listView" style="display:none;">
 <div class="card">
   {% if queue %}
-  {% set ns = namespace(current_date='') %}
-  {% for item in queue %}
-    {% set item_date = item.scheduled_at[:10] if item.scheduled_at else 'Unscheduled' %}
-    {% if item_date != ns.current_date %}
-      {% set ns.current_date = item_date %}
-      <div class="date-header">{{ item_date }}</div>
-    {% endif %}
-    <div class="q-row">
-      <div style="width:54px;text-align:center;flex-shrink:0;padding-top:.15rem;">
-        <div style="font-size:.78rem;font-weight:600;color:var(--text-secondary);">
-          {{ item.scheduled_at[11:16] if item.scheduled_at|length > 11 else '--:--' }}
-        </div>
-        <div style="margin-top:.25rem;">
-          {% if 'email' in item.action_type %}
-            <span class="action-badge email">Email</span>
-          {% else %}
-            <span class="action-badge call">Call</span>
-          {% endif %}
-        </div>
-      </div>
-      <div class="q-info">
-        <div style="font-weight:600;font-size:.92rem;">{{ item.contact_name }}</div>
-        <div class="muted text-sm">
-          {{ event_map.get(item.event_id, 'Unknown event') }}
-          · {{ item.action_type|replace('_', ' ')|title }}
-        </div>
-        {% if item.ai_reason %}
-        <div class="muted" style="font-size:.78rem;margin-top:.2rem;font-style:italic;">{{ item.ai_reason }}</div>
-        {% endif %}
-        <div style="margin-top:.3rem;">
-          <span class="status-pill {{ item.status }}">{{ item.status|title }}</span>
-        </div>
-        {% if item.preview %}
-        <button class="btn btn-ghost btn-sm" style="margin-top:.3rem;font-size:.78rem;" onclick="this.nextElementSibling.classList.toggle('open');this.textContent = this.nextElementSibling.classList.contains('open') ? 'Hide preview' : 'Show preview';">Show preview</button>
-        <div class="preview-box">{{ item.preview }}</div>
-        {% endif %}
-      </div>
-      <div class="q-actions">
-        {% if item.status == 'planned' %}
-        <form method="post" action="{{ url_for('approve_queue_action', action_id=item.id) }}" style="margin:0;">
-          <button type="submit" class="btn btn-primary btn-sm">Approve</button>
-        </form>
-        <form method="post" action="{{ url_for('skip_queue_action', action_id=item.id) }}" style="margin:0;">
-          <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Skip</button>
-        </form>
-        {% endif %}
-        {% if item.status in ('planned', 'approved') %}
-        <div style="position:relative;">
-          <button class="btn btn-ghost btn-sm" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='block'?'none':'block';" type="button">Reschedule</button>
-          <div style="display:none;position:absolute;right:0;top:100%;z-index:10;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);padding:.75rem;min-width:220px;">
-            <form method="post" action="{{ url_for('reschedule_queue_action', action_id=item.id) }}">
-              <label style="font-size:.7rem;">New date &amp; time</label>
-              <input type="datetime-local" name="scheduled_at" style="height:34px;font-size:.82rem;margin-bottom:.5rem;">
-              <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Save</button>
-            </form>
+  {% for eid, items in queue|groupby('event_id') %}
+    {% set ev_name = event_map.get(eid, 'Unknown event') %}
+    <div class="event-group-header" onclick="var b=this.nextElementSibling;b.classList.toggle('collapsed');">
+      <span>{{ ev_name }} <span class="muted" style="font-weight:400;font-size:.78rem;">({{ items|length }} actions)</span></span>
+      <a href="{{ url_for('event_schedule_page', event_id=eid) }}" class="btn btn-ghost btn-sm" style="font-size:.72rem;" onclick="event.stopPropagation();">View event schedule</a>
+    </div>
+    <div class="event-group-body">
+    {% set ns = namespace(current_date='') %}
+    {% for item in items|sort(attribute='scheduled_at') %}
+      {% set item_date = item.scheduled_at[:10] if item.scheduled_at else 'Unscheduled' %}
+      {% if item_date != ns.current_date %}
+        {% set ns.current_date = item_date %}
+        <div class="date-header">{{ item_date }}</div>
+      {% endif %}
+      <div class="q-row">
+        <div style="width:54px;text-align:center;flex-shrink:0;padding-top:.15rem;">
+          <div style="font-size:.78rem;font-weight:600;color:var(--text-secondary);">
+            {{ item.scheduled_at[11:16] if item.scheduled_at|length > 11 else '--:--' }}
+          </div>
+          <div style="margin-top:.25rem;">
+            {% if 'email' in item.action_type %}
+              <span class="action-badge email">Email</span>
+            {% else %}
+              <span class="action-badge call">Call</span>
+            {% endif %}
           </div>
         </div>
-        {% endif %}
-        {% if 'email' in item.action_type and item.status in ('planned', 'approved') %}
-        <form method="post" action="{{ url_for('regenerate_queue_action', action_id=item.id) }}" style="margin:0;">
-          <button type="submit" class="btn btn-ghost btn-sm" title="Regenerate email with AI">Regen</button>
-        </form>
-        {% endif %}
-        <form method="post" action="{{ url_for('delete_queue_action', action_id=item.id) }}" style="margin:0;" onsubmit="return confirm('Delete this action?');">
-          <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);" title="Delete">Del</button>
-        </form>
+        <div class="q-info">
+          <div style="font-weight:600;font-size:.92rem;">{{ item.contact_name }}</div>
+          <div class="muted text-sm">{{ item.action_type|replace('_', ' ')|title }}</div>
+          {% if item.ai_reason %}
+          <div class="muted" style="font-size:.78rem;margin-top:.2rem;font-style:italic;">{{ item.ai_reason }}</div>
+          {% endif %}
+          <div style="margin-top:.3rem;">
+            <span class="status-pill {{ item.status }}">{{ item.status|title }}</span>
+          </div>
+          {% if item.preview %}
+          <button class="btn btn-ghost btn-sm" style="margin-top:.3rem;font-size:.78rem;" onclick="this.nextElementSibling.classList.toggle('open');this.textContent = this.nextElementSibling.classList.contains('open') ? 'Hide preview' : 'Show preview';">Show preview</button>
+          <div class="preview-box">{{ item.preview }}</div>
+          {% endif %}
+        </div>
+        <div class="q-actions">
+          {% if item.status == 'planned' %}
+          <form method="post" action="{{ url_for('approve_queue_action', action_id=item.id) }}" style="margin:0;">
+            <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+          </form>
+          <form method="post" action="{{ url_for('skip_queue_action', action_id=item.id) }}" style="margin:0;">
+            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Skip</button>
+          </form>
+          {% endif %}
+          {% if item.status in ('planned', 'approved') %}
+          <div style="position:relative;">
+            <button class="btn btn-ghost btn-sm" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='block'?'none':'block';" type="button">Reschedule</button>
+            <div style="display:none;position:absolute;right:0;top:100%;z-index:10;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);padding:.75rem;min-width:220px;">
+              <form method="post" action="{{ url_for('reschedule_queue_action', action_id=item.id) }}">
+                <label style="font-size:.7rem;">New date &amp; time</label>
+                <input type="datetime-local" name="scheduled_at" style="height:34px;font-size:.82rem;margin-bottom:.5rem;">
+                <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Save</button>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+          {% if 'email' in item.action_type and item.status in ('planned', 'approved') %}
+          <form method="post" action="{{ url_for('regenerate_queue_action', action_id=item.id) }}" style="margin:0;">
+            <button type="submit" class="btn btn-ghost btn-sm" title="Regenerate email with AI">Regen</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('delete_queue_action', action_id=item.id) }}" style="margin:0;" onsubmit="return confirm('Delete this action?');">
+            <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);" title="Delete">Del</button>
+          </form>
+        </div>
       </div>
+    {% endfor %}
     </div>
   {% endfor %}
   {% else %}
@@ -216,4 +247,33 @@
   </p>
   {% endif %}
 </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleView(view) {
+  var cal = document.getElementById('calendarView');
+  var list = document.getElementById('listView');
+  var btnCal = document.getElementById('btnCalView');
+  var btnList = document.getElementById('btnListView');
+  if (view === 'calendar') {
+    cal.style.display = '';
+    list.style.display = 'none';
+    btnCal.classList.add('active');
+    btnList.classList.remove('active');
+    localStorage.setItem('scheduleView', 'calendar');
+  } else {
+    cal.style.display = 'none';
+    list.style.display = '';
+    btnCal.classList.remove('active');
+    btnList.classList.add('active');
+    localStorage.setItem('scheduleView', 'list');
+  }
+}
+(function(){
+  var saved = localStorage.getItem('scheduleView');
+  if (saved === 'list') toggleView('list');
+})();
+</script>
 {% endblock %}

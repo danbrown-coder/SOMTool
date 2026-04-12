@@ -23,7 +23,10 @@ from flask import (
     url_for,
 )
 
-from models import ContactRole, ContactStatus, EmailType, new_id, normalize_phone
+from models import (
+    ContactRole, ContactStatus, EmailType, RegistrationType,
+    new_id, normalize_phone,
+)
 from email_generator import (
     discover_prospects_from_text,
     generate_event_update_email,
@@ -315,12 +318,22 @@ def create_event_route():
     if not name or not event_date:
         flash("Name and date are required.", "info")
         return redirect(url_for("index"))
+    try:
+        venue_cap = int(request.form.get("venue_capacity", 0) or 0)
+    except (ValueError, TypeError):
+        venue_cap = 0
+    try:
+        walkin_buf = int(request.form.get("walkin_buffer_pct", 15) or 15)
+    except (ValueError, TypeError):
+        walkin_buf = 15
     em.create_event(
         name, event_date, description, audience,
         owner_id=g.current_user.id,
         sender_name=request.form.get("sender_name", ""),
         sender_title=request.form.get("sender_title", ""),
         sender_email=request.form.get("sender_email", ""),
+        venue_capacity=venue_cap,
+        walkin_buffer_pct=walkin_buf,
     )
     flash("Event created.", "info")
     return redirect(url_for("index"))
@@ -355,11 +368,21 @@ def edit_event_route(event_id: str):
     if not name or not event_date:
         flash("Name and date are required.", "info")
         return redirect(url_for("edit_event_page", event_id=event_id))
+    try:
+        venue_cap = int(request.form.get("venue_capacity", 0) or 0)
+    except (ValueError, TypeError):
+        venue_cap = 0
+    try:
+        walkin_buf = int(request.form.get("walkin_buffer_pct", 15) or 15)
+    except (ValueError, TypeError):
+        walkin_buf = 15
     em.update_event(
         event_id, name, event_date, description, audience,
         sender_name=request.form.get("sender_name", ""),
         sender_title=request.form.get("sender_title", ""),
         sender_email=request.form.get("sender_email", ""),
+        venue_capacity=venue_cap,
+        walkin_buffer_pct=walkin_buf,
     )
     flash("Event updated.", "info")
     return redirect(url_for("index"))
@@ -466,6 +489,15 @@ def event_detail(event_id: str):
         group = [c for c in event.contacts if c.contact_role == cr]
         if group:
             grouped_contacts.append((cr, group))
+
+    eq = outreach_queue.get_queue_filtered(event_id=event_id)
+    sched_metrics = {
+        "planned": sum(1 for i in eq if i["status"] == "planned"),
+        "approved": sum(1 for i in eq if i["status"] == "approved"),
+        "sent": sum(1 for i in eq if i["status"] == "sent"),
+        "total": len(eq),
+    }
+
     return render_template(
         "event_detail.html",
         event=event,
@@ -476,6 +508,7 @@ def event_detail(event_id: str):
         event_role=role,
         can_edit=can_edit,
         can_owner=can_owner,
+        sched_metrics=sched_metrics,
     )
 
 
@@ -504,7 +537,12 @@ def add_contact_route(event_id: str):
         role_val = ContactRole(request.form.get("contact_role", "attendee"))
     except ValueError:
         role_val = ContactRole.ATTENDEE
-    em.add_contact(event_id, name, email, contact_role=role_val, phone=phone)
+    try:
+        reg_type = RegistrationType(request.form.get("registration_type", "pre_registered"))
+    except ValueError:
+        reg_type = RegistrationType.PRE_REGISTERED
+    em.add_contact(event_id, name, email, contact_role=role_val, phone=phone,
+                   registration_type=reg_type)
     flash("Contact added.", "info")
     return redirect(url_for("event_detail", event_id=event_id))
 
@@ -702,6 +740,47 @@ def edit_contact_route(event_id: str, contact_id: str):
     else:
         flash("Could not update contact.", "info")
     return redirect(url_for("event_detail", event_id=event_id))
+
+
+# ── Walk-in Check-in ────────────────────────────────────────
+
+
+@app.route("/events/<event_id>/walkin", methods=["GET", "POST"])
+@login_required
+def walkin_checkin(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        flash("Event not found.", "info")
+        return redirect(url_for("index"))
+    role = em.get_event_share_role(g.current_user, event)
+    if not _role_ok(role, "editor"):
+        flash("You do not have permission.", "info")
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        if not name or not email:
+            flash("Name and email are required.", "info")
+            return redirect(url_for("walkin_checkin", event_id=event_id))
+        phone = normalize_phone(request.form.get("phone", ""))
+        em.add_contact(
+            event_id, name, email,
+            contact_role=ContactRole.ATTENDEE,
+            phone=phone,
+            registration_type=RegistrationType.WALK_IN,
+            status=ContactStatus.CONFIRMED,
+            attended=True,
+        )
+        flash(f"{name} checked in!", "info")
+        return redirect(url_for("walkin_checkin", event_id=event_id))
+
+    metrics = em.compute_metrics(event)
+    return render_template(
+        "walkin_checkin.html",
+        event=event,
+        metrics=metrics,
+    )
 
 
 # ── Recommend / Discover / Referrals ────────────────────────
@@ -1437,12 +1516,21 @@ def outreach_schedule_page():
     )
 
 
+def _schedule_redirect():
+    """Return redirect to per-event or global schedule based on return_to param."""
+    ret = request.form.get("return_to", "") or request.args.get("return_to", "")
+    if ret.startswith("event:"):
+        eid = ret[6:]
+        return redirect(url_for("event_schedule_page", event_id=eid))
+    return redirect(url_for("outreach_schedule_page"))
+
+
 @app.post("/outreach/queue/<action_id>/approve")
 @login_required
 def approve_queue_action(action_id: str):
     outreach_queue.update_status(action_id, "approved")
     flash("Action approved.", "info")
-    return redirect(url_for("outreach_schedule_page"))
+    return _schedule_redirect()
 
 
 @app.post("/outreach/queue/<action_id>/skip")
@@ -1450,7 +1538,7 @@ def approve_queue_action(action_id: str):
 def skip_queue_action(action_id: str):
     outreach_queue.update_status(action_id, "skipped")
     flash("Action skipped.", "info")
-    return redirect(url_for("outreach_schedule_page"))
+    return _schedule_redirect()
 
 
 @app.post("/outreach/queue/<action_id>/delete")
@@ -1458,7 +1546,7 @@ def skip_queue_action(action_id: str):
 def delete_queue_action(action_id: str):
     outreach_queue.delete_action(action_id)
     flash("Action deleted.", "info")
-    return redirect(url_for("outreach_schedule_page"))
+    return _schedule_redirect()
 
 
 @app.post("/outreach/queue/<action_id>/reschedule")
@@ -1467,14 +1555,14 @@ def reschedule_queue_action(action_id: str):
     new_time = request.form.get("scheduled_at", "")
     if not new_time:
         flash("No time provided.", "info")
-        return redirect(url_for("outreach_schedule_page"))
+        return _schedule_redirect()
     if "T" not in new_time:
         new_time += "T10:00:00Z"
     elif not new_time.endswith("Z"):
         new_time += "Z"
     outreach_queue.reschedule(action_id, new_time)
     flash("Rescheduled and approved.", "info")
-    return redirect(url_for("outreach_schedule_page"))
+    return _schedule_redirect()
 
 
 @app.post("/outreach/queue/<action_id>/regenerate")
@@ -1511,7 +1599,7 @@ def regenerate_queue_action(action_id: str):
     preview = f"Subject: {gen.subject}\n\n{gen.body}"
     outreach_queue.update_preview(action_id, preview)
     flash("Email regenerated with fresh AI content.", "info")
-    return redirect(url_for("outreach_schedule_page"))
+    return _schedule_redirect()
 
 
 @app.post("/outreach/plan-all")
@@ -1567,6 +1655,161 @@ def approve_all_outreach():
         outreach_queue.save_queue(items)
     flash(f"Approved {count} planned action(s).", "info")
     return redirect(url_for("outreach_schedule_page"))
+
+
+# ── Per-Event Outreach Schedule ──────────────────────────────
+
+
+@app.route("/events/<event_id>/schedule")
+@login_required
+def event_schedule_page(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        flash("Event not found.", "info")
+        return redirect(url_for("index"))
+    role = em.get_event_share_role(g.current_user, event)
+    if not role:
+        flash("You do not have access to this event.", "info")
+        return redirect(url_for("index"))
+    can_edit = _role_ok(role, "editor")
+    status_filter = request.args.get("status", "")
+    type_filter = request.args.get("type", "")
+    items = outreach_queue.get_queue_filtered(
+        status=status_filter, action_type=type_filter, event_id=event_id,
+    )
+    return render_template(
+        "event_schedule.html",
+        event=event,
+        queue=items,
+        status_filter=status_filter,
+        type_filter=type_filter,
+        can_edit=can_edit,
+        event_role=role,
+    )
+
+
+@app.post("/events/<event_id>/schedule/plan")
+@login_required
+def plan_event_outreach(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        flash("Event not found.", "info")
+        return redirect(url_for("index"))
+    role = em.get_event_share_role(g.current_user, event)
+    if not _role_ok(role, "editor"):
+        flash("Not allowed.", "info")
+        return redirect(url_for("index"))
+    cfg = aic.load_config()
+    targets = [
+        c for c in event.contacts
+        if c.status == ContactStatus.NOT_CONTACTED and _is_valid_email(c.email)
+        and not outreach_queue.already_queued(event.id, c.id, "email_initial")
+    ]
+    added = 0
+    if targets:
+        added = outreach_queue.plan_outreach_for_event(event, targets, cfg)
+        for c in targets:
+            _generate_preview_for_queued(event, c)
+    flash(f"Planned {added} outreach action(s) for {event.name}.", "info")
+    return redirect(url_for("event_schedule_page", event_id=event_id))
+
+
+@app.post("/events/<event_id>/schedule/approve-all")
+@login_required
+def approve_event_outreach(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        flash("Event not found.", "info")
+        return redirect(url_for("index"))
+    role = em.get_event_share_role(g.current_user, event)
+    if not _role_ok(role, "editor"):
+        flash("Not allowed.", "info")
+        return redirect(url_for("index"))
+    items = outreach_queue.load_queue()
+    count = 0
+    for item in items:
+        if item["event_id"] == event_id and item["status"] == "planned":
+            item["status"] = "approved"
+            count += 1
+    if count:
+        outreach_queue.save_queue(items)
+    flash(f"Approved {count} planned action(s) for {event.name}.", "info")
+    return redirect(url_for("event_schedule_page", event_id=event_id))
+
+
+# ── Calendar JSON API ────────────────────────────────────────
+
+
+_CAL_COLORS = {
+    ("email_initial", "planned"): {"bg": "#3b82f6", "border": "#2563eb", "text": "#fff"},
+    ("email_initial", "approved"): {"bg": "#60a5fa", "border": "#3b82f6", "text": "#fff"},
+    ("email_initial", "sent"): {"bg": "#93c5fd", "border": "#60a5fa", "text": "#1e3a5f"},
+    ("email_followup", "planned"): {"bg": "#6366f1", "border": "#4f46e5", "text": "#fff"},
+    ("email_followup", "approved"): {"bg": "#818cf8", "border": "#6366f1", "text": "#fff"},
+    ("email_followup", "sent"): {"bg": "#a5b4fc", "border": "#818cf8", "text": "#312e81"},
+    ("call_invite", "planned"): {"bg": "#f59e0b", "border": "#d97706", "text": "#fff"},
+    ("call_invite", "approved"): {"bg": "#fbbf24", "border": "#f59e0b", "text": "#78350f"},
+    ("call_invite", "sent"): {"bg": "#fcd34d", "border": "#fbbf24", "text": "#78350f"},
+    ("call_followup", "planned"): {"bg": "#f97316", "border": "#ea580c", "text": "#fff"},
+    ("call_followup", "approved"): {"bg": "#fb923c", "border": "#f97316", "text": "#fff"},
+    ("call_followup", "sent"): {"bg": "#fdba74", "border": "#fb923c", "text": "#7c2d12"},
+}
+_CAL_SKIP = {"bg": "#ef4444", "border": "#dc2626", "text": "#fff"}
+_CAL_FAIL = {"bg": "#9ca3af", "border": "#6b7280", "text": "#fff"}
+
+_ACTION_LABELS = {
+    "email_initial": "Email",
+    "email_followup": "Follow-up",
+    "call_invite": "Call",
+    "call_followup": "Call F/U",
+}
+
+
+@app.route("/api/outreach-calendar")
+@login_required
+def api_outreach_calendar():
+    event_id = request.args.get("event_id", "")
+    status_filter = request.args.get("status", "")
+    type_filter = request.args.get("type", "")
+    items = outreach_queue.get_queue_filtered(
+        status=status_filter, action_type=type_filter, event_id=event_id,
+    )
+    events = em.load_events()
+    event_map = {e.id: e.name for e in events}
+
+    cal_events = []
+    for item in items:
+        atype = item.get("action_type", "")
+        status = item.get("status", "")
+        colors = _CAL_COLORS.get((atype, status))
+        if not colors:
+            colors = _CAL_SKIP if status == "skipped" else _CAL_FAIL if status == "failed" else {"bg": "#6b7280", "border": "#4b5563", "text": "#fff"}
+
+        label = _ACTION_LABELS.get(atype, atype.replace("_", " ").title())
+        ev_name = event_map.get(item.get("event_id", ""), "")
+        title = f"{label}: {item.get('contact_name', '?')}"
+        if not event_id and ev_name:
+            title = f"{ev_name}: {title}"
+
+        cal_events.append({
+            "id": item["id"],
+            "title": title,
+            "start": item.get("scheduled_at", ""),
+            "backgroundColor": colors["bg"],
+            "borderColor": colors["border"],
+            "textColor": colors["text"],
+            "extendedProps": {
+                "action_type": atype,
+                "status": status,
+                "contact_name": item.get("contact_name", ""),
+                "contact_email": item.get("contact_email", ""),
+                "event_name": ev_name,
+                "event_id": item.get("event_id", ""),
+                "ai_reason": item.get("ai_reason", ""),
+                "preview": item.get("preview", ""),
+            },
+        })
+    return jsonify(cal_events)
 
 
 # ── AI Settings routes ──────────────────────────────────────

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Schedule — {{ event.name }}{% endblock %}
+
+{% block sidebar_extra %}
+  <div class="sidebar-section">Current event</div>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#contacts" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">👥</span> Contacts</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#outreach" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">✉️</span> Outreach</a></li>
+  <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="active" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📋</span> Schedule</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📊</span> Metrics</a></li>
+  <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📜</span> Log</a></li>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a> / <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a> / Schedule</div>
+    <h2 style="margin-top:.15rem;">Outreach Schedule</h2>
+    <p class="muted text-sm" style="margin-top:.2rem;">{{ event.name }} · {{ event.date }}</p>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+    {% if can_edit %}
+    <form method="post" action="{{ url_for('plan_event_outreach', event_id=event.id) }}" style="margin:0;">
+      <button type="submit" class="btn btn-primary btn-sm">Plan outreach</button>
+    </form>
+    <form method="post" action="{{ url_for('approve_event_outreach', event_id=event.id) }}" style="margin:0;">
+      <button type="submit" class="btn btn-secondary btn-sm">Approve all planned</button>
+    </form>
+    {% endif %}
+    <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-ghost btn-sm">Back to event</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card" style="padding:.85rem 1.2rem;">
+  <form method="get" action="{{ url_for('event_schedule_page', event_id=event.id) }}" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+    <select name="status" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      <option value="planned" {% if status_filter == 'planned' %}selected{% endif %}>Planned</option>
+      <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+      <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent</option>
+      <option value="skipped" {% if status_filter == 'skipped' %}selected{% endif %}>Skipped</option>
+      <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+    </select>
+    <select name="type" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
+      <option value="">All types</option>
+      <option value="email_initial" {% if type_filter == 'email_initial' %}selected{% endif %}>Initial Email</option>
+      <option value="email_followup" {% if type_filter == 'email_followup' %}selected{% endif %}>Follow-up Email</option>
+      <option value="call_invite" {% if type_filter == 'call_invite' %}selected{% endif %}>Invite Call</option>
+      <option value="call_followup" {% if type_filter == 'call_followup' %}selected{% endif %}>Follow-up Call</option>
+    </select>
+    {% if status_filter or type_filter %}
+    <a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Metrics bar -->
+{% set planned_count = queue|selectattr('status', 'eq', 'planned')|list|length %}
+{% set approved_count = queue|selectattr('status', 'eq', 'approved')|list|length %}
+{% set sent_count = queue|selectattr('status', 'eq', 'sent')|list|length %}
+<div class="metrics-grid" style="margin-bottom:1rem;">
+  <div class="metric-card mc-1">
+    <div class="metric-value">{{ queue|length }}</div>
+    <div class="metric-label">Total actions</div>
+  </div>
+  <div class="metric-card mc-2">
+    <div class="metric-value">{{ planned_count }}</div>
+    <div class="metric-label">Awaiting review</div>
+  </div>
+  <div class="metric-card mc-3">
+    <div class="metric-value">{{ approved_count }}</div>
+    <div class="metric-label">Approved</div>
+  </div>
+  <div class="metric-card mc-5">
+    <div class="metric-value">{{ sent_count }}</div>
+    <div class="metric-label">Sent</div>
+  </div>
+</div>
+
+<!-- Calendar -->
+{% set calendar_event_id = event.id %}
+{% set calendar_return_to = "event:" + event.id %}
+{% include "partials/outreach_calendar.html" %}
+
+{% if not queue %}
+<div class="card" style="margin-top:1rem;">
+  <p class="empty-state">
+    No outreach actions scheduled for this event yet.
+    {% if can_edit %}Click <strong>Plan outreach</strong> to have AI generate a schedule.{% endif %}
+  </p>
+</div>
+{% endif %}
+{% endblock %}

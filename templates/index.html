@@ -38,6 +38,23 @@
       <textarea id="description" name="description" placeholder="Brief description of the event..."></textarea>
     </div>
     <details style="margin-bottom:1rem;">
+      <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--accent);">Capacity Planning</summary>
+      <p class="muted text-sm" style="margin:.4rem 0;">Set venue capacity and walk-in buffer to plan for last-minute arrivals.</p>
+      <div class="form-row">
+        <div class="field" style="width:180px;">
+          <label for="venue_capacity_new">Venue capacity</label>
+          <input type="number" id="venue_capacity_new" name="venue_capacity" min="0" value="0" placeholder="0 = no limit">
+        </div>
+        <div class="field" style="width:180px;">
+          <label for="walkin_buffer_new">Walk-in buffer %</label>
+          <input type="number" id="walkin_buffer_new" name="walkin_buffer_pct" min="0" max="100" value="15">
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end;min-width:200px;">
+          <span class="muted text-sm" id="buffer_hint_new" style="padding-bottom:.5rem;"></span>
+        </div>
+      </div>
+    </details>
+    <details style="margin-bottom:1rem;">
       <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--accent);">Advanced: Sender Override</summary>
       <p class="muted text-sm" style="margin:.4rem 0;">Override the global AI sender identity for this event. Leave blank to use defaults from AI Settings.</p>
       <div class="form-row">
@@ -130,4 +147,22 @@
     </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  var cap=document.getElementById('venue_capacity_new'),
+      buf=document.getElementById('walkin_buffer_new'),
+      hint=document.getElementById('buffer_hint_new');
+  function upd(){
+    var c=parseInt(cap.value)||0, b=parseInt(buf.value)||0;
+    if(c>0) hint.textContent='Plan for '+(c+Math.round(c*b/100))+' total ('+Math.round(c*b/100)+' buffer spots)';
+    else hint.textContent='No capacity limit set';
+  }
+  cap.addEventListener('input',upd);
+  buf.addEventListener('input',upd);
+  upd();
+})();
+</script>
 {% endblock %}

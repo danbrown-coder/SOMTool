@@ -113,6 +113,8 @@
           <th>RSVPs</th>
           <th>Confirmed</th>
           <th>Declined</th>
+          <th>Walk-ins</th>
+          <th>Capacity</th>
           <th>RSVP Rate</th>
           <th>Attendance Rate</th>
         </tr>
@@ -125,6 +127,8 @@
           <td>{{ es.rsvp_count }}</td>
           <td>{{ es.confirmed }}</td>
           <td>{{ es.declined }}</td>
+          <td>{{ es.walkin_count }}</td>
+          <td>{% if es.venue_capacity %}{{ es.capacity_pct }}%{% else %}&mdash;{% endif %}</td>
           <td><strong>{{ es.rsvp_rate }}%</strong></td>
           <td><strong>{{ es.attendance_rate }}%</strong></td>
         </tr>

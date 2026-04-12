@@ -49,6 +49,12 @@ class ContactRole(str, Enum):
     ATTENDEE = "attendee"
 
 
+class RegistrationType(str, Enum):
+    PRE_REGISTERED = "pre_registered"
+    DAY_OF = "day_of"
+    WALK_IN = "walk_in"
+
+
 class EventShareRole(str, Enum):
     OWNER = "owner"
     EDITOR = "editor"
@@ -150,6 +156,8 @@ class Contact:
     attended: bool = False
     contact_role: ContactRole = ContactRole.ATTENDEE
     phone: str = ""
+    registration_type: RegistrationType = RegistrationType.PRE_REGISTERED
+    registered_at: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -160,6 +168,8 @@ class Contact:
             "attended": self.attended,
             "contact_role": self.contact_role.value,
             "phone": self.phone,
+            "registration_type": self.registration_type.value,
+            "registered_at": self.registered_at,
         }
 
     @classmethod
@@ -172,6 +182,8 @@ class Contact:
             attended=bool(d.get("attended", False)),
             contact_role=ContactRole(d.get("contact_role", "attendee")),
             phone=d.get("phone", ""),
+            registration_type=RegistrationType(d.get("registration_type", "pre_registered")),
+            registered_at=d.get("registered_at", ""),
         )
 
 
@@ -189,6 +201,8 @@ class Event:
     sender_name: str = ""
     sender_title: str = ""
     sender_email: str = ""
+    venue_capacity: int = 0
+    walkin_buffer_pct: int = 15
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -200,6 +214,8 @@ class Event:
             "contacts": [c.to_dict() for c in self.contacts],
             "owner_id": self.owner_id,
             "permissions": self.permissions,
+            "venue_capacity": self.venue_capacity,
+            "walkin_buffer_pct": self.walkin_buffer_pct,
         }
         if self.som_event_id:
             d["som_event_id"] = self.som_event_id
@@ -230,6 +246,8 @@ class Event:
             sender_name=d.get("sender_name", ""),
             sender_title=d.get("sender_title", ""),
             sender_email=d.get("sender_email", ""),
+            venue_capacity=int(d.get("venue_capacity", 0) or 0),
+            walkin_buffer_pct=int(d.get("walkin_buffer_pct", 15) or 15),
         )
 
 

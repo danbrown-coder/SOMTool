@@ -1,0 +1,169 @@
+{#
+  Shared FullCalendar component.
+  Template variables:
+    - calendar_event_id: "" for global, or a specific event ID for per-event
+    - calendar_return_to: value for return_to hidden field (e.g. "event:<id>")
+#}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<style>
+  #fc-calendar { background:var(--card); border-radius:var(--radius); padding:1rem; box-shadow:var(--shadow); }
+  #fc-calendar .fc { font-family:var(--font); }
+  #fc-calendar .fc-toolbar-title { font-size:1.05rem!important; font-weight:700; letter-spacing:-.02em; }
+  #fc-calendar .fc-button { font-size:.78rem; font-weight:600; padding:.3rem .7rem; border-radius:6px; }
+  #fc-calendar .fc-button-primary { background:var(--accent); border-color:var(--accent); }
+  #fc-calendar .fc-button-primary:not(:disabled).fc-button-active,
+  #fc-calendar .fc-button-primary:not(:disabled):active { background:var(--accent-hover); border-color:var(--accent-hover); }
+  #fc-calendar .fc-event { cursor:pointer; border-radius:4px; font-size:.75rem; font-weight:500; padding:1px 4px; }
+  #fc-calendar .fc-daygrid-event { margin-bottom:1px; }
+
+  .cal-popover-overlay { display:none; position:fixed; inset:0; z-index:600; background:rgba(0,0,0,.35); align-items:center; justify-content:center; }
+  .cal-popover-overlay.open { display:flex; }
+  .cal-popover { background:var(--card); border-radius:var(--radius); padding:1.25rem; width:440px; max-width:95vw; box-shadow:var(--shadow-lg); max-height:80vh; overflow-y:auto; }
+  .cal-popover h3 { font-size:.95rem; font-weight:700; margin-bottom:.6rem; }
+  .cal-popover .meta-row { font-size:.82rem; color:var(--text-secondary); margin-bottom:.25rem; }
+  .cal-popover .meta-row strong { color:var(--text); }
+  .cal-popover .preview-box { background:var(--input-bg); border-radius:var(--radius-sm); padding:.6rem .8rem; font-size:.78rem; line-height:1.5; white-space:pre-wrap; font-family:'SF Mono','Cascadia Code','Consolas',monospace; max-height:180px; overflow-y:auto; margin-top:.5rem; }
+  .cal-popover .action-row { display:flex; gap:.35rem; flex-wrap:wrap; margin-top:.75rem; }
+
+  .cal-legend { display:flex; gap:1rem; flex-wrap:wrap; padding:.6rem 0; font-size:.75rem; }
+  .cal-legend-item { display:flex; align-items:center; gap:.3rem; }
+  .cal-legend-swatch { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
+</style>
+
+<div id="fc-calendar"></div>
+
+<div class="cal-legend" style="margin-top:.5rem;">
+  <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:#3b82f6;"></div> Email</div>
+  <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:#6366f1;"></div> Follow-up</div>
+  <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:#f59e0b;"></div> Call</div>
+  <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:#f97316;"></div> Call F/U</div>
+  <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:#ef4444;"></div> Skipped</div>
+  <div class="cal-legend-item"><div class="cal-legend-swatch" style="background:#9ca3af;"></div> Failed</div>
+</div>
+
+<!-- Detail popover -->
+<div class="cal-popover-overlay" id="calPopover">
+  <div class="cal-popover">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <h3 id="popTitle"></h3>
+      <button class="btn btn-ghost btn-sm" onclick="closePopover()" style="font-size:.9rem;padding:.1rem .4rem;">✕</button>
+    </div>
+    <div class="meta-row"><strong>Contact:</strong> <span id="popContact"></span></div>
+    <div class="meta-row"><strong>Email:</strong> <span id="popEmail"></span></div>
+    <div class="meta-row"><strong>Type:</strong> <span id="popType"></span></div>
+    <div class="meta-row"><strong>Status:</strong> <span id="popStatus"></span></div>
+    <div class="meta-row" id="popEventRow"><strong>Event:</strong> <span id="popEvent"></span></div>
+    <div class="meta-row" id="popReasonRow"><strong>AI reason:</strong> <span id="popReason"></span></div>
+    <div id="popPreviewWrap" style="display:none;">
+      <div style="font-size:.78rem;font-weight:600;margin-top:.5rem;color:var(--text-secondary);">Preview</div>
+      <div class="preview-box" id="popPreview"></div>
+    </div>
+    <div class="action-row" id="popActions"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var calEventId = {{ calendar_event_id|tojson }};
+  var returnTo = {{ calendar_return_to|tojson }};
+  var statusFilter = new URLSearchParams(window.location.search).get('status') || '';
+  var typeFilter = new URLSearchParams(window.location.search).get('type') || '';
+
+  var calEl = document.getElementById('fc-calendar');
+  var calendar = new FullCalendar.Calendar(calEl, {
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    height: 'auto',
+    nowIndicator: true,
+    editable: true,
+    eventStartEditable: true,
+    events: function(info, successCallback, failureCallback) {
+      var params = new URLSearchParams();
+      if (calEventId) params.set('event_id', calEventId);
+      if (statusFilter) params.set('status', statusFilter);
+      if (typeFilter) params.set('type', typeFilter);
+      params.set('start', info.startStr);
+      params.set('end', info.endStr);
+      fetch('/api/outreach-calendar?' + params.toString())
+        .then(function(r){ return r.json(); })
+        .then(successCallback)
+        .catch(failureCallback);
+    },
+    eventClick: function(info) {
+      info.jsEvent.preventDefault();
+      showPopover(info.event);
+    },
+    eventDrop: function(info) {
+      var newTime = info.event.start.toISOString();
+      var form = new FormData();
+      form.append('scheduled_at', newTime);
+      form.append('return_to', returnTo);
+      fetch('/outreach/queue/' + info.event.id + '/reschedule', {
+        method: 'POST',
+        body: form
+      }).then(function(){ calendar.refetchEvents(); });
+    }
+  });
+  calendar.render();
+
+  window.closePopover = function(){
+    document.getElementById('calPopover').classList.remove('open');
+  };
+  document.getElementById('calPopover').addEventListener('click', function(e){
+    if (e.target === this) closePopover();
+  });
+
+  window.showPopover = function(ev) {
+    var p = ev.extendedProps;
+    document.getElementById('popTitle').textContent = ev.title;
+    document.getElementById('popContact').textContent = p.contact_name;
+    document.getElementById('popEmail').textContent = p.contact_email;
+    document.getElementById('popType').textContent = (p.action_type||'').replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+    document.getElementById('popStatus').textContent = (p.status||'').replace(/\b\w/g,function(c){return c.toUpperCase();});
+
+    var evRow = document.getElementById('popEventRow');
+    if (p.event_name) { evRow.style.display=''; document.getElementById('popEvent').textContent=p.event_name; }
+    else evRow.style.display='none';
+
+    var rRow = document.getElementById('popReasonRow');
+    if (p.ai_reason) { rRow.style.display=''; document.getElementById('popReason').textContent=p.ai_reason; }
+    else rRow.style.display='none';
+
+    var pw = document.getElementById('popPreviewWrap');
+    if (p.preview) { pw.style.display=''; document.getElementById('popPreview').textContent=p.preview; }
+    else pw.style.display='none';
+
+    var acts = document.getElementById('popActions');
+    acts.innerHTML = '';
+    var aid = ev.id;
+    var rt = returnTo ? '<input type="hidden" name="return_to" value="'+returnTo+'">' : '';
+
+    if (p.status === 'planned') {
+      acts.innerHTML +=
+        '<form method="post" action="/outreach/queue/'+aid+'/approve" style="margin:0;">'+rt+
+        '<button type="submit" class="btn btn-primary btn-sm">Approve</button></form>';
+      acts.innerHTML +=
+        '<form method="post" action="/outreach/queue/'+aid+'/skip" style="margin:0;">'+rt+
+        '<button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Skip</button></form>';
+    }
+    if (p.status === 'planned' || p.status === 'approved') {
+      if (p.action_type && p.action_type.indexOf('email') !== -1) {
+        acts.innerHTML +=
+          '<form method="post" action="/outreach/queue/'+aid+'/regenerate" style="margin:0;">'+rt+
+          '<button type="submit" class="btn btn-ghost btn-sm">Regen</button></form>';
+      }
+    }
+    acts.innerHTML +=
+      '<form method="post" action="/outreach/queue/'+aid+'/delete" style="margin:0;" onsubmit="return confirm(\'Delete this action?\');">'+rt+
+      '<button type="submit" class="btn btn-ghost btn-sm" style="color:var(--s-declined);">Delete</button></form>';
+
+    document.getElementById('calPopover').classList.add('open');
+  };
+})();
+</script>

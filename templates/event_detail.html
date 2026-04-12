@@ -6,6 +6,7 @@
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}" class="active" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}#contacts" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">👥</span> Contacts</a></li>
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}#outreach" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">✉️</span> Outreach</a></li>
+  <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📋</span> Schedule</a></li>
   <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📊</span> Metrics</a></li>
   <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📜</span> Log</a></li>
 {% endblock %}
@@ -27,11 +28,74 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+.cap-bar { height:10px; background:var(--input-bg); border-radius:5px; overflow:hidden; margin-top:.5rem; }
+.cap-fill { height:100%; border-radius:5px; transition:width .3s ease; }
+.cap-fill.green { background:#10b981; }
+.cap-fill.yellow { background:#f59e0b; }
+.cap-fill.red { background:#ef4444; }
+.reg-badge { display:inline-block; padding:.15rem .55rem; font-size:.72rem; font-weight:600; border-radius:100px; }
+.reg-badge.pre { background:#dbeafe; color:#1e40af; }
+.reg-badge.dayof { background:#fef3c7; color:#92400e; }
+.reg-badge.walkin { background:#fce7f3; color:#9d174d; }
+{% endblock %}
+
 {% block content %}
 {% if event.description %}
 <div class="card">
   <p style="margin:0;">{{ event.description }}</p>
 </div>
+{% endif %}
+
+<!-- ── Capacity Planning ── -->
+{% if metrics.venue_capacity > 0 %}
+<div class="card" id="capacity">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
+    <div>
+      <h2 style="margin-bottom:.25rem;">Capacity Planning</h2>
+      <p class="muted text-sm">{{ metrics.venue_capacity }} seats · {{ metrics.walkin_buffer_pct }}% walk-in buffer ({{ metrics.buffer_slots }} extra spots)</p>
+    </div>
+    {% if can_edit %}
+    <a href="{{ url_for('walkin_checkin', event_id=event.id) }}" class="btn btn-primary btn-sm" style="white-space:nowrap;">Walk-in Check-in</a>
+    {% endif %}
+  </div>
+
+  <div style="margin-top:.75rem;">
+    <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;">
+      <span>{{ metrics.confirmed }} confirmed / {{ metrics.venue_capacity }} capacity</span>
+      <span>{{ metrics.capacity_pct }}%</span>
+    </div>
+    <div class="cap-bar">
+      {% set pct = [metrics.capacity_pct, 100]|min %}
+      <div class="cap-fill {% if pct < 75 %}green{% elif pct < 95 %}yellow{% else %}red{% endif %}" style="width:{{ pct }}%;"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:.75rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
+    <div>
+      <span class="muted text-sm" style="font-weight:600;">Walk-in buffer:</span>
+      <span style="font-weight:700;font-size:.92rem;">{{ metrics.buffer_used }} / {{ metrics.buffer_slots }}</span>
+      <span class="muted text-sm">slots used</span>
+    </div>
+    <div style="display:flex;gap:.4rem;">
+      <span class="reg-badge pre">{{ metrics.pre_registered_count }} Pre-reg</span>
+      <span class="reg-badge dayof">{{ metrics.day_of_count }} Day-of</span>
+      <span class="reg-badge walkin">{{ metrics.walkin_count }} Walk-in</span>
+    </div>
+  </div>
+
+  {% if metrics.buffer_used > metrics.buffer_slots %}
+  <div style="margin-top:.6rem;padding:.5rem .8rem;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#991b1b;font-size:.82rem;font-weight:600;">
+    Walk-ins exceeded your planned buffer by {{ metrics.buffer_used - metrics.buffer_slots }}
+  </div>
+  {% endif %}
+</div>
+{% else %}
+{% if can_edit %}
+<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem;gap:.5rem;">
+  <a href="{{ url_for('walkin_checkin', event_id=event.id) }}" class="btn btn-secondary btn-sm">Walk-in Check-in</a>
+</div>
+{% endif %}
 {% endif %}
 
 <!-- ── Add contact ── -->
@@ -194,6 +258,39 @@
   </p>
 </div>
 
+<!-- ── Outreach Schedule Summary ── -->
+<div class="card" id="schedule-summary">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+    <h2 style="margin:0;">Outreach Schedule</h2>
+    <div style="display:flex;gap:.4rem;">
+      {% if can_edit %}
+      <form method="post" action="{{ url_for('plan_event_outreach', event_id=event.id) }}" style="margin:0;">
+        <button type="submit" class="btn btn-primary btn-sm">Plan outreach</button>
+      </form>
+      {% endif %}
+      <a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">View calendar</a>
+    </div>
+  </div>
+  <div style="display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap;">
+    <div style="text-align:center;min-width:60px;">
+      <div style="font-size:1.2rem;font-weight:700;color:var(--m-indigo);">{{ sched_metrics.planned }}</div>
+      <div class="muted" style="font-size:.72rem;">Planned</div>
+    </div>
+    <div style="text-align:center;min-width:60px;">
+      <div style="font-size:1.2rem;font-weight:700;color:var(--m-emerald);">{{ sched_metrics.approved }}</div>
+      <div class="muted" style="font-size:.72rem;">Approved</div>
+    </div>
+    <div style="text-align:center;min-width:60px;">
+      <div style="font-size:1.2rem;font-weight:700;color:var(--text-secondary);">{{ sched_metrics.sent }}</div>
+      <div class="muted" style="font-size:.72rem;">Sent</div>
+    </div>
+    <div style="text-align:center;min-width:60px;">
+      <div style="font-size:1.2rem;font-weight:700;">{{ sched_metrics.total }}</div>
+      <div class="muted" style="font-size:.72rem;">Total</div>
+    </div>
+  </div>
+</div>
+
 <!-- ── Metrics ── -->
 <div id="metrics" style="margin-bottom:1.25rem;">
   <h2 style="font-size:1.05rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.85rem;">Event metrics</h2>
@@ -217,6 +314,10 @@
     <div class="metric-card mc-5">
       <div class="metric-value">{{ metrics.attended }}</div>
       <div class="metric-label">Attended</div>
+    </div>
+    <div class="metric-card mc-5" style="border-left-color:#ec4899;">
+      <div class="metric-value">{{ metrics.walkin_count }}</div>
+      <div class="metric-label">Walk-ins</div>
     </div>
     <div class="metric-card mc-big mc-6">
       <div class="metric-value">{{ metrics.rsvp_rate }}%</div>
