@@ -60,16 +60,23 @@
 </div>
 {% endif %}
 
-<!-- ── Goals Review ── -->
-{% if goal_review %}
+<!-- ── Goals & Budget Section ── -->
+<div style="margin:1rem 0 .5rem;display:flex;align-items:center;justify-content:space-between;">
+  <h3 style="font-size:.88rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-secondary);margin:0;">Goals & Budget</h3>
+  {% if can_edit %}<a href="{{ url_for('edit_event_page', event_id=event.id) }}" class="muted" style="font-size:.78rem;">Edit goals & budget</a>{% endif %}
+</div>
+
+<!-- ── Goals ── -->
 <div class="card" id="goals">
   <h3 style="margin:0 0 .75rem;font-size:1rem;font-weight:700;">Goals</h3>
+  {% if goal_review %}
   <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
     <thead>
       <tr style="text-align:left;border-bottom:2px solid var(--border);">
         <th style="padding:.4rem .6rem;">Goal</th>
         <th style="padding:.4rem .6rem;">Target</th>
         <th style="padding:.4rem .6rem;">Actual</th>
+        <th style="padding:.4rem .6rem;">Progress</th>
         <th style="padding:.4rem .6rem;text-align:center;">Status</th>
       </tr>
     </thead>
@@ -79,6 +86,20 @@
         <td style="padding:.4rem .6rem;">{{ row.label }}</td>
         <td style="padding:.4rem .6rem;">{{ row.target }}</td>
         <td style="padding:.4rem .6rem;">{{ row.actual }}</td>
+        <td style="padding:.4rem .6rem;width:120px;">
+          {% if row.target is number and row.target > 0 and row.actual is number %}
+          {% set pct = ((row.actual / row.target * 100) | round | int) %}
+          {% set pct_capped = [pct, 100] | min %}
+          <div style="display:flex;align-items:center;gap:.4rem;">
+            <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
+              <div style="width:{{ pct_capped }}%;height:100%;background:{% if row.met %}#059669{% elif pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %};border-radius:3px;"></div>
+            </div>
+            <span style="font-size:.75rem;color:var(--text-secondary);">{{ pct }}%</span>
+          </div>
+          {% else %}
+          <span style="color:#9ca3af;font-size:.8rem;">—</span>
+          {% endif %}
+        </td>
         <td style="padding:.4rem .6rem;text-align:center;">
           {% if row.met == true %}
           <span style="color:#059669;font-weight:700;">&#10003;</span>
@@ -100,13 +121,15 @@
     {% if met_count == total_goals %}<span style="color:#059669;font-weight:600;margin-left:.3rem;">All targets hit!</span>{% endif %}
   </div>
   {% endif %}
+  {% else %}
+  <p class="muted text-sm" style="margin:0;">No goals set yet.{% if can_edit %} <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set goals</a>{% endif %}</p>
+  {% endif %}
 </div>
-{% endif %}
 
 <!-- ── Budget ── -->
-{% if event.planned_budget or event.actual_spend or event.sponsorship_revenue or event.expenses %}
 <div class="card" id="budget">
   <h3 style="margin:0 0 .75rem;font-size:1rem;font-weight:700;">Budget</h3>
+  {% if event.planned_budget or event.actual_spend or event.sponsorship_revenue or event.expenses %}
   {% set net = event.sponsorship_revenue - event.actual_spend %}
   <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.88rem;margin-bottom:.75rem;">
     <div><span style="color:var(--text-secondary);">Planned:</span> <strong>${{ '%.2f'|format(event.planned_budget) }}</strong></div>
@@ -114,6 +137,18 @@
     <div><span style="color:var(--text-secondary);">Sponsorship:</span> <strong>${{ '%.2f'|format(event.sponsorship_revenue) }}</strong></div>
     <div><span style="color:var(--text-secondary);">Net:</span> <strong style="color:{% if net >= 0 %}#059669{% else %}#dc2626{% endif %};">${{ '%.2f'|format(net) }}</strong></div>
   </div>
+  {% if event.planned_budget > 0 %}
+  {% set spend_pct = ((event.actual_spend / event.planned_budget * 100) | round | int) %}
+  {% set spend_capped = [spend_pct, 100] | min %}
+  <div style="margin-bottom:.75rem;">
+    <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-secondary);margin-bottom:.2rem;">
+      <span>Budget used</span><span>{{ spend_pct }}%</span>
+    </div>
+    <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+      <div style="width:{{ spend_capped }}%;height:100%;background:{% if spend_pct > 100 %}#dc2626{% elif spend_pct > 80 %}#f59e0b{% else %}#059669{% endif %};border-radius:4px;"></div>
+    </div>
+  </div>
+  {% endif %}
   {% if event.expenses %}
   <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
     <thead>
@@ -139,10 +174,16 @@
     <button type="submit" class="btn btn-primary btn-sm">Add</button>
   </form>
   {% endif %}
+  {% else %}
+  <p class="muted text-sm" style="margin:0;">No budget set yet.{% if can_edit %} <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set budget</a>{% endif %}</p>
+  {% endif %}
 </div>
-{% endif %}
 
-<!-- ── Feedback Summary ── -->
+<!-- ── Attendee Feedback (past events only) ── -->
+{% if is_past %}
+<div style="margin:1rem 0 .5rem;">
+  <h3 style="font-size:.88rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-secondary);margin:0;">Attendee Feedback</h3>
+</div>
 {% if fb_summary.count > 0 %}
 <div class="card" id="feedback">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
@@ -172,14 +213,15 @@
   </div>
   {% endif %}
 </div>
-{% elif can_edit %}
+{% else %}
 <div class="card" id="feedback">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
     <h3 style="margin:0;font-size:1rem;font-weight:700;">Feedback</h3>
-    <button type="button" class="btn btn-ghost btn-sm" onclick="copyFeedbackLink()" id="copyFbBtn" style="font-size:.78rem;">Copy feedback link</button>
+    {% if can_edit %}<button type="button" class="btn btn-ghost btn-sm" onclick="copyFeedbackLink()" id="copyFbBtn" style="font-size:.78rem;">Copy feedback link</button>{% endif %}
   </div>
-  <p style="color:var(--text-secondary);font-size:.85rem;margin:.5rem 0 0;">No feedback yet. Share the link with attendees to collect responses.</p>
+  <p style="color:var(--text-secondary);font-size:.85rem;margin:.5rem 0 0;">No feedback yet.{% if can_edit %} Share the link with attendees or use "Request Feedback" in AI Outreach above.{% endif %}</p>
 </div>
+{% endif %}
 {% endif %}
 
 <!-- ── Capacity & Registration ── -->
@@ -408,6 +450,19 @@
       </form>
     </div>
     <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Vapi AI calls contacts with phone numbers — personalized, role-aware conversations powered by voice AI.</p>
+  </div>
+
+  <div style="margin-top:1rem;">
+    <h3 style="font-size:.9rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.6rem;color:var(--text-secondary);">Post-Event</h3>
+    {% if is_past %}
+    <form method="post" action="{{ url_for('request_feedback_route', event_id=event.id) }}">
+      <button type="submit" class="btn btn-secondary" style="width:100%;background:linear-gradient(135deg,#eef2ff 0%,#fff 100%);border-color:var(--accent);">📋 Request Feedback</button>
+    </form>
+    <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Schedules feedback survey emails to all attendees. Review and approve them in the Calendar.</p>
+    {% else %}
+    <button type="button" class="btn btn-secondary" disabled style="width:100%;opacity:.45;cursor:not-allowed;" title="Available after the event has passed">📋 Request Feedback</button>
+    <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Available after the event date has passed.</p>
+    {% endif %}
   </div>
   {% else %}
   <p class="muted text-sm">View-only — outreach actions are hidden.</p>

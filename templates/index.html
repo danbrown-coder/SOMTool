@@ -165,13 +165,15 @@
     </form>
   </div>
 
-  {% if events %}
-    {% for e in events %}
+  <!-- ── Upcoming Events ── -->
+  <h3 style="font-size:.92rem;font-weight:700;letter-spacing:-.01em;margin:0 0 .5rem;color:var(--text);">Your Events</h3>
+  {% if upcoming_events %}
+    {% for e in upcoming_events %}
     <div class="card card-hoverable" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
       <a href="{{ url_for('event_detail', event_id=e.id) }}" style="text-decoration:none;color:inherit;display:flex;align-items:center;flex:1;min-width:0;">
         <div style="min-width:0;">
           <div style="font-weight:600;font-size:.95rem;">{{ e.name }}</div>
-          <div class="muted text-sm" style="margin-top:.15rem;">{{ e.date }}  ·  {{ e.audience_type }}  ·  {{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</div>
+          <div class="muted text-sm" style="margin-top:.15rem;">{{ e.date or 'TBA' }}  ·  {{ e.audience_type }}  ·  {{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</div>
         </div>
       </a>
       {% set er = event_roles.get(e.id, 'viewer') %}
@@ -191,6 +193,47 @@
     </div>
     {% endfor %}
   {% else %}
+    <p class="muted text-sm" style="margin:.5rem 0 1rem;">No upcoming events.</p>
+  {% endif %}
+
+  <!-- ── Past Events ── -->
+  <h3 style="font-size:.92rem;font-weight:700;letter-spacing:-.01em;margin:1.25rem 0 .5rem;color:var(--text);">Past Events</h3>
+  {% if past_events %}
+    {% for e in past_events %}
+    {% set fb = past_fb.get(e.id, {}) %}
+    <div class="card card-hoverable" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <a href="{{ url_for('event_detail', event_id=e.id) }}" style="text-decoration:none;color:inherit;display:flex;align-items:center;flex:1;min-width:0;">
+        <div style="min-width:0;">
+          <div style="font-weight:600;font-size:.95rem;">{{ e.name }}</div>
+          <div class="muted text-sm" style="margin-top:.15rem;">{{ e.date }}  ·  {{ e.audience_type }}  ·  {{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</div>
+          {% if fb.get('count', 0) > 0 %}
+          <div style="font-size:.8rem;margin-top:.2rem;"><span style="color:#f59e0b;">&#9733;</span> {{ fb.avg_rating }} avg &middot; {{ fb.count }} response{{ 's' if fb.count != 1 else '' }} &middot; {{ fb.would_return_pct }}% would return</div>
+          {% else %}
+          <div class="muted" style="font-size:.78rem;margin-top:.2rem;">No feedback yet</div>
+          {% endif %}
+        </div>
+      </a>
+      {% set er = event_roles.get(e.id, 'viewer') %}
+      {% if er in ['owner', 'editor'] %}
+      <div class="kebab-wrapper">
+        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">⋯</button>
+        <div class="kebab-menu">
+          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">✏️ Edit</a>
+          {% if er == 'owner' %}
+          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
+            <button type="submit" class="kebab-item kebab-danger">🗑️ Delete</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="muted text-sm" style="margin:.5rem 0;">No past events.</p>
+  {% endif %}
+
+  {% if not upcoming_events and not past_events %}
     <div class="card">
       <p class="empty-state">
         {% if search_q or filter_audience or filter_status %}

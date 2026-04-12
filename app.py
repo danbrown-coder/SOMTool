@@ -301,8 +301,15 @@ def index():
 
     all_audiences = sorted({e.audience_type for e in em.list_events_visible_to(g.current_user) if e.audience_type})
     roles = {e.id: em.get_event_share_role(g.current_user, e) or "viewer" for e in events}
+
+    today = date.today().isoformat()
+    upcoming_events = [e for e in events if not e.date or e.date.upper() == "TBA" or e.date >= today]
+    past_events = [e for e in events if e.date and e.date.upper() != "TBA" and e.date < today]
+    past_fb = {e.id: feedback_manager.compute_feedback_summary(e.id) for e in past_events}
+
     return render_template(
         "index.html", events=events, event_roles=roles,
+        upcoming_events=upcoming_events, past_events=past_events, past_fb=past_fb,
         sort_by=sort_by, filter_audience=filter_audience,
         filter_status=filter_status, search_q=request.args.get("q", ""),
         all_audiences=all_audiences,
@@ -596,6 +603,9 @@ def event_detail(event_id: str):
     fb_summary = feedback_manager.compute_feedback_summary(event_id)
     goal_review = _compute_goal_review(event, metrics)
 
+    today_str = date.today().isoformat()
+    is_past = bool(event.date and event.date.upper() != "TBA" and event.date < today_str)
+
     return render_template(
         "event_detail.html",
         event=event,
@@ -611,6 +621,7 @@ def event_detail(event_id: str):
         upcoming_actions=upcoming_actions,
         fb_summary=fb_summary,
         goal_review=goal_review,
+        is_past=is_past,
     )
 
 
@@ -938,6 +949,46 @@ def add_expense(event_id: str):
         em.save_events(events)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return {"ok": True, "actual_spend": event.actual_spend}
+    return redirect(url_for("event_detail", event_id=event_id))
+
+
+@app.route("/events/<event_id>/request-feedback", methods=["POST"])
+@login_required
+def request_feedback_route(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        flash("Event not found.", "info")
+        return redirect(url_for("index"))
+    role = em.get_event_share_role(g.current_user, event)
+    if not _role_ok(role, "editor"):
+        flash("Not allowed.", "info")
+        return redirect(url_for("event_detail", event_id=event_id))
+
+    from datetime import timedelta
+    now = datetime.now(timezone.utc)
+    schedule_time = (now + timedelta(hours=1)).isoformat()
+    count = 0
+    for c in event.contacts:
+        if not c.email:
+            continue
+        if c.attended or c.status.value == "confirmed":
+            if not outreach_queue.already_queued(event_id, c.id, "email_survey"):
+                outreach_queue.add_action(
+                    event_id=event_id,
+                    contact_id=c.id,
+                    contact_name=c.name,
+                    contact_email=c.email,
+                    action_type="email_survey",
+                    scheduled_at=schedule_time,
+                    ai_reason="Post-event feedback survey request",
+                    preview="",
+                    status="planned",
+                )
+                count += 1
+    if count:
+        flash(f"Scheduled {count} feedback request{'s' if count != 1 else ''} — review them in the Calendar.", "info")
+    else:
+        flash("No eligible contacts to send feedback requests to.", "info")
     return redirect(url_for("event_detail", event_id=event_id))
 
 
