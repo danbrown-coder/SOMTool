@@ -1541,9 +1541,9 @@ def outreach_schedule_page():
     def _event_sort_key(e):
         ep = event_priorities[e.id]
         if ep["is_past"]:
-            return (2, e.date)
+            return (3, e.date)
         if ep["is_tba"]:
-            return (3, "")
+            return (2, "")
         return (1, e.date)
     events_sorted = sorted(events, key=_event_sort_key)
     return render_template(
