@@ -3,14 +3,60 @@
 
 {% block topbar %}
 <div class="topbar">
-  <h2>Events</h2>
+  <div>
+    <h2>Events</h2>
+    <div class="breadcrumb">Plan, outreach, and run every event from one workspace.</div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .event-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .event-row-link { display: flex; align-items: center; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
+  .event-row-main { min-width: 0; flex: 1; }
+  .event-row-title { font-weight: 600; font-size: 1rem; letter-spacing: -.01em; color: var(--text-strong); }
+  .event-row-meta { display: flex; align-items: center; gap: .6rem; margin-top: .35rem; flex-wrap: wrap; }
+  .event-row-feedback { font-size: .8rem; margin-top: .3rem; color: var(--text-secondary); display: flex; align-items: center; gap: .35rem; }
+  .event-row-feedback .star { color: #D97706; }
+  .filter-bar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+  .filter-bar input, .filter-bar select { height: 36px; font-size: .82rem; width: auto; min-width: 140px; }
+  .filter-bar select { min-width: 150px; padding: 0 2rem 0 .7rem; }
+  details summary.disclosure {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .8rem;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    padding: .5rem 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  details summary.disclosure::before {
+    content: '›';
+    display: inline-block;
+    transition: transform var(--dur) var(--ease-out);
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  details[open] summary.disclosure::before { transform: rotate(90deg); }
+  details summary.disclosure::-webkit-details-marker { display: none; }
+</style>
 {% endblock %}
 
 {% block content %}
 <!-- ── Create event ── -->
-<div class="card" style="border-left: 3.5px solid var(--accent);">
-  <h2 style="margin-bottom:.25rem;">New event</h2>
+<div class="card card-accent">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Create</div>
+      <h2 class="mb-0">New event</h2>
+    </div>
+  </div>
   <p class="muted text-sm mb-2">Set up a new event to start managing outreach.</p>
   <form method="post" action="{{ url_for('create_event_route') }}">
     <div class="form-row">
@@ -22,7 +68,7 @@
         <label for="date">Date</label>
         <input type="date" id="date" name="date" required>
       </div>
-      <div class="field" style="width:180px;">
+      <div class="field" style="width:200px;">
         <label for="audience_type">Audience</label>
         <select id="audience_type" name="audience_type" required>
           <option value="Students">Students</option>
@@ -37,221 +83,233 @@
       <label for="description">Description</label>
       <textarea id="description" name="description" placeholder="Brief description of the event..."></textarea>
     </div>
-    <details style="margin-bottom:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--accent);">Registration & Capacity</summary>
-      <div class="form-row" style="margin:.5rem 0;">
-        <div class="field" style="width:180px;">
+    <details class="mb-2">
+      <summary class="disclosure">Registration &amp; capacity</summary>
+      <div class="form-row mt-1">
+        <div class="field" style="width:200px;">
           <label for="reg_pin_new">Registration PIN</label>
           <input type="text" id="reg_pin_new" name="registration_pin" maxlength="6" pattern="[0-9]*" inputmode="numeric" placeholder="e.g. 1234">
-          <span class="muted text-sm">4-6 digit PIN for staff check-in page</span>
+          <p class="text-xs muted mt-1">4–6 digit PIN for the check-in desk.</p>
         </div>
-      </div>
-      <p class="muted text-sm" style="margin:.4rem 0;">Set venue capacity and walk-in buffer to plan for last-minute arrivals.</p>
-      <div class="form-row">
         <div class="field" style="width:180px;">
           <label for="venue_capacity_new">Venue capacity</label>
           <input type="number" id="venue_capacity_new" name="venue_capacity" min="0" value="0" placeholder="0 = no limit">
         </div>
-        <div class="field" style="width:180px;">
+        <div class="field" style="width:160px;">
           <label for="walkin_buffer_new">Walk-in buffer %</label>
           <input type="number" id="walkin_buffer_new" name="walkin_buffer_pct" min="0" max="100" value="15">
         </div>
         <div class="field" style="display:flex;align-items:flex-end;min-width:200px;">
-          <span class="muted text-sm" id="buffer_hint_new" style="padding-bottom:.5rem;"></span>
+          <span class="muted text-xs" id="buffer_hint_new" style="padding-bottom:.55rem;"></span>
         </div>
       </div>
-      <div class="form-row" style="margin-top:.5rem;">
-        <div class="field" style="width:240px;">
+      <div class="form-row">
+        <div class="field" style="width:260px;">
           <label for="reg_deadline_new">Registration deadline</label>
           <input type="datetime-local" id="reg_deadline_new" name="registration_deadline">
         </div>
-        <div class="field" style="width:150px;">
+        <div class="field" style="width:180px;">
           <label for="late_fee_new">Late / walk-in fee</label>
-          <div style="display:flex;align-items:center;gap:.25rem;">
-            <span style="font-weight:600;color:var(--text-secondary);">$</span>
+          <div style="display:flex;align-items:center;gap:.35rem;">
+            <span class="text-strong">$</span>
             <input type="number" id="late_fee_new" name="late_fee" min="0" step="0.01" value="0" placeholder="0.00">
           </div>
         </div>
-        <div class="field" style="flex:1;min-width:160px;">
+        <div class="field" style="flex:1;min-width:200px;">
           <label for="late_fee_note_new">Fee note</label>
           <input type="text" id="late_fee_note_new" name="late_fee_note" placeholder="e.g. Cash only at the door">
         </div>
       </div>
     </details>
-    <details style="margin-bottom:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--accent);">Goals</summary>
-      <p class="muted text-sm" style="margin:.4rem 0;">Set targets to track event success.</p>
+    <details class="mb-2">
+      <summary class="disclosure">Goals</summary>
+      <p class="muted text-xs mt-1 mb-2">Set targets to track event success.</p>
       <div class="form-row">
-        <div class="field" style="width:150px;">
+        <div class="field" style="width:180px;">
           <label for="goal_reg_new">Target registrations</label>
           <input type="number" id="goal_reg_new" name="goal_registrations" min="0" value="0">
         </div>
-        <div class="field" style="width:150px;">
+        <div class="field" style="width:180px;">
           <label for="goal_att_new">Target attendance</label>
           <input type="number" id="goal_att_new" name="goal_attendance" min="0" value="0">
         </div>
-        <div class="field" style="width:150px;">
+        <div class="field" style="width:180px;">
           <label for="goal_spon_new">Target sponsorship $</label>
           <input type="number" id="goal_spon_new" name="goal_sponsorship" min="0" step="0.01" value="0">
         </div>
-        <div class="field" style="width:150px;">
+        <div class="field" style="width:180px;">
           <label for="goal_bud_new">Target budget $</label>
           <input type="number" id="goal_bud_new" name="goal_budget" min="0" step="0.01" value="0">
         </div>
       </div>
       <div id="customGoalsNew"></div>
-      <button type="button" class="btn btn-ghost btn-sm" style="margin-top:.4rem;" onclick="addCustomGoal('customGoalsNew','new')">+ Add custom goal</button>
+      <button type="button" class="btn btn-ghost btn-sm mt-1" onclick="addCustomGoal('customGoalsNew','new')">+ Add custom goal</button>
     </details>
-    <details style="margin-bottom:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--accent);">Budget</summary>
-      <p class="muted text-sm" style="margin:.4rem 0;">Track planned spending and sponsorship income.</p>
+    <details class="mb-2">
+      <summary class="disclosure">Budget</summary>
+      <p class="muted text-xs mt-1 mb-2">Track planned spending and sponsorship income.</p>
       <div class="form-row">
-        <div class="field" style="width:180px;">
+        <div class="field" style="width:200px;">
           <label for="planned_bud_new">Planned budget $</label>
           <input type="number" id="planned_bud_new" name="planned_budget" min="0" step="0.01" value="0">
         </div>
-        <div class="field" style="width:180px;">
+        <div class="field" style="width:220px;">
           <label for="spon_rev_new">Sponsorship revenue $</label>
           <input type="number" id="spon_rev_new" name="sponsorship_revenue" min="0" step="0.01" value="0">
         </div>
       </div>
     </details>
-    <details style="margin-bottom:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--accent);">Advanced: Sender Override</summary>
-      <p class="muted text-sm" style="margin:.4rem 0;">Override the global AI sender identity for this event. Leave blank to use defaults from AI Settings.</p>
+    <details class="mb-3">
+      <summary class="disclosure">Advanced: sender override</summary>
+      <p class="muted text-xs mt-1 mb-2">Override the global AI sender identity for this event. Leave blank to use defaults.</p>
       <div class="form-row">
-        <div class="field" style="flex:1;min-width:140px;">
+        <div class="field" style="flex:1;min-width:160px;">
           <label for="sender_name_new">Sender name</label>
           <input type="text" id="sender_name_new" name="sender_name" placeholder="e.g. Alex">
         </div>
-        <div class="field" style="flex:1;min-width:180px;">
+        <div class="field" style="flex:1;min-width:200px;">
           <label for="sender_title_new">Sender title</label>
           <input type="text" id="sender_title_new" name="sender_title" placeholder="e.g. Events Coordinator">
         </div>
-        <div class="field" style="flex:1;min-width:200px;">
+        <div class="field" style="flex:1;min-width:220px;">
           <label for="sender_email_new">Reply-to email</label>
-          <input type="email" id="sender_email_new" name="sender_email" placeholder="e.g. alex@callutheran.edu">
+          <input type="email" id="sender_email_new" name="sender_email" placeholder="alex@callutheran.edu">
         </div>
       </div>
     </details>
-    <button type="submit" class="btn btn-primary">Create event</button>
+    <button type="submit" class="btn btn-primary btn-hero">Create event</button>
   </form>
 </div>
 
-<!-- ── Sort / Filter bar ── -->
-<div style="margin-top:.5rem;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem;">
-    <h2 style="font-size:1.05rem;font-weight:700;letter-spacing:-.02em;margin:0;">Your events</h2>
-    <form method="get" action="{{ url_for('index') }}" style="display:flex;gap:.45rem;align-items:center;flex-wrap:wrap;">
-      <input type="text" name="q" value="{{ search_q }}" placeholder="Search events..." style="height:34px;width:170px;font-size:.82rem;padding:0 .6rem;">
-      <select name="sort" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
-        <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date (newest)</option>
-        <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
-        <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A–Z)</option>
-        <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z–A)</option>
-        <option value="contacts_desc" {% if sort_by == 'contacts_desc' %}selected{% endif %}>Most contacts</option>
-        <option value="contacts_asc" {% if sort_by == 'contacts_asc' %}selected{% endif %}>Fewest contacts</option>
-      </select>
-      <select name="audience" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
-        <option value="">All audiences</option>
-        {% for a in all_audiences %}
-        <option value="{{ a }}" {% if filter_audience == a %}selected{% endif %}>{{ a }}</option>
-        {% endfor %}
-      </select>
-      <select name="status" style="height:34px;font-size:.8rem;width:auto;padding:0 1.8rem 0 .5rem;" onchange="this.form.submit()">
-        <option value="">All events</option>
-        <option value="upcoming" {% if filter_status == 'upcoming' %}selected{% endif %}>Upcoming</option>
-        <option value="past" {% if filter_status == 'past' %}selected{% endif %}>Past</option>
-        <option value="has_contacts" {% if filter_status == 'has_contacts' %}selected{% endif %}>Has contacts</option>
-        <option value="no_contacts" {% if filter_status == 'no_contacts' %}selected{% endif %}>No contacts</option>
-      </select>
-      <button type="submit" class="btn btn-ghost btn-sm" style="height:34px;">Go</button>
-      {% if search_q or filter_audience or filter_status != '' or sort_by != 'date_desc' %}
-      <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm" style="height:34px;color:var(--s-declined);">Clear</a>
-      {% endif %}
-    </form>
+<!-- ── Filters ── -->
+<div class="row-between mt-3 mb-2">
+  <div>
+    <div class="section-eyebrow">Workspace</div>
+    <h2 class="mb-0">Your events</h2>
   </div>
-
-  <!-- ── Upcoming Events ── -->
-  <h3 style="font-size:.92rem;font-weight:700;letter-spacing:-.01em;margin:0 0 .5rem;color:var(--text);">Your Events</h3>
-  {% if upcoming_events %}
-    {% for e in upcoming_events %}
-    <div class="card card-hoverable" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
-      <a href="{{ url_for('event_detail', event_id=e.id) }}" style="text-decoration:none;color:inherit;display:flex;align-items:center;flex:1;min-width:0;">
-        <div style="min-width:0;">
-          <div style="font-weight:600;font-size:.95rem;">{{ e.name }}</div>
-          <div class="muted text-sm" style="margin-top:.15rem;">{{ e.date or 'TBA' }}  ·  {{ e.audience_type }}  ·  {{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</div>
-        </div>
-      </a>
-      {% set er = event_roles.get(e.id, 'viewer') %}
-      {% if er in ['owner', 'editor'] %}
-      <div class="kebab-wrapper">
-        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">⋯</button>
-        <div class="kebab-menu">
-          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">✏️ Edit</a>
-          {% if er == 'owner' %}
-          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
-            <button type="submit" class="kebab-item kebab-danger">🗑️ Delete</button>
-          </form>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-    </div>
-    {% endfor %}
-  {% else %}
-    <p class="muted text-sm" style="margin:.5rem 0 1rem;">No upcoming events.</p>
-  {% endif %}
-
-  <!-- ── Past Events ── -->
-  <h3 style="font-size:.92rem;font-weight:700;letter-spacing:-.01em;margin:1.25rem 0 .5rem;color:var(--text);">Past Events</h3>
-  {% if past_events %}
-    {% for e in past_events %}
-    {% set fb = past_fb.get(e.id, {}) %}
-    <div class="card card-hoverable" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
-      <a href="{{ url_for('event_detail', event_id=e.id) }}" style="text-decoration:none;color:inherit;display:flex;align-items:center;flex:1;min-width:0;">
-        <div style="min-width:0;">
-          <div style="font-weight:600;font-size:.95rem;">{{ e.name }}</div>
-          <div class="muted text-sm" style="margin-top:.15rem;">{{ e.date }}  ·  {{ e.audience_type }}  ·  {{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</div>
-          {% if fb.get('count', 0) > 0 %}
-          <div style="font-size:.8rem;margin-top:.2rem;"><span style="color:#f59e0b;">&#9733;</span> {{ fb.avg_rating }} avg &middot; {{ fb.count }} response{{ 's' if fb.count != 1 else '' }} &middot; {{ fb.would_return_pct }}% would return</div>
-          {% else %}
-          <div class="muted" style="font-size:.78rem;margin-top:.2rem;">No feedback yet</div>
-          {% endif %}
-        </div>
-      </a>
-      {% set er = event_roles.get(e.id, 'viewer') %}
-      {% if er in ['owner', 'editor'] %}
-      <div class="kebab-wrapper">
-        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">⋯</button>
-        <div class="kebab-menu">
-          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">✏️ Edit</a>
-          {% if er == 'owner' %}
-          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
-            <button type="submit" class="kebab-item kebab-danger">🗑️ Delete</button>
-          </form>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-    </div>
-    {% endfor %}
-  {% else %}
-    <p class="muted text-sm" style="margin:.5rem 0;">No past events.</p>
-  {% endif %}
-
-  {% if not upcoming_events and not past_events %}
-    <div class="card">
-      <p class="empty-state">
-        {% if search_q or filter_audience or filter_status %}
-          No events match your filters. <a href="{{ url_for('index') }}">Clear filters</a>
-        {% else %}
-          No events yet — create one above to get started.
-        {% endif %}
-      </p>
-    </div>
-  {% endif %}
+  <form method="get" action="{{ url_for('index') }}" class="filter-bar">
+    <input type="text" name="q" value="{{ search_q }}" placeholder="Search events...">
+    <select name="sort" onchange="this.form.submit()">
+      <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date (newest)</option>
+      <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
+      <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A–Z)</option>
+      <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z–A)</option>
+      <option value="contacts_desc" {% if sort_by == 'contacts_desc' %}selected{% endif %}>Most contacts</option>
+      <option value="contacts_asc" {% if sort_by == 'contacts_asc' %}selected{% endif %}>Fewest contacts</option>
+    </select>
+    <select name="audience" onchange="this.form.submit()">
+      <option value="">All audiences</option>
+      {% for a in all_audiences %}
+      <option value="{{ a }}" {% if filter_audience == a %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" onchange="this.form.submit()">
+      <option value="">All events</option>
+      <option value="upcoming" {% if filter_status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+      <option value="past" {% if filter_status == 'past' %}selected{% endif %}>Past</option>
+      <option value="has_contacts" {% if filter_status == 'has_contacts' %}selected{% endif %}>Has contacts</option>
+      <option value="no_contacts" {% if filter_status == 'no_contacts' %}selected{% endif %}>No contacts</option>
+    </select>
+    <button type="submit" class="btn btn-ghost btn-sm">Apply</button>
+    {% if search_q or filter_audience or filter_status != '' or sort_by != 'date_desc' %}
+    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">Clear</a>
+    {% endif %}
+  </form>
 </div>
+
+<!-- ── Upcoming Events ── -->
+<div class="section-eyebrow mt-3">Upcoming</div>
+{% if upcoming_events %}
+  {% for e in upcoming_events %}
+  <div class="card card-hoverable">
+    <div class="event-row">
+      <a href="{{ url_for('event_detail', event_id=e.id) }}" class="event-row-link">
+        <div class="event-row-main">
+          <div class="event-row-title">{{ e.name }}</div>
+          <div class="event-row-meta">
+            <span class="chip">{{ e.date or 'TBA' }}</span>
+            <span class="chip">{{ e.audience_type }}</span>
+            <span class="muted text-xs">{{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</span>
+          </div>
+        </div>
+      </a>
+      {% set er = event_roles.get(e.id, 'viewer') %}
+      {% if er in ['owner', 'editor'] %}
+      <div class="kebab-wrapper">
+        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">&#8943;</button>
+        <div class="kebab-menu">
+          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">Edit</a>
+          {% if er == 'owner' %}
+          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
+            <button type="submit" class="kebab-item kebab-danger">Delete</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="card"><p class="empty-state">No upcoming events.</p></div>
+{% endif %}
+
+<!-- ── Past Events ── -->
+<div class="section-eyebrow mt-3">Past</div>
+{% if past_events %}
+  {% for e in past_events %}
+  {% set fb = past_fb.get(e.id, {}) %}
+  <div class="card card-hoverable">
+    <div class="event-row">
+      <a href="{{ url_for('event_detail', event_id=e.id) }}" class="event-row-link">
+        <div class="event-row-main">
+          <div class="event-row-title">{{ e.name }}</div>
+          <div class="event-row-meta">
+            <span class="chip">{{ e.date }}</span>
+            <span class="chip">{{ e.audience_type }}</span>
+            <span class="muted text-xs">{{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</span>
+          </div>
+          {% if fb.get('count', 0) > 0 %}
+          <div class="event-row-feedback">
+            <span class="star">&#9733;</span> {{ fb.avg_rating }} avg &middot; {{ fb.count }} response{{ 's' if fb.count != 1 else '' }} &middot; {{ fb.would_return_pct }}% would return
+          </div>
+          {% else %}
+          <div class="muted text-xs mt-1">No feedback yet</div>
+          {% endif %}
+        </div>
+      </a>
+      {% set er = event_roles.get(e.id, 'viewer') %}
+      {% if er in ['owner', 'editor'] %}
+      <div class="kebab-wrapper">
+        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">&#8943;</button>
+        <div class="kebab-menu">
+          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">Edit</a>
+          {% if er == 'owner' %}
+          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
+            <button type="submit" class="kebab-item kebab-danger">Delete</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="card"><p class="empty-state">No past events.</p></div>
+{% endif %}
+
+{% if not upcoming_events and not past_events %}
+  <div class="card">
+    <p class="empty-state">
+      {% if search_q or filter_audience or filter_status %}
+        No events match your filters. <a href="{{ url_for('index') }}">Clear filters</a>
+      {% else %}
+        No events yet — create one above to get started.
+      {% endif %}
+    </p>
+  </div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -260,6 +318,7 @@
   var cap=document.getElementById('venue_capacity_new'),
       buf=document.getElementById('walkin_buffer_new'),
       hint=document.getElementById('buffer_hint_new');
+  if(!cap||!buf||!hint) return;
   function upd(){
     var c=parseInt(cap.value)||0, b=parseInt(buf.value)||0;
     if(c>0) hint.textContent='Plan for '+(c+Math.round(c*b/100))+' total ('+Math.round(c*b/100)+' buffer spots)';
@@ -278,7 +337,7 @@ function addCustomGoal(containerId, prefix) {
   row.style.marginTop = '.4rem';
   row.innerHTML = '<div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_label" placeholder="Goal name"></div>' +
     '<div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_target" placeholder="Target value"></div>' +
-    '<button type="button" class="btn btn-ghost btn-sm" style="color:#ef4444;align-self:flex-end;" onclick="this.parentElement.remove()">Remove</button>';
+    '<button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()">Remove</button>';
   c.appendChild(row);
 }
 </script>

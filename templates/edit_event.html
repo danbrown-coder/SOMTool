@@ -3,14 +3,34 @@
 
 {% block topbar %}
 <div class="topbar">
-  <h2>Edit event</h2>
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a><span class="sep">/</span><a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name|truncate(30) }}</a><span class="sep">/</span>Edit</div>
+    <h2>Edit event</h2>
+  </div>
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  details summary.disclosure {
+    cursor:pointer; font-weight:600; font-size:.8rem; color:var(--accent);
+    font-family:var(--font-mono); letter-spacing:.03em; text-transform:uppercase;
+    padding:.5rem 0; list-style:none; display:flex; align-items:center; gap:.4rem;
+  }
+  details summary.disclosure::before {
+    content:'›'; display:inline-block; transition:transform var(--dur) var(--ease-out);
+    font-size:1.1rem; line-height:1;
+  }
+  details[open] summary.disclosure::before { transform:rotate(90deg); }
+  details summary.disclosure::-webkit-details-marker { display:none; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card" style="border-left: 3.5px solid var(--accent); max-width: 680px;">
-  <h2 style="margin-bottom:.25rem;">Edit event</h2>
-  <p class="muted text-sm mb-2">Update the details for <strong>{{ event.name }}</strong>.</p>
+<div class="card card-accent" style="max-width: 780px;">
+  <div class="section-eyebrow">Edit</div>
+  <h2 class="mb-0">{{ event.name }}</h2>
+  <p class="muted text-sm mb-3">Update the details for this event.</p>
   <form method="post" action="{{ url_for('edit_event_route', event_id=event.id) }}">
     <div class="form-row">
       <div class="field" style="flex:1;min-width:200px;">
@@ -36,7 +56,7 @@
     </div>
 
     <details style="margin-bottom:1rem;" {% if event.venue_capacity or event.registration_deadline or event.late_fee or event.registration_pin %}open{% endif %}>
-      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Registration & Capacity</summary>
+      <summary class="disclosure">Registration &amp; capacity</summary>
       <div class="form-row" style="margin:.5rem 0;">
         <div class="field" style="width:180px;">
           <label for="reg_pin">Registration PIN</label>
@@ -78,7 +98,7 @@
     </details>
 
     <details style="margin-bottom:1rem;" {% if event.goal_registrations or event.goal_attendance or event.goal_sponsorship or event.goal_budget or event.custom_goals %}open{% endif %}>
-      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Goals</summary>
+      <summary class="disclosure">Goals</summary>
       <p class="muted text-sm" style="margin:.4rem 0;">Set targets to track event success.</p>
       <div class="form-row">
         <div class="field" style="width:150px;">
@@ -111,7 +131,7 @@
     </details>
 
     <details style="margin-bottom:1rem;" {% if event.planned_budget or event.actual_spend or event.sponsorship_revenue or event.expenses %}open{% endif %}>
-      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Budget</summary>
+      <summary class="disclosure">Budget</summary>
       <p class="muted text-sm" style="margin:.4rem 0;">Track planned spending and sponsorship income.</p>
       <div class="form-row">
         <div class="field" style="width:180px;">
@@ -140,7 +160,7 @@
     </details>
 
     <details style="margin-bottom:1rem;">
-      <summary style="cursor:pointer;font-weight:600;font-size:.88rem;color:var(--accent);">Sender Override (optional)</summary>
+      <summary class="disclosure">Sender override (optional)</summary>
       <p class="muted text-sm" style="margin:.5rem 0;">Leave blank to use the global defaults from AI Settings.</p>
       <div class="form-row">
         <div class="field" style="flex:1;min-width:160px;">
@@ -158,9 +178,9 @@
       </div>
     </details>
 
-    <div style="display:flex;gap:.5rem;">
-      <button type="submit" class="btn btn-primary">Save changes</button>
-      <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+    <div class="gap-row mt-2">
+      <button type="submit" class="btn btn-primary btn-hero">Save changes</button>
+      <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-secondary">Cancel</a>
     </div>
   </form>
 </div>

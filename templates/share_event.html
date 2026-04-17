@@ -2,24 +2,30 @@
 {% block title %}Share — {{ event.name }}{% endblock %}
 
 {% block sidebar_extra %}
-  <div class="sidebar-section">Current event</div>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+  <li class="sidebar-section">Current event</li>
+  <li>
+    <a href="{{ url_for('event_detail', event_id=event.id) }}">
+      <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-1.5-1.5L12 17l-6.5-6.5L4 12l8 8z"/></svg></span>
+      {{ event.name|truncate(20) }}
+    </a>
+  </li>
 {% endblock %}
 
 {% block topbar %}
 <div class="topbar">
   <div>
-    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a> / <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a> / Share</div>
-    <h2 style="margin-top:.15rem;">Sharing</h2>
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a><span class="sep">/</span><a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name|truncate(30) }}</a><span class="sep">/</span>Share</div>
+    <h2>Sharing</h2>
   </div>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="card" style="max-width:640px;">
-  <h2>Who has access</h2>
+<div class="card" style="max-width:720px;">
+  <div class="section-eyebrow">Access</div>
+  <h2 class="mb-0">Who has access</h2>
   <p class="muted text-sm mb-2">Owners can edit sharing. Editors can manage contacts and outreach. Viewers can only read.</p>
-  <table style="width:100%;font-size:.88rem;">
+  <table>
     <thead>
       <tr><th>User</th><th>Role</th><th></th></tr>
     </thead>
@@ -62,8 +68,9 @@
   </table>
 </div>
 
-<div class="card" style="max-width:640px;">
-  <h2>Add people</h2>
+<div class="card" style="max-width:720px;">
+  <div class="section-eyebrow">Invite</div>
+  <h2 class="mb-2">Add people</h2>
   <form method="post" class="form-row" style="align-items:flex-end;gap:.75rem;flex-wrap:wrap;">
     <input type="hidden" name="action" value="add">
     <div class="field" style="flex:1;min-width:160px;">

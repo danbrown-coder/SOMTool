@@ -16,14 +16,14 @@
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a>  /  {{ event.name }}</div>
-    <h2 style="margin-top:.15rem;">{{ event.name }}</h2>
-    <p class="muted text-sm" style="margin-top:.2rem;">Your role: <strong>{{ event_role }}</strong></p>
+  <div style="min-width:0;">
+    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a><span class="sep">/</span>{{ event.name|truncate(40) }}</div>
+    <h2 style="margin-top:.2rem;">{{ event.name }}</h2>
+    <p class="muted text-xs" style="margin-top:.25rem;">Your role: <span class="text-strong">{{ event_role|title }}</span></p>
   </div>
-  <div class="gap-row" style="flex-wrap:wrap;">
-    <span class="badge badge-{{ 'confirmed' }}">{{ event.date }}</span>
-    <span class="badge badge-{{ 'responded' }}">{{ event.audience_type }}</span>
+  <div class="gap-row">
+    <span class="chip">{{ event.date }}</span>
+    <span class="chip">{{ event.audience_type }}</span>
     {% if can_owner %}
     <a href="{{ url_for('share_event_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Share</a>
     {% endif %}
@@ -32,28 +32,91 @@
 {% endblock %}
 
 {% block extra_css %}
-.cap-bar { height:10px; background:var(--input-bg); border-radius:5px; overflow:hidden; margin-top:.5rem; }
-.cap-fill { height:100%; border-radius:5px; transition:width .3s ease; }
-.cap-fill.green { background:#10b981; }
-.cap-fill.yellow { background:#f59e0b; }
-.cap-fill.red { background:#ef4444; }
-.reg-badge { display:inline-block; padding:.15rem .55rem; font-size:.72rem; font-weight:600; border-radius:100px; }
-.reg-badge.pre { background:#dbeafe; color:#1e40af; }
-.reg-badge.dayof { background:#fef3c7; color:#92400e; }
-.reg-badge.walkin { background:#fce7f3; color:#9d174d; }
-.urgency-pill { display:inline-block; padding:.15rem .55rem; font-size:.7rem; font-weight:700; border-radius:100px; text-transform:uppercase; letter-spacing:.03em; }
-.urgency-pill.critical { background:#fef2f2; color:#dc2626; }
-.urgency-pill.high { background:#fff7ed; color:#ea580c; }
-.urgency-pill.medium { background:#fefce8; color:#ca8a04; }
-.urgency-pill.low { background:#f3f4f6; color:#6b7280; }
-.door-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.3rem .65rem; border-radius:var(--radius-sm); font-size:.78rem; font-weight:600; }
-.door-badge.open { background:#d1fae5; color:#065f46; }
-.door-badge.limited { background:#fef3c7; color:#92400e; }
-.door-badge.full { background:#fee2e2; color:#991b1b; }
-.door-badge.over_capacity { background:#fecaca; color:#7f1d1d; }
-.reg-status { display:inline-flex; align-items:center; gap:.3rem; font-size:.78rem; font-weight:600; }
-.reg-status.open-status { color:#059669; }
-.reg-status.closed-status { color:#dc2626; }
+<style>
+  .cap-bar { height:10px; background:var(--surface-subtle); border-radius:5px; overflow:hidden; margin-top:.5rem; border:1px solid var(--border); }
+  .cap-fill { height:100%; border-radius:5px; transition:width .4s var(--ease-out); }
+  .cap-fill.green { background:linear-gradient(90deg,#059669,#10B981); }
+  .cap-fill.yellow { background:linear-gradient(90deg,#D97706,#F59E0B); }
+  .cap-fill.red { background:linear-gradient(90deg,#DC2626,#EF4444); }
+  .reg-badge { display:inline-block; padding:.2rem .6rem; font-size:.72rem; font-weight:600; border-radius:var(--radius-pill); font-family:var(--font-mono); letter-spacing:.02em; }
+  .reg-badge.pre { background:#DBEAFE; color:#1e40af; }
+  .reg-badge.dayof { background:#FEF3C7; color:#92400e; }
+  .reg-badge.walkin { background:#FCE7F3; color:#9d174d; }
+  .urgency-pill { display:inline-block; padding:.2rem .65rem; font-size:.7rem; font-weight:700; border-radius:var(--radius-pill); text-transform:uppercase; letter-spacing:.1em; font-family:var(--font-mono); }
+  .urgency-pill.critical { background:#FEF2F2; color:#DC2626; }
+  .urgency-pill.high { background:#FFF7ED; color:#EA580C; }
+  .urgency-pill.medium { background:var(--accent-soft); color:#92400E; }
+  .urgency-pill.low { background:var(--surface-subtle); color:var(--text-secondary); }
+  .door-badge { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .7rem; border-radius:var(--radius-sm); font-size:.8rem; font-weight:600; }
+  .door-badge.open { background:#D1FAE5; color:#065F46; }
+  .door-badge.limited { background:#FEF3C7; color:#92400E; }
+  .door-badge.full { background:#FEE2E2; color:#991B1B; }
+  .door-badge.over_capacity { background:#FECACA; color:#7F1D1D; }
+  .reg-status { display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; font-weight:600; }
+  .reg-status.open-status { color:#059669; }
+  .reg-status.closed-status { color:#DC2626; }
+
+  .pin-card {
+    display:flex; justify-content:space-between; align-items:center;
+    gap:1.25rem; flex-wrap:wrap;
+    background:
+      linear-gradient(135deg, rgba(202,138,4,.08) 0%, rgba(255,255,255,0) 65%),
+      linear-gradient(180deg, #1C1917 0%, #292524 100%);
+    color:#FAFAF9;
+    border:1px solid rgba(202,138,4,.25);
+    padding:1.5rem 1.75rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .pin-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .pin-card .pin-eyebrow {
+    font-family:var(--font-mono); font-size:.7rem;
+    text-transform:uppercase; letter-spacing:.14em;
+    color:#F0B429; font-weight:600;
+  }
+  .pin-card .pin-value {
+    font-size:2rem; font-weight:700; letter-spacing:.35em;
+    font-family:var(--font-mono); color:#FAFAF9;
+    margin:.35rem 0 .25rem;
+  }
+  .pin-card .pin-hint { color:#A8A29E; font-size:.8rem; }
+  .pin-card .btn-secondary {
+    background:rgba(250,250,249,.08); border-color:rgba(250,250,249,.2); color:#FAFAF9;
+  }
+  .pin-card .btn-secondary:hover { background:rgba(202,138,4,.18); border-color:var(--accent); color:#FAFAF9; }
+  .pin-card .btn-ghost { color:#A8A29E; }
+  .pin-card .btn-ghost:hover { background:rgba(250,250,249,.08); color:#FAFAF9; }
+
+  .dashed-card { border:1px dashed var(--border-strong); background:transparent; box-shadow:none; }
+
+  .goal-bar-wrap { display:flex; align-items:center; gap:.5rem; }
+  .goal-bar-track { flex:1; height:6px; background:var(--surface-muted); border-radius:3px; overflow:hidden; }
+  .goal-bar-fill { height:100%; border-radius:3px; transition:width .4s var(--ease-out); }
+
+  .stat-tile { text-align:center; min-width:70px; padding:.25rem .5rem; }
+  .stat-tile .stat-num { font-size:1.3rem; font-weight:700; letter-spacing:-.02em; font-family:var(--font-display); font-variant-numeric:tabular-nums; }
+  .stat-tile .stat-lbl { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); font-family:var(--font-mono); margin-top:.15rem; }
+
+  .modal-overlay {
+    display:none; position:fixed; inset:0; z-index:500;
+    background:rgba(12,10,9,.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    align-items:center; justify-content:center;
+    animation: fadeIn .2s var(--ease-out);
+  }
+  .modal-panel {
+    background:var(--surface); border-radius:var(--radius-lg);
+    padding:1.75rem; width:440px; max-width:95vw;
+    box-shadow:var(--shadow-xl);
+    animation: modalRise .25s var(--ease-out);
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes modalRise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -64,27 +127,27 @@
 {% endif %}
 
 {% if can_edit and event.registration_pin %}
-<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+<div class="card pin-card">
   <div>
-    <div class="muted text-sm" style="text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Registration PIN</div>
-    <div style="font-size:1.6rem;font-weight:700;letter-spacing:.25em;font-family:'SF Mono','Consolas',monospace;" id="regPinValue">{{ event.registration_pin }}</div>
-    <div class="muted text-sm">Staff enter this PIN via the sidebar &quot;Registration&quot; button to check people in.</div>
+    <div class="pin-eyebrow">Registration PIN</div>
+    <div class="pin-value" id="regPinValue">{{ event.registration_pin }}</div>
+    <div class="pin-hint">Staff enter this PIN via the sidebar Registration button to check people in.</div>
   </div>
   <div class="gap-row">
     <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText('{{ event.registration_pin }}');this.textContent='Copied';setTimeout(()=>this.textContent='Copy PIN',1500);">Copy PIN</button>
-    <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Open Register</a>
+    <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Open register</a>
   </div>
 </div>
 {% elif can_edit %}
-<div class="card" style="border:1px dashed var(--border);">
-  <p class="muted text-sm" style="margin:0;">No registration PIN set. <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set a PIN</a> to enable the staff check-in desk.</p>
+<div class="card dashed-card">
+  <p class="muted text-sm mb-0">No registration PIN set. <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set a PIN</a> to enable the staff check-in desk.</p>
 </div>
 {% endif %}
 
 <!-- ── Goals & Budget Section ── -->
-<div style="margin:1rem 0 .5rem;display:flex;align-items:center;justify-content:space-between;">
-  <h3 style="font-size:.88rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-secondary);margin:0;">Goals & Budget</h3>
-  {% if can_edit %}<a href="{{ url_for('edit_event_page', event_id=event.id) }}" class="muted" style="font-size:.78rem;">Edit goals & budget</a>{% endif %}
+<div class="row-between mt-3 mb-1">
+  <div class="section-eyebrow">Goals &amp; Budget</div>
+  {% if can_edit %}<a href="{{ url_for('edit_event_page', event_id=event.id) }}" class="text-xs muted">Edit goals &amp; budget &rarr;</a>{% endif %}
 </div>
 
 <!-- ── Goals ── -->
@@ -202,9 +265,7 @@
 
 <!-- ── Attendee Feedback (past events only) ── -->
 {% if is_past %}
-<div style="margin:1rem 0 .5rem;">
-  <h3 style="font-size:.88rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-secondary);margin:0;">Attendee Feedback</h3>
-</div>
+<div class="section-eyebrow mt-3">Attendee Feedback</div>
 {% if fb_summary.count > 0 %}
 <div class="card" id="feedback">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
@@ -293,13 +354,13 @@
     </div>
   </div>
 
-  <div style="margin-top:.75rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
+  <div class="gap-row mt-2">
     <div>
-      <span class="muted text-sm" style="font-weight:600;">Walk-in buffer:</span>
-      <span style="font-weight:700;font-size:.92rem;">{{ metrics.buffer_used }} / {{ metrics.buffer_slots }}</span>
-      <span class="muted text-sm">slots used</span>
+      <span class="muted text-xs text-mono" style="text-transform:uppercase;letter-spacing:.08em;">Walk-in buffer:</span>
+      <span class="text-strong text-sm">{{ metrics.buffer_used }} / {{ metrics.buffer_slots }}</span>
+      <span class="muted text-xs">used</span>
     </div>
-    <div style="display:flex;gap:.4rem;">
+    <div class="gap-row">
       <span class="reg-badge pre">{{ metrics.pre_registered_count }} Pre-reg</span>
       <span class="reg-badge dayof">{{ metrics.day_of_count }} Day-of</span>
       <span class="reg-badge walkin">{{ metrics.walkin_count }} Walk-in</span>
@@ -506,23 +567,11 @@
       <a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Open calendar</a>
     </div>
   </div>
-  <div style="display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap;">
-    <div style="text-align:center;min-width:60px;">
-      <div style="font-size:1.2rem;font-weight:700;color:var(--m-indigo);">{{ sched_metrics.planned }}</div>
-      <div class="muted" style="font-size:.72rem;">Planned</div>
-    </div>
-    <div style="text-align:center;min-width:60px;">
-      <div style="font-size:1.2rem;font-weight:700;color:var(--m-emerald);">{{ sched_metrics.approved }}</div>
-      <div class="muted" style="font-size:.72rem;">Approved</div>
-    </div>
-    <div style="text-align:center;min-width:60px;">
-      <div style="font-size:1.2rem;font-weight:700;color:var(--text-secondary);">{{ sched_metrics.sent }}</div>
-      <div class="muted" style="font-size:.72rem;">Sent</div>
-    </div>
-    <div style="text-align:center;min-width:60px;">
-      <div style="font-size:1.2rem;font-weight:700;">{{ sched_metrics.total }}</div>
-      <div class="muted" style="font-size:.72rem;">Total</div>
-    </div>
+  <div class="gap-row mt-2">
+    <div class="stat-tile"><div class="stat-num" style="color:var(--m-gold);">{{ sched_metrics.planned }}</div><div class="stat-lbl">Planned</div></div>
+    <div class="stat-tile"><div class="stat-num" style="color:var(--m-emerald);">{{ sched_metrics.approved }}</div><div class="stat-lbl">Approved</div></div>
+    <div class="stat-tile"><div class="stat-num muted">{{ sched_metrics.sent }}</div><div class="stat-lbl">Sent</div></div>
+    <div class="stat-tile"><div class="stat-num">{{ sched_metrics.total }}</div><div class="stat-lbl">Total</div></div>
   </div>
   {% if upcoming_actions %}
   <div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.6rem;">
@@ -539,8 +588,9 @@
 </div>
 
 <!-- ── Metrics ── -->
-<div id="metrics" style="margin-bottom:1.25rem;">
-  <h2 style="font-size:1.05rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.85rem;">Event metrics</h2>
+<div id="metrics" class="mb-3">
+  <div class="section-eyebrow mt-2">Performance</div>
+  <h2 class="mb-2">Event metrics</h2>
   <div class="metrics-grid">
     <div class="metric-card mc-1">
       <div class="metric-value">{{ metrics.total_invited }}</div>
@@ -579,13 +629,13 @@
 
 <!-- ── Quick link ── -->
 <div class="card" style="text-align:center;padding:1rem;">
-  <a href="{{ url_for('event_logs', event_id=event.id) }}" class="btn btn-ghost">📜  View full outreach log</a>
+  <a href="{{ url_for('event_logs', event_id=event.id) }}" class="btn btn-ghost">View full outreach log &rarr;</a>
 </div>
 
 {% if can_edit %}
-<div id="editContactModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.4);align-items:center;justify-content:center;">
-  <div style="background:var(--card);border-radius:var(--radius);padding:1.5rem;width:420px;max-width:95vw;box-shadow:var(--shadow-lg);">
-    <h3 style="margin-bottom:1rem;">Edit contact</h3>
+<div id="editContactModal" class="modal-overlay">
+  <div class="modal-panel">
+    <h3 class="mb-2">Edit contact</h3>
     <form id="editContactForm" method="post">
       <div class="field"><label>Name</label><input type="text" name="name" id="editName" required></div>
       <div class="field"><label>Email</label><input type="email" name="email" id="editEmail" required></div>
@@ -605,6 +655,8 @@
 function openEditModal(cid, name, email, phone) {
   var m = document.getElementById('editContactModal');
   m.style.display = 'flex';
+  m.style.alignItems = 'center';
+  m.style.justifyContent = 'center';
   document.getElementById('editName').value = name;
   document.getElementById('editEmail').value = email;
   document.getElementById('editPhone').value = phone || '';
