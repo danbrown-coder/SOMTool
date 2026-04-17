@@ -56,7 +56,37 @@ def _seed_default_users() -> None:
             role="user",
             created_at=utc_now_iso(),
         ),
+        User(
+            id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+            username="register",
+            display_name="Registration Desk",
+            email="register@local",
+            password_hash=generate_password_hash("register123"),
+            role="register_only",
+            created_at=utc_now_iso(),
+        ),
     ]
+    save_users(users)
+
+
+def ensure_register_desk_user() -> None:
+    """Add the registration-desk account on existing installs that predate it."""
+    from werkzeug.security import generate_password_hash
+
+    users = load_users()
+    if any(u.username.strip().lower() == "register" for u in users):
+        return
+    users.append(
+        User(
+            id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+            username="register",
+            display_name="Registration Desk",
+            email="register@local",
+            password_hash=generate_password_hash("register123"),
+            role="register_only",
+            created_at=utc_now_iso(),
+        )
+    )
     save_users(users)
 
 

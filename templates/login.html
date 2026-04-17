@@ -5,7 +5,7 @@
 <div class="auth-center">
   <div class="card" style="box-shadow: var(--shadow-lg);">
     <h2 style="margin-bottom:.25rem;">Sign in</h2>
-    <p class="muted text-sm mb-2">Demo: <code>admin</code> / <code>admin123</code> or <code>viewer</code> / <code>viewer123</code></p>
+    <p class="muted text-sm mb-2">Demo: <code>admin</code> / <code>admin123</code> or <code>viewer</code> / <code>viewer123</code>. Registration desk only: <code>register</code> / <code>register123</code></p>
     <form method="post" action="{{ url_for('login') }}">
       {% if request.args.get('next') %}
       <input type="hidden" name="next" value="{{ request.args.get('next') }}">

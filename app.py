@@ -167,7 +167,38 @@ def _migrate_legacy_once():
     admin_id = auth.get_first_admin_id()
     if admin_id:
         em.migrate_legacy_event_ownership(admin_id)
+    auth.ensure_register_desk_user()
     _LEGACY_MIGRATED = True
+
+
+ALLOWED_REGISTER_ONLY_ENDPOINTS = frozenset({
+    "registration_gate",
+    "event_register",
+    "register_pin",
+    "register_checkin",
+    "register_walkin",
+    "register_approve_lookup",
+    "logout_route",
+    "static",
+})
+
+
+@app.before_request
+def _enforce_register_only():
+    uid = auth.current_user_id()
+    if not uid:
+        return None
+    user = auth.get_user_by_id(uid)
+    if not user or user.role != "register_only":
+        return None
+    ep = request.endpoint or ""
+    if ep not in ALLOWED_REGISTER_ONLY_ENDPOINTS:
+        return redirect(url_for("registration_gate"))
+    if ep == "event_register":
+        event_id = request.view_args.get("event_id") if request.view_args else None
+        if not event_id or not session.get(f"reg_pin_{event_id}"):
+            return redirect(url_for("registration_gate"))
+    return None
 
 
 @app.context_processor
@@ -213,7 +244,11 @@ def _role_ok(role: str | None, need: str) -> bool:
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if auth.current_user_id():
+    uid = auth.current_user_id()
+    if uid:
+        user = auth.get_user_by_id(uid)
+        if user and user.role == "register_only":
+            return redirect(url_for("registration_gate"))
         return redirect(url_for("index"))
     if request.method == "POST":
         u = request.form.get("username", "")
@@ -221,6 +256,8 @@ def login():
         user = auth.verify_login(u, p)
         if user:
             auth.login_user(user)
+            if user.role == "register_only":
+                return redirect(url_for("registration_gate"))
             nxt = request.form.get("next") or request.args.get("next") or url_for("index")
             if not (
                 isinstance(nxt, str)
@@ -235,7 +272,11 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if auth.current_user_id():
+    uid = auth.current_user_id()
+    if uid:
+        user = auth.get_user_by_id(uid)
+        if user and user.role == "register_only":
+            return redirect(url_for("registration_gate"))
         return redirect(url_for("index"))
     if request.method == "POST":
         user = auth.register_user(
@@ -256,6 +297,29 @@ def register():
 def logout_route():
     auth.logout_user()
     return redirect(url_for("login"))
+
+
+@app.route("/registration", methods=["GET", "POST"])
+def registration_gate():
+    uid = auth.current_user_id()
+    user = auth.get_user_by_id(uid) if uid else None
+    if not user:
+        return redirect(url_for("login", next=url_for("registration_gate")))
+    pin_error = False
+    if request.method == "POST":
+        pin = request.form.get("pin", "").strip()
+        if pin:
+            for ev in em.load_events():
+                if ev.registration_pin and ev.registration_pin == pin:
+                    session[f"reg_pin_{ev.id}"] = True
+                    return redirect(url_for("event_register", event_id=ev.id))
+        pin_error = True
+    hide_sidebar = user.role == "register_only"
+    return render_template(
+        "registration_gate.html",
+        pin_error=pin_error,
+        hide_sidebar=hide_sidebar,
+    )
 
 
 # ── Events ───────────────────────────────────────────────────

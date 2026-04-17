@@ -63,6 +63,24 @@
 </div>
 {% endif %}
 
+{% if can_edit and event.registration_pin %}
+<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+  <div>
+    <div class="muted text-sm" style="text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Registration PIN</div>
+    <div style="font-size:1.6rem;font-weight:700;letter-spacing:.25em;font-family:'SF Mono','Consolas',monospace;" id="regPinValue">{{ event.registration_pin }}</div>
+    <div class="muted text-sm">Staff enter this PIN via the sidebar &quot;Registration&quot; button to check people in.</div>
+  </div>
+  <div class="gap-row">
+    <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText('{{ event.registration_pin }}');this.textContent='Copied';setTimeout(()=>this.textContent='Copy PIN',1500);">Copy PIN</button>
+    <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Open Register</a>
+  </div>
+</div>
+{% elif can_edit %}
+<div class="card" style="border:1px dashed var(--border);">
+  <p class="muted text-sm" style="margin:0;">No registration PIN set. <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set a PIN</a> to enable the staff check-in desk.</p>
+</div>
+{% endif %}
+
 <!-- ── Goals & Budget Section ── -->
 <div style="margin:1rem 0 .5rem;display:flex;align-items:center;justify-content:space-between;">
   <h3 style="font-size:.88rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-secondary);margin:0;">Goals & Budget</h3>
