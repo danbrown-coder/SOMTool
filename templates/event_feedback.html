@@ -3,96 +3,168 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Feedback — {{ event.name }}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Feedback — {{ event.name }} · SOM Event OS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/som-theme.css') }}">
   <style>
-    :root { --accent: #4f46e5; --accent-light: #eef2ff; --border: #e5e7eb; --radius: 12px; }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Inter',system-ui,sans-serif; background:#f8f9fb; color:#111827; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem 1rem; }
-    .fb-card { background:#fff; border-radius:var(--radius); box-shadow:0 4px 24px rgba(0,0,0,.08); max-width:520px; width:100%; padding:2rem; }
-    .fb-header { text-align:center; margin-bottom:1.5rem; }
-    .fb-header h1 { font-size:1.4rem; font-weight:700; letter-spacing:-.02em; }
-    .fb-header p { color:#6b7280; font-size:.88rem; margin-top:.3rem; }
-    .fb-field { margin-bottom:1.25rem; }
-    .fb-field label { display:block; font-size:.85rem; font-weight:600; margin-bottom:.35rem; }
-    .fb-field input, .fb-field textarea {
-      width:100%; padding:.6rem .8rem; border:1.5px solid var(--border); border-radius:8px;
-      font-size:.9rem; font-family:inherit; background:#f9fafb; transition:border .15s;
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem 1rem;
     }
-    .fb-field input:focus, .fb-field textarea:focus { outline:none; border-color:var(--accent); }
-    .fb-field textarea { resize:vertical; min-height:80px; }
-
-    /* Star rating */
-    .stars { display:flex; gap:.3rem; flex-direction:row-reverse; justify-content:flex-end; }
-    .stars input { display:none; }
-    .stars label { font-size:2rem; color:#d1d5db; cursor:pointer; transition:color .15s; }
-    .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color:#f59e0b; }
-
-    /* Yes/No toggle */
-    .yn-group { display:flex; gap:.5rem; }
-    .yn-btn { flex:1; padding:.5rem; text-align:center; border:1.5px solid var(--border); border-radius:8px; font-size:.85rem; font-weight:600; cursor:pointer; transition:all .15s; background:#fff; }
-    .yn-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-
-    .fb-submit { width:100%; padding:.7rem; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; transition:background .15s; }
-    .fb-submit:hover { background:#4338ca; }
-
-    .fb-thanks { text-align:center; padding:2rem 0; }
-    .fb-thanks h2 { font-size:1.3rem; font-weight:700; color:var(--accent); }
-    .fb-thanks p { color:#6b7280; margin-top:.5rem; font-size:.9rem; }
-    .muted { color:#6b7280; }
+    .fb-shell { max-width: 540px; width: 100%; }
+    .fb-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem;
+      box-shadow: var(--shadow-lg);
+    }
+    .fb-brand {
+      display: flex; align-items: center; gap: .65rem;
+      justify-content: center; margin-bottom: 1.25rem;
+    }
+    .fb-brand .brand-mark { width: 36px; height: 36px; font-size: .95rem; }
+    .fb-brand-name {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: .95rem; letter-spacing: -.01em;
+    }
+    .fb-brand-sub {
+      font-family: var(--font-mono); font-size: .65rem;
+      text-transform: uppercase; letter-spacing: .14em;
+      color: var(--text-secondary); margin-top: .1rem;
+    }
+    .fb-header { text-align: center; margin-bottom: 1.75rem; }
+    .fb-header h1 {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 700;
+      letter-spacing: -.02em; line-height: 1.2;
+    }
+    .fb-header p {
+      color: var(--text-secondary); font-size: .9rem;
+      margin-top: .35rem;
+    }
+    .fb-field { margin-bottom: 1.25rem; }
+    .fb-field label {
+      display: block; font-size: .82rem; font-weight: 600;
+      margin-bottom: .4rem; color: var(--text-strong);
+      letter-spacing: -.005em;
+    }
+    .fb-field input, .fb-field textarea { width: 100%; }
+    .fb-field textarea { resize: vertical; min-height: 88px; }
+    .stars {
+      display: flex; gap: .35rem;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+    }
+    .stars input { display: none; }
+    .stars label {
+      font-size: 2rem; color: var(--border-strong);
+      cursor: pointer; transition: color .15s;
+      line-height: 1;
+    }
+    .stars input:checked ~ label,
+    .stars label:hover,
+    .stars label:hover ~ label { color: var(--accent); }
+    .yn-group { display: flex; gap: .5rem; }
+    .yn-btn {
+      flex: 1; padding: .65rem;
+      text-align: center; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: .88rem; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+      background: var(--surface-elevated);
+      color: var(--text);
+      font-family: var(--font-body);
+    }
+    .yn-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .yn-btn.active {
+      background: var(--text-strong); color: #FFF;
+      border-color: var(--text-strong);
+    }
+    .fb-thanks {
+      text-align: center; padding: 1.5rem 0;
+    }
+    .fb-thanks-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #FFF;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 700;
+      margin-bottom: .85rem;
+      box-shadow: var(--shadow-md);
+    }
+    .fb-thanks h2 {
+      font-family: var(--font-display);
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--text-strong);
+    }
+    .fb-thanks p {
+      color: var(--text-secondary);
+      margin-top: .5rem; font-size: .92rem;
+    }
   </style>
 </head>
 <body>
-<div class="fb-card">
-  {% if submitted %}
-  <div class="fb-thanks">
-    <div style="font-size:3rem;margin-bottom:.5rem;">&#10003;</div>
-    <h2>Thank you!</h2>
-    <p>Your feedback for <strong>{{ event.name }}</strong> has been recorded.</p>
-  </div>
-  {% else %}
-  <div class="fb-header">
-    <h1>{{ event.name }}</h1>
-    <p>We'd love your feedback{{ ' — ' + event.date if event.date else '' }}</p>
-  </div>
-  <form method="post" action="{{ url_for('event_feedback', event_id=event.id) }}">
-    <div class="fb-field">
-      <label>Overall rating</label>
-      <div class="stars">
-        {% for i in range(5, 0, -1) %}
-        <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}"{% if i == 4 %} checked{% endif %}>
-        <label for="star{{ i }}">&#9733;</label>
-        {% endfor %}
+<div class="fb-shell">
+  <div class="fb-card">
+    {% if submitted %}
+    <div class="fb-thanks">
+      <div class="fb-thanks-icon" aria-hidden="true">&#10003;</div>
+      <h2>Thank you</h2>
+      <p>Your feedback for <strong>{{ event.name }}</strong> has been recorded.</p>
+    </div>
+    {% else %}
+    <div class="fb-brand">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <div>
+        <div class="fb-brand-name">SOM Event OS</div>
+        <div class="fb-brand-sub">Attendee feedback</div>
       </div>
     </div>
-    <div class="fb-field">
-      <label for="liked">What did you enjoy?</label>
-      <textarea id="liked" name="liked" placeholder="Tell us what worked well..."></textarea>
+    <div class="fb-header">
+      <h1>{{ event.name }}</h1>
+      <p>We'd love your feedback{{ ' · ' + event.date if event.date else '' }}</p>
     </div>
-    <div class="fb-field">
-      <label for="improve">What could be improved?</label>
-      <textarea id="improve" name="improve" placeholder="Any suggestions for next time..."></textarea>
-    </div>
-    <div class="fb-field">
-      <label>Would you attend again?</label>
-      <input type="hidden" name="would_attend_again" id="wouldAttendVal" value="yes">
-      <div class="yn-group">
-        <div class="yn-btn active" onclick="setYN(this,'yes')">Yes</div>
-        <div class="yn-btn" onclick="setYN(this,'no')">No</div>
+    <form method="post" action="{{ url_for('event_feedback', event_id=event.id) }}">
+      <div class="fb-field">
+        <label>Overall rating</label>
+        <div class="stars">
+          {% for i in range(5, 0, -1) %}
+          <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}"{% if i == 4 %} checked{% endif %}>
+          <label for="star{{ i }}">&#9733;</label>
+          {% endfor %}
+        </div>
       </div>
-    </div>
-    <div class="fb-field">
-      <label for="rname">Name <span class="muted" style="font-weight:400;">(optional)</span></label>
-      <input type="text" id="rname" name="respondent_name" placeholder="Your name">
-    </div>
-    <div class="fb-field">
-      <label for="remail">Email <span class="muted" style="font-weight:400;">(optional)</span></label>
-      <input type="email" id="remail" name="respondent_email" placeholder="your@email.com">
-    </div>
-    <button type="submit" class="fb-submit">Submit Feedback</button>
-  </form>
-  {% endif %}
+      <div class="fb-field">
+        <label for="liked">What did you enjoy?</label>
+        <textarea id="liked" name="liked" placeholder="Tell us what worked well…"></textarea>
+      </div>
+      <div class="fb-field">
+        <label for="improve">What could be improved?</label>
+        <textarea id="improve" name="improve" placeholder="Any suggestions for next time…"></textarea>
+      </div>
+      <div class="fb-field">
+        <label>Would you attend again?</label>
+        <input type="hidden" name="would_attend_again" id="wouldAttendVal" value="yes">
+        <div class="yn-group">
+          <div class="yn-btn active" onclick="setYN(this,'yes')">Yes</div>
+          <div class="yn-btn" onclick="setYN(this,'no')">No</div>
+        </div>
+      </div>
+      <div class="fb-field">
+        <label for="rname">Name <span class="muted" style="font-weight:400;">(optional)</span></label>
+        <input type="text" id="rname" name="respondent_name" placeholder="Your name">
+      </div>
+      <div class="fb-field">
+        <label for="remail">Email <span class="muted" style="font-weight:400;">(optional)</span></label>
+        <input type="email" id="remail" name="respondent_email" placeholder="your@email.com">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-hero">Submit feedback</button>
+    </form>
+    {% endif %}
+  </div>
 </div>
 <script>
 function setYN(el, val) {

@@ -3,14 +3,14 @@
 
 {% block sidebar_extra %}
   <div class="sidebar-section">Current event</div>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" class="active" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#contacts" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">👥</span> Contacts</a></li>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#outreach" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">✉️</span> Outreach</a></li>
-  <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📅</span> Calendar</a></li>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📊</span> Metrics</a></li>
-  <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" style="font-size:.8rem;">📜</span> Log</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" class="active" style="font-size:.82rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span> {{ event.name|truncate(22) }}</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#contacts" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Contacts</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#outreach" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span> Outreach</a></li>
+  <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> Calendar</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Metrics</a></li>
+  <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span> Log</a></li>
   {% if event.registration_pin %}
-  <li><a href="{{ url_for('event_register', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;" target="_blank"><span class="nav-icon" style="font-size:.8rem;">📋</span> Registration Desk</a></li>
+  <li><a href="{{ url_for('event_register', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;" target="_blank"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span> Registration desk</a></li>
   {% endif %}
 {% endblock %}
 
@@ -47,11 +47,16 @@
   .urgency-pill.high { background:#FFF7ED; color:#EA580C; }
   .urgency-pill.medium { background:var(--accent-soft); color:#92400E; }
   .urgency-pill.low { background:var(--surface-subtle); color:var(--text-secondary); }
-  .door-badge { display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .7rem; border-radius:var(--radius-sm); font-size:.8rem; font-weight:600; }
+  .door-badge { display:inline-flex; align-items:center; gap:.45rem; padding:.4rem .8rem; border-radius:var(--radius-pill); font-size:.72rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.1em; }
+  .door-badge .dot { width:8px; height:8px; border-radius:50%; }
   .door-badge.open { background:#D1FAE5; color:#065F46; }
+  .door-badge.open .dot { background:#059669; box-shadow:0 0 6px rgba(5,150,105,.5); }
   .door-badge.limited { background:#FEF3C7; color:#92400E; }
+  .door-badge.limited .dot { background:#D97706; box-shadow:0 0 6px rgba(217,119,6,.5); }
   .door-badge.full { background:#FEE2E2; color:#991B1B; }
+  .door-badge.full .dot { background:#DC2626; box-shadow:0 0 6px rgba(220,38,38,.5); }
   .door-badge.over_capacity { background:#FECACA; color:#7F1D1D; }
+  .door-badge.over_capacity .dot { background:#7F1D1D; box-shadow:0 0 6px rgba(127,29,29,.5); }
   .reg-status { display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; font-weight:600; }
   .reg-status.open-status { color:#059669; }
   .reg-status.closed-status { color:#DC2626; }
@@ -331,7 +336,8 @@
     <span class="muted text-sm">Deadline: {{ event.registration_deadline[:16]|replace('T', ' ') }}</span>
     {% endif %}
     <span class="door-badge {{ priority.door_status }}">
-      {% if priority.door_status == 'open' %}🟢 Open{% elif priority.door_status == 'limited' %}🟡 Limited spots{% elif priority.door_status == 'full' %}🔴 Full{% else %}🔴 Over capacity{% endif %}
+      <span class="dot" aria-hidden="true"></span>
+      {% if priority.door_status == 'open' %}Open{% elif priority.door_status == 'limited' %}Limited spots{% elif priority.door_status == 'full' %}Full{% else %}Over capacity{% endif %}
       {% if priority.spots_remaining >= 0 %}· {{ priority.spots_remaining }} spot{{ 's' if priority.spots_remaining != 1 }} remaining{% endif %}
     </span>
   </div>
@@ -486,9 +492,13 @@
             </td>
             {% if can_edit %}
             <td style="width:70px;white-space:nowrap;">
-              <button type="button" class="btn btn-ghost btn-sm" title="Edit" onclick="openEditModal('{{ c.id }}','{{ c.name|e }}','{{ c.email|e }}','{{ c.phone|e }}')">✏️</button>
+              <button type="button" class="btn btn-ghost btn-sm" title="Edit" aria-label="Edit contact" onclick="openEditModal('{{ c.id }}','{{ c.name|e }}','{{ c.email|e }}','{{ c.phone|e }}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              </button>
               <form method="post" action="{{ url_for('delete_contact_route', event_id=event.id, contact_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Remove {{ c.name|e }} from this event?')">
-                <button type="submit" class="btn btn-ghost btn-sm" title="Remove" style="color:#dc2626;">🗑</button>
+                <button type="submit" class="btn btn-ghost btn-sm" title="Remove" aria-label="Remove contact" style="color:#DC2626;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                </button>
               </form>
             </td>
             {% endif %}
@@ -511,7 +521,7 @@
   {% if can_edit %}
   <div class="outreach-grid">
     <form method="post" action="{{ url_for('generate_emails_route', event_id=event.id) }}" style="grid-column:1/-1;">
-      <button type="submit" class="btn btn-primary btn-hero" style="width:100%;">✦ Generate outreach emails</button>
+      <button type="submit" class="btn btn-primary btn-hero" style="width:100%;">Generate outreach emails</button>
     </form>
     <form method="post" action="{{ url_for('followup_emails_route', event_id=event.id) }}">
       <button type="submit" class="btn btn-secondary" style="width:100%;">Send follow-ups</button>
@@ -521,29 +531,29 @@
     <a href="{{ url_for('discover_route', event_id=event.id) }}" class="btn btn-secondary">Discover prospects</a>
   </div>
 
-  <div style="margin-top:1rem;">
-    <h3 style="font-size:.9rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.6rem;color:var(--text-secondary);">📞 AI Voice Calls</h3>
+  <div style="margin-top:1.25rem;">
+    <div class="section-eyebrow">AI voice calls</div>
     <div class="outreach-grid">
       <form method="post" action="{{ url_for('call_invite_route', event_id=event.id) }}">
-        <button type="submit" class="btn btn-secondary" style="width:100%;background:linear-gradient(135deg,#ecfdf5 0%,#fff 100%);border-color:#10b981;">📞 AI Call — Invite</button>
+        <button type="submit" class="btn btn-secondary" style="width:100%;">AI call · Invite</button>
       </form>
       <form method="post" action="{{ url_for('call_followup_route', event_id=event.id) }}">
-        <button type="submit" class="btn btn-secondary" style="width:100%;background:linear-gradient(135deg,#fef3c7 0%,#fff 100%);border-color:#f59e0b;">📞 AI Call — Follow-up</button>
+        <button type="submit" class="btn btn-secondary" style="width:100%;">AI call · Follow-up</button>
       </form>
     </div>
-    <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Vapi AI calls contacts with phone numbers — personalized, role-aware conversations powered by voice AI.</p>
+    <p class="muted" style="font-size:.75rem;margin-top:.5rem;">Vapi AI calls contacts with phone numbers — personalized, role-aware conversations powered by voice AI.</p>
   </div>
 
-  <div style="margin-top:1rem;">
-    <h3 style="font-size:.9rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.6rem;color:var(--text-secondary);">Post-Event</h3>
+  <div style="margin-top:1.25rem;">
+    <div class="section-eyebrow">Post-event</div>
     {% if is_past %}
     <form method="post" action="{{ url_for('request_feedback_route', event_id=event.id) }}">
-      <button type="submit" class="btn btn-secondary" style="width:100%;background:linear-gradient(135deg,#eef2ff 0%,#fff 100%);border-color:var(--accent);">📋 Request Feedback</button>
+      <button type="submit" class="btn btn-secondary" style="width:100%;">Request feedback</button>
     </form>
-    <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Schedules feedback survey emails to all attendees. Review and approve them in the Calendar.</p>
+    <p class="muted" style="font-size:.75rem;margin-top:.5rem;">Schedules feedback survey emails to all attendees. Review and approve them in the Calendar.</p>
     {% else %}
-    <button type="button" class="btn btn-secondary" disabled style="width:100%;opacity:.45;cursor:not-allowed;" title="Available after the event has passed">📋 Request Feedback</button>
-    <p class="muted" style="font-size:.75rem;margin-top:.4rem;">Available after the event date has passed.</p>
+    <button type="button" class="btn btn-secondary" disabled style="width:100%;opacity:.45;cursor:not-allowed;" title="Available after the event has passed">Request feedback</button>
+    <p class="muted" style="font-size:.75rem;margin-top:.5rem;">Available after the event date has passed.</p>
     {% endif %}
   </div>
   {% else %}
@@ -577,10 +587,12 @@
   <div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.6rem;">
     <div style="font-size:.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem;">Upcoming</div>
     {% for item in upcoming_actions %}
-    <div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;{% if not loop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
-      <span style="font-size:.82rem;">{% if 'email' in item.action_type %}✉️{% else %}📞{% endif %}</span>
-      <span style="flex:1;min-width:0;font-size:.8rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.contact_name }}</span>
-      <span style="font-size:.7rem;color:var(--text-secondary);flex-shrink:0;">{{ item.scheduled_at[5:16]|replace('T', ' ') if item.scheduled_at|length > 16 else item.scheduled_at[:10] }}</span>
+    <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;{% if not loop.last %}border-bottom:1px solid var(--border-subtle);{% endif %}">
+      <span aria-hidden="true" style="width:18px;height:18px;flex-shrink:0;color:var(--text-tertiary);display:inline-flex;align-items:center;justify-content:center;">
+        {% if 'email' in item.action_type %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>{% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>{% endif %}
+      </span>
+      <span style="flex:1;min-width:0;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.contact_name }}</span>
+      <span style="font-size:.72rem;color:var(--text-secondary);flex-shrink:0;font-family:var(--font-mono);">{{ item.scheduled_at[5:16]|replace('T', ' ') if item.scheduled_at|length > 16 else item.scheduled_at[:10] }}</span>
     </div>
     {% endfor %}
   </div>

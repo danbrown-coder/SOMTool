@@ -3,7 +3,7 @@
 
 {% block sidebar_extra %}
   <div class="sidebar-section">Current event</div>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span> {{ event.name|truncate(22) }}</a></li>
 {% endblock %}
 
 {% block topbar %}
@@ -18,13 +18,13 @@
 
 {% block content %}
 {% if emails %}
-<div class="card" style="text-align:center;padding:1.25rem;margin-bottom:1rem;background:linear-gradient(135deg,#eef2ff 0%,#fff 100%);">
+<div class="card card-accent" style="text-align:center;padding:1.5rem 1.25rem;margin-bottom:1rem;">
   <form method="post" action="{{ url_for('send_emails_route', event_id=event.id) }}" id="send-form">
     <input type="hidden" name="email_batch" value='{{ emails | tojson }}'>
-    <button type="submit" class="btn btn-primary btn-hero" style="font-size:1rem;padding:.75rem 2.5rem;" id="send-all-btn">
-      ✉️ Send All Emails
-    </button>
-    <p class="muted text-sm" style="margin-top:.5rem;">Sends {{ emails|length }} email{{ 's' if emails|length != 1 else '' }} via Gmail SMTP — real emails to real inboxes</p>
+    <div class="section-eyebrow" style="text-align:center;">Ready to send</div>
+    <h3 style="font-family:var(--font-display);font-size:1.25rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.85rem;">{{ emails|length }} email{{ 's' if emails|length != 1 else '' }} prepared</h3>
+    <button type="submit" class="btn btn-primary btn-hero" id="send-all-btn">Send all emails</button>
+    <p class="muted text-sm" style="margin-top:.65rem;">Delivers via Gmail SMTP to real inboxes.</p>
   </form>
 </div>
 {% endif %}
@@ -40,7 +40,7 @@
   </div>
   <div class="email-subject"><strong>Subject:</strong> {{ item.subject }}</div>
   <div class="email-body">{{ item.body }}</div>
-  <button type="button" class="btn btn-secondary btn-sm copy-btn" data-index="{{ loop.index0 }}">📋 Copy email</button>
+  <button type="button" class="btn btn-secondary btn-sm copy-btn" data-index="{{ loop.index0 }}">Copy email</button>
 </div>
 {% else %}
 <div class="card">
@@ -70,10 +70,10 @@
       var text = 'Subject: ' + (item.subject || '') + '\n\n' + (item.body || '');
       navigator.clipboard.writeText(text).then(function() {
         btn.classList.add('copied');
-        btn.textContent = '✓ Copied!';
+        btn.textContent = 'Copied';
         setTimeout(function() {
           btn.classList.remove('copied');
-          btn.textContent = '📋 Copy email';
+          btn.textContent = 'Copy email';
         }, 2000);
       });
     });

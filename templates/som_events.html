@@ -83,11 +83,18 @@
 <!-- Change Alerts -->
 {% if changes %}
 <div style="margin-bottom: 1.25rem;">
-  <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: .65rem;">⚡ {{ changes|length }} Change{{ 's' if changes|length != 1 else '' }} Detected</h2>
+  <div class="section-eyebrow">Detected updates</div>
+<h2 style="font-size: 1.05rem; font-weight: 700; margin-bottom: .85rem;">{{ changes|length }} change{{ 's' if changes|length != 1 else '' }} detected</h2>
   {% for c in changes %}
   <div class="change-alert {% if c.change_type == 'registration_opened' %}reg{% elif c.change_type == 'date_changed' %}date{% endif %}">
-    <span class="change-icon">
-      {% if c.change_type == 'registration_opened' %}🔔{% elif c.change_type == 'date_changed' %}📅{% else %}📝{% endif %}
+    <span class="change-icon" aria-hidden="true">
+      {% if c.change_type == 'registration_opened' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      {% elif c.change_type == 'date_changed' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      {% else %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      {% endif %}
     </span>
     <div class="change-body">
       <strong>{{ c.event_name }}</strong>
@@ -108,7 +115,7 @@
       <div class="gap-row">
         {% if c.event_id %}
         <form method="post" action="{{ url_for('som_notify_change', change_id=c.id) }}" style="display:inline;">
-          <button type="submit" class="btn btn-primary btn-sm">✉️ Notify contacts</button>
+          <button type="submit" class="btn btn-primary btn-sm">Notify contacts</button>
         </form>
         {% endif %}
         <a href="{{ c.source_url }}" target="_blank" class="btn btn-ghost btn-sm">View source ↗</a>
@@ -137,11 +144,11 @@
         <span class="som-badge upcoming">{{ e.date }}</span>
         <span class="som-badge {{ e.registration_status }}">{{ e.registration_status.replace('_', ' ') }}</span>
       </div>
-      <div class="som-meta">📍 {{ e.location }}</div>
-      {% if e.time %}<div class="som-meta">🕐 {{ e.time }}</div>{% endif %}
-      {% if e.cost %}<div class="som-meta">💰 {{ e.cost }}</div>{% endif %}
+      <div class="som-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {{ e.location }}</div>
+      {% if e.time %}<div class="som-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {{ e.time }}</div>{% endif %}
+      {% if e.cost %}<div class="som-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> {{ e.cost }}</div>{% endif %}
       {% if e.speakers %}
-        <div class="som-speakers">🎤 {{ e.speakers | join(', ') }}</div>
+        <div class="som-speakers"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> {{ e.speakers | join(', ') }}</div>
       {% endif %}
       <p class="som-desc">{{ e.description }}</p>
       {% if e.extra_details %}
@@ -181,7 +188,7 @@
       <div class="gap-row" style="gap: .35rem; margin-bottom: .25rem;">
         <span class="som-badge {{ e.status }}">{% if e.status == 'tba' %}Date TBA{% else %}{{ e.date }}{% endif %}</span>
       </div>
-      {% if e.location != 'TBA' %}<div class="som-meta">📍 {{ e.location }}</div>{% endif %}
+      {% if e.location != 'TBA' %}<div class="som-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {{ e.location }}</div>{% endif %}
       <p class="som-desc">{{ e.description }}</p>
       {% if e.extra_details %}
       <details class="som-details">

@@ -3,7 +3,7 @@
 
 {% block sidebar_extra %}
   <div class="sidebar-section">Current event</div>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span> {{ event.name|truncate(22) }}</a></li>
 {% endblock %}
 
 {% block topbar %}
@@ -28,11 +28,11 @@
 </div>
 
 {% for r in results %}
-<div class="card" style="padding:1rem 1.25rem;margin-bottom:.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-  <span style="font-size:1.4rem;">{% if r.ok %}✅{% else %}❌{% endif %}</span>
+<div class="card" style="padding:.95rem 1.25rem;margin-bottom:.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+  <span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:{% if r.ok %}#059669{% else %}#DC2626{% endif %};box-shadow:0 0 6px {% if r.ok %}rgba(5,150,105,.4){% else %}rgba(220,38,38,.4){% endif %};flex-shrink:0;"></span>
   <div style="flex:1;min-width:200px;">
     <strong>{{ r.recipient_name }}</strong>
-    <span class="muted text-sm">&lt;{{ r.recipient_email }}&gt;</span>
+    <div class="muted text-sm" style="font-family:var(--font-mono);">{{ r.recipient_email }}</div>
   </div>
   {% if r.ok %}
     <span class="badge badge-confirmed">Delivered</span>

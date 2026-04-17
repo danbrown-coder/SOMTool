@@ -3,7 +3,7 @@
 
 {% block sidebar_extra %}
   <div class="sidebar-section">Current event</div>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon">📌</span> {{ event.name|truncate(22) }}</a></li>
+  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" style="font-size:.82rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span> {{ event.name|truncate(22) }}</a></li>
 {% endblock %}
 
 {% block topbar %}

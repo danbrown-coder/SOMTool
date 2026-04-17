@@ -4,10 +4,60 @@
 {% block topbar %}
 <div class="topbar">
   <div>
-    <h2>Outreach Analytics</h2>
-    <p class="muted text-sm">AI-powered insights across all channels</p>
+    <h2>Outreach analytics</h2>
+    <div class="breadcrumb">AI-powered insights across all channels</div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .outcome-tile {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .75rem 1rem;
+    text-align: center;
+    min-width: 110px;
+    box-shadow: var(--shadow-sm);
+  }
+  .outcome-tile .num {
+    font-family: var(--font-display);
+    font-size: 1.4rem; font-weight: 700;
+    letter-spacing: -.02em; color: var(--text-strong);
+  }
+  .outcome-tile .lbl {
+    font-size: .68rem;
+    color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: .12em;
+    font-family: var(--font-mono);
+    margin-top: .25rem;
+  }
+  .insight-list {
+    margin: 0; padding-left: 1.25rem;
+    font-size: .92rem; line-height: 1.85;
+  }
+  .insight-list li { text-transform: capitalize; }
+  .yoy-bar-wrap {
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .yoy-bar-track {
+    width: 64px; height: 8px;
+    background: var(--surface-subtle);
+    border-radius: var(--radius-pill); overflow: hidden;
+  }
+  .yoy-bar-fill {
+    height: 100%; border-radius: var(--radius-pill);
+    transition: width .4s var(--ease-out);
+  }
+  .recent-analysis {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .85rem 1.1rem;
+    margin-bottom: .55rem;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -39,32 +89,35 @@
   </div>
 </div>
 
-<!-- ── Call outcomes ── -->
+<!-- Call outcomes -->
 {% if call_metrics.outcomes %}
 <div class="card">
-  <h2>Call Outcomes</h2>
+  <div class="section-eyebrow">Distribution</div>
+  <h2>Call outcomes</h2>
   <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
     {% for outcome, count in call_metrics.outcomes.items() %}
-    <div style="background:var(--input-bg);border-radius:var(--radius-sm);padding:.5rem .8rem;text-align:center;min-width:100px;">
-      <div style="font-size:1.2rem;font-weight:700;">{{ count }}</div>
-      <div style="font-size:.75rem;color:var(--text-secondary);text-transform:capitalize;">{{ outcome|replace('_',' ') }}</div>
+    <div class="outcome-tile">
+      <div class="num">{{ count }}</div>
+      <div class="lbl">{{ outcome|replace('_',' ') }}</div>
     </div>
     {% endfor %}
   </div>
 </div>
 {% endif %}
 
-<!-- ── Engagement levels ── -->
+<!-- Engagement levels -->
 {% if call_metrics.engagement %}
 <div class="card">
-  <h2>Engagement Levels</h2>
+  <div class="section-eyebrow">Audience</div>
+  <h2>Engagement levels</h2>
   <div style="display:flex;gap:1rem;">
     {% for level, count in call_metrics.engagement.items() %}
+    {% set lvl_color = '#059669' if level == 'high' else ('#CA8A04' if level == 'medium' else '#A8A29E') %}
     <div style="flex:1;text-align:center;">
-      <div style="font-size:1.5rem;font-weight:700;color:{% if level == 'high' %}var(--m-emerald){% elif level == 'medium' %}var(--s-contacted){% else %}var(--s-not-contacted){% endif %};">{{ count }}</div>
-      <div style="font-size:.8rem;color:var(--text-secondary);text-transform:capitalize;">{{ level }}</div>
-      <div style="margin-top:.4rem;height:6px;background:var(--input-bg);border-radius:3px;overflow:hidden;">
-        <div style="height:100%;width:{{ (count / (call_metrics.analyzed_calls or 1) * 100)|int }}%;background:{% if level == 'high' %}var(--m-emerald){% elif level == 'medium' %}var(--s-contacted){% else %}var(--s-not-contacted){% endif %};border-radius:3px;"></div>
+      <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:{{ lvl_color }};">{{ count }}</div>
+      <div style="font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.12em;font-family:var(--font-mono);margin-top:.25rem;">{{ level }}</div>
+      <div style="margin-top:.5rem;height:6px;background:var(--surface-subtle);border-radius:var(--radius-pill);overflow:hidden;">
+        <div style="height:100%;width:{{ (count / (call_metrics.analyzed_calls or 1) * 100)|int }}%;background:{{ lvl_color }};border-radius:var(--radius-pill);transition:width .4s var(--ease-out);"></div>
       </div>
     </div>
     {% endfor %}
@@ -72,27 +125,25 @@
 </div>
 {% endif %}
 
-<!-- ── What works / doesn't ── -->
+<!-- What works / doesn't -->
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
   <div class="card">
-    <h2 style="color:var(--m-emerald);">What Works</h2>
+    <div class="section-eyebrow" style="color:#059669;">Strengths</div>
+    <h2>What works</h2>
     {% if call_metrics.top_worked %}
-    <ol style="margin-left:1.2rem;font-size:.88rem;line-height:1.8;">
-      {% for item in call_metrics.top_worked %}
-      <li style="text-transform:capitalize;">{{ item }}</li>
-      {% endfor %}
+    <ol class="insight-list">
+      {% for item in call_metrics.top_worked %}<li>{{ item }}</li>{% endfor %}
     </ol>
     {% else %}
     <p class="empty-state">No data yet — insights appear after AI analyzes calls.</p>
     {% endif %}
   </div>
   <div class="card">
-    <h2 style="color:var(--s-declined);">What Doesn't Work</h2>
+    <div class="section-eyebrow" style="color:#DC2626;">Friction</div>
+    <h2>What doesn't work</h2>
     {% if call_metrics.top_didnt_work %}
-    <ol style="margin-left:1.2rem;font-size:.88rem;line-height:1.8;">
-      {% for item in call_metrics.top_didnt_work %}
-      <li style="text-transform:capitalize;">{{ item }}</li>
-      {% endfor %}
+    <ol class="insight-list">
+      {% for item in call_metrics.top_didnt_work %}<li>{{ item }}</li>{% endfor %}
     </ol>
     {% else %}
     <p class="empty-state">No data yet.</p>
@@ -100,10 +151,11 @@
   </div>
 </div>
 
-<!-- ── Per-event performance ── -->
+<!-- Per-event performance -->
 {% if event_stats %}
 <div class="card">
-  <h2>Event Performance</h2>
+  <div class="section-eyebrow">Per event</div>
+  <h2>Event performance</h2>
   <div class="table-wrap">
     <table>
       <thead>
@@ -139,121 +191,97 @@
 </div>
 {% endif %}
 
-<!-- ── Recent AI analyses ── -->
+<!-- Recent AI analyses -->
 {% if recent_analyses %}
 <div class="card">
-  <h2>Recent Call Analyses</h2>
+  <div class="section-eyebrow">AI signals</div>
+  <h2>Recent call analyses</h2>
   {% for entry in recent_analyses %}
-  <div style="background:var(--input-bg);border-radius:var(--radius-sm);padding:.8rem 1rem;margin-bottom:.5rem;">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <strong style="font-size:.9rem;">{{ entry.contact_name }}</strong>
+  <div class="recent-analysis">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;">
+      <strong style="font-size:.92rem;color:var(--text-strong);">{{ entry.contact_name }}</strong>
       <div style="display:flex;gap:.4rem;">
-        <span class="badge badge-{% if entry.ai_analysis.sentiment_score >= 7 %}confirmed{% elif entry.ai_analysis.sentiment_score >= 4 %}contacted{% else %}declined{% endif %}">
-          {{ entry.ai_analysis.sentiment_score }}/10
-        </span>
+        <span class="badge badge-{% if entry.ai_analysis.sentiment_score >= 7 %}confirmed{% elif entry.ai_analysis.sentiment_score >= 4 %}contacted{% else %}declined{% endif %}">{{ entry.ai_analysis.sentiment_score }}/10</span>
         <span class="badge badge-responded">{{ entry.ai_analysis.engagement_level }}</span>
       </div>
     </div>
-    <p class="muted text-sm" style="margin-top:.3rem;">
+    <p class="muted text-sm" style="margin-top:.4rem;">
       Outcome: {{ entry.ai_analysis.outcome|replace('_',' ')|title }}
       {% if entry.ai_analysis.recommended_next_step %} · Next: {{ entry.ai_analysis.recommended_next_step }}{% endif %}
     </p>
-    <a href="{{ url_for('call_detail_page', call_id=entry.call_id) }}" class="muted" style="font-size:.78rem;">View full analysis →</a>
+    <a href="{{ url_for('call_detail_page', call_id=entry.call_id) }}" style="font-size:.78rem;color:var(--accent);font-weight:600;">View full analysis &rarr;</a>
   </div>
   {% endfor %}
 </div>
 {% endif %}
 
-<!-- ── Year-over-Year Trends ── -->
+<!-- Year-over-Year Trends -->
 {% if yoy %}
 <div class="card">
-  <h2>Year-over-Year Trends</h2>
-  <table class="analytics-table" style="width:100%;border-collapse:collapse;font-size:.88rem;">
-    <thead>
-      <tr style="text-align:left;border-bottom:2px solid var(--border);">
-        <th style="padding:.5rem;">Year</th>
-        <th style="padding:.5rem;">Events</th>
-        <th style="padding:.5rem;">Registrations</th>
-        <th style="padding:.5rem;">Attendance</th>
-        <th style="padding:.5rem;">Rate</th>
-        <th style="padding:.5rem;">Avg Rating</th>
-        <th style="padding:.5rem;">Feedback</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in yoy %}
-      <tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:.5rem;font-weight:600;">{{ row.year }}</td>
-        <td style="padding:.5rem;">{{ row.events }}</td>
-        <td style="padding:.5rem;">{{ row.registrations }}</td>
-        <td style="padding:.5rem;">{{ row.attendance }}</td>
-        <td style="padding:.5rem;">
-          <div style="display:flex;align-items:center;gap:.4rem;">
-            <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
-              <div style="width:{{ row.attendance_rate }}%;height:100%;background:{% if row.attendance_rate >= 80 %}#059669{% elif row.attendance_rate >= 50 %}#f59e0b{% else %}#dc2626{% endif %};border-radius:4px;"></div>
+  <div class="section-eyebrow">Trend</div>
+  <h2>Year-over-year</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Events</th>
+          <th>Registrations</th>
+          <th>Attendance</th>
+          <th>Rate</th>
+          <th>Avg rating</th>
+          <th>Feedback</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in yoy %}
+        <tr>
+          <td style="font-weight:600;font-family:var(--font-mono);">{{ row.year }}</td>
+          <td>{{ row.events }}</td>
+          <td>{{ row.registrations }}</td>
+          <td>{{ row.attendance }}</td>
+          <td>
+            <div class="yoy-bar-wrap">
+              <div class="yoy-bar-track">
+                <div class="yoy-bar-fill" style="width:{{ row.attendance_rate }}%;background:{% if row.attendance_rate >= 80 %}#059669{% elif row.attendance_rate >= 50 %}#CA8A04{% else %}#DC2626{% endif %};"></div>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:.82rem;">{{ row.attendance_rate }}%</span>
             </div>
-            <span>{{ row.attendance_rate }}%</span>
-          </div>
-        </td>
-        <td style="padding:.5rem;">{% if row.avg_rating %}<span style="color:#f59e0b;">&#9733;</span> {{ row.avg_rating }}{% else %}—{% endif %}</td>
-        <td style="padding:.5rem;">{{ row.total_feedback }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
-
-<!-- ── Budget Overview ── -->
-{% if budget_overview.total_planned or budget_overview.total_actual %}
-<div class="card">
-  <h2>Budget Overview</h2>
-  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.9rem;">
-    <div>
-      <span style="color:var(--text-secondary);">Total Planned:</span>
-      <strong>${{ '%.2f'|format(budget_overview.total_planned) }}</strong>
-    </div>
-    <div>
-      <span style="color:var(--text-secondary);">Total Spent:</span>
-      <strong style="color:{% if budget_overview.total_actual > budget_overview.total_planned %}#dc2626{% else %}var(--text){% endif %};">${{ '%.2f'|format(budget_overview.total_actual) }}</strong>
-    </div>
-    <div>
-      <span style="color:var(--text-secondary);">Total Sponsorship:</span>
-      <strong>${{ '%.2f'|format(budget_overview.total_sponsorship) }}</strong>
-    </div>
-    <div>
-      <span style="color:var(--text-secondary);">Net:</span>
-      <strong style="color:{% if budget_overview.net >= 0 %}#059669{% else %}#dc2626{% endif %};">${{ '%.2f'|format(budget_overview.net) }}</strong>
-    </div>
+          </td>
+          <td>{% if row.avg_rating %}<span style="color:var(--accent);">&#9733;</span> {{ row.avg_rating }}{% else %}—{% endif %}</td>
+          <td>{{ row.total_feedback }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% endif %}
 
-<!-- ── Feedback Overview ── -->
+<!-- Budget Overview -->
+{% if budget_overview.total_planned or budget_overview.total_actual %}
+<div class="card">
+  <div class="section-eyebrow">Finance</div>
+  <h2>Budget overview</h2>
+  <div style="display:flex;gap:1.75rem;flex-wrap:wrap;font-size:.92rem;">
+    <div><span class="muted text-sm">Planned</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;">${{ '%.2f'|format(budget_overview.total_planned) }}</strong></div>
+    <div><span class="muted text-sm">Spent</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;color:{% if budget_overview.total_actual > budget_overview.total_planned %}#DC2626{% else %}var(--text-strong){% endif %};">${{ '%.2f'|format(budget_overview.total_actual) }}</strong></div>
+    <div><span class="muted text-sm">Sponsorship</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;">${{ '%.2f'|format(budget_overview.total_sponsorship) }}</strong></div>
+    <div><span class="muted text-sm">Net</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;color:{% if budget_overview.net >= 0 %}#059669{% else %}#DC2626{% endif %};">${{ '%.2f'|format(budget_overview.net) }}</strong></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Feedback Overview -->
 {% if fb_overview.total > 0 %}
 <div class="card">
-  <h2>Feedback Overview</h2>
-  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.9rem;">
-    <div>
-      <span style="color:var(--text-secondary);">Total Responses:</span>
-      <strong>{{ fb_overview.total }}</strong>
-    </div>
-    <div>
-      <span style="color:var(--text-secondary);">Avg Rating:</span>
-      <strong style="color:#f59e0b;">&#9733; {{ fb_overview.avg_rating }}/5</strong>
-    </div>
-    {% if fb_overview.best_event %}
-    <div>
-      <span style="color:var(--text-secondary);">Best Rated:</span>
-      <strong>{{ fb_overview.best_event }}</strong>
-    </div>
-    {% endif %}
-    {% if fb_overview.worst_event and fb_overview.worst_event != fb_overview.best_event %}
-    <div>
-      <span style="color:var(--text-secondary);">Needs Improvement:</span>
-      <strong>{{ fb_overview.worst_event }}</strong>
-    </div>
-    {% endif %}
+  <div class="section-eyebrow">Sentiment</div>
+  <h2>Feedback overview</h2>
+  <div style="display:flex;gap:1.75rem;flex-wrap:wrap;font-size:.92rem;">
+    <div><span class="muted text-sm">Total responses</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;">{{ fb_overview.total }}</strong></div>
+    <div><span class="muted text-sm">Average rating</span><br><strong style="color:var(--accent);font-size:1.05rem;">&#9733; {{ fb_overview.avg_rating }}/5</strong></div>
+    {% if fb_overview.best_event %}<div><span class="muted text-sm">Best rated</span><br><strong>{{ fb_overview.best_event }}</strong></div>{% endif %}
+    {% if fb_overview.worst_event and fb_overview.worst_event != fb_overview.best_event %}<div><span class="muted text-sm">Needs improvement</span><br><strong>{{ fb_overview.worst_event }}</strong></div>{% endif %}
   </div>
 </div>
 {% endif %}

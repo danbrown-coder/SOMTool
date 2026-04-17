@@ -255,7 +255,7 @@
         <span class="pri-urgency {{ ep.get('urgency', 'low') }}">{{ ep.get('urgency', 'low')|upper }}</span>
         <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.name|truncate(20) }}</span>
         <span class="pri-meta">{{ ep.get('days_until', '?') }}d</span>
-        <span class="pri-door">{% if ep.get('door_status') == 'open' %}🟢{% elif ep.get('door_status') == 'limited' %}🟡{% elif ep.get('door_status') == 'full' %}🔴{% elif ep.get('door_status') == 'over_capacity' %}🔴{% else %}⚪{% endif %}</span>
+        <span class="pri-door" aria-hidden="true" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:{% if ep.get('door_status') == 'open' %}#059669{% elif ep.get('door_status') == 'limited' %}#D97706{% elif ep.get('door_status') == 'full' or ep.get('door_status') == 'over_capacity' %}#DC2626{% else %}#D6D3D1{% endif %};box-shadow:0 0 4px rgba(0,0,0,.15);"></span>
         {% if ep.get('spots_remaining', -1) >= 0 %}<span class="pri-meta">{{ ep.spots_remaining }}sp</span>{% endif %}
         {% endif %}
       </li>
