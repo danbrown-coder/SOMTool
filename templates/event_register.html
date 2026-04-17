@@ -63,7 +63,7 @@
       padding: .7rem 1rem;
       border-radius: var(--radius-sm);
       background: #ECFDF5; border: 1px solid #A7F3D0;
-      color: #065F46; font-size: .87rem; margin-bottom: .85rem;
+      color: #00532F; font-size: .87rem; margin-bottom: .85rem;
     }
     .section-eyebrow {
       font-family: var(--font-mono);
@@ -106,7 +106,7 @@
     }
     .badge-checked {
       display: inline-flex; align-items: center; gap: .35rem;
-      background: #D1FAE5; color: #065F46;
+      background: #CDE7DB; color: #00532F;
       padding: .25rem .65rem; border-radius: var(--radius-pill);
       font-size: .7rem; font-weight: 600;
       font-family: var(--font-mono); letter-spacing: .06em;
@@ -114,11 +114,11 @@
     }
     .badge-checked::before {
       content: ''; width: 6px; height: 6px;
-      background: #059669; border-radius: 50%;
+      background: var(--s-confirmed); border-radius: 50%;
     }
     .lookup-card {
-      background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);
-      border: 1px solid #BAE6FD;
+      background: linear-gradient(135deg, var(--color-cta-soft) 0%, #FFFFFF 100%);
+      border: 1px solid var(--border-strong);
       border-radius: var(--radius);
       padding: 1rem; margin-bottom: 1rem;
       box-shadow: var(--shadow-sm);
@@ -126,7 +126,7 @@
     .lookup-row {
       display: flex; justify-content: space-between; align-items: center;
       gap: .6rem; padding: .55rem 0;
-      border-bottom: 1px solid #E0F2FE;
+      border-bottom: 1px solid var(--border-subtle);
     }
     .lookup-row:last-child { border-bottom: none; }
     .recent-card { padding: .85rem 1.1rem; }
@@ -167,8 +167,8 @@
       width: 100%; max-width: 24rem; text-align: center;
     }
     .pin-error {
-      background: #FEF2F2; border: 1px solid #FECACA;
-      color: #991B1B; padding: .5rem .9rem;
+      background: #FBE9E9; border: 1px solid #F2B5B5;
+      color: #7A1D1C; padding: .5rem .9rem;
       border-radius: var(--radius-sm);
       font-size: .82rem; margin-bottom: .85rem;
       font-family: var(--font-mono); letter-spacing: .02em;
@@ -239,7 +239,7 @@
   {% set pct_c = [pct, 100]|min %}
   <div style="margin-bottom:1.25rem;">
     <div class="cap-track">
-      <div class="cap-fill" style="width:{{ pct_c }}%;background:{% if pct > 100 %}#DC2626{% elif pct > 85 %}#F59E0B{% else %}#059669{% endif %};"></div>
+      <div class="cap-fill" style="width:{{ pct_c }}%;background:{% if pct > 100 %}var(--s-declined){% elif pct > 85 %}var(--s-contacted){% else %}var(--s-confirmed){% endif %};"></div>
     </div>
     <div class="cap-meta">{{ pct }}% capacity</div>
   </div>

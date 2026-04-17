@@ -27,7 +27,7 @@
 
 {% for r in results %}
 <div class="card" style="padding:.95rem 1.25rem;margin-bottom:.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-  <span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:{% if r.ok %}#059669{% else %}#DC2626{% endif %};box-shadow:0 0 6px {% if r.ok %}rgba(5,150,105,.4){% else %}rgba(220,38,38,.4){% endif %};flex-shrink:0;"></span>
+  <span aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:{% if r.ok %}var(--s-confirmed){% else %}var(--s-declined){% endif %};box-shadow:0 0 6px {% if r.ok %}rgba(0,133,79,.4){% else %}rgba(231,70,69,.4){% endif %};flex-shrink:0;"></span>
   <div style="flex:1;min-width:200px;">
     <strong>{{ r.recipient_name }}</strong>
     <div class="muted text-sm" style="font-family:var(--font-mono);">{{ r.phone }}{% if r.contact_role %} · <span class="role-badge role-{{ r.contact_role }}" style="font-size:.6rem;padding:.1rem .4rem;">{{ r.contact_role|replace('_',' ')|title }}</span>{% endif %}</div>

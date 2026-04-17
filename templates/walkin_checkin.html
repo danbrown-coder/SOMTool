@@ -36,9 +36,9 @@
   height: 100%; border-radius: var(--radius-pill);
   transition: width .4s var(--ease-out);
 }
-.cap-fill-lg.green { background: linear-gradient(90deg, #10B981, #059669); }
-.cap-fill-lg.yellow { background: linear-gradient(90deg, #F59E0B, #D97706); }
-.cap-fill-lg.red { background: linear-gradient(90deg, #EF4444, #DC2626); }
+.cap-fill-lg.green { background: linear-gradient(90deg, #31B27D, #00854F); }
+.cap-fill-lg.yellow { background: linear-gradient(90deg, #C8A75D, #997F39); }
+.cap-fill-lg.red { background: linear-gradient(90deg, #F0885D, #E74645); }
 .walkin-stat {
   text-align: center;
   padding: 1rem .75rem;
@@ -70,9 +70,9 @@
   width: 8px; height: 8px; border-radius: 50%;
   flex-shrink: 0;
 }
-.walkin-banner.warn { background: #FEF3C7; border: 1px solid #FDE68A; color: #92400E; }
-.walkin-banner.danger { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
-.walkin-banner.fee { background: var(--accent-soft); border: 1px solid rgba(202,138,4,.3); color: #78350F; }
+.walkin-banner.warn { background: var(--color-highlight-wash); border: 1px solid #F2DFA0; color: #6B4A00; }
+.walkin-banner.danger { background: #FBE9E9; border: 1px solid #F2B5B5; color: #7A1D1C; }
+.walkin-banner.fee { background: var(--color-highlight-wash); border: 1px solid rgba(255,194,34,.45); color: var(--highlight-ink); }
 .door-pill {
   display: inline-flex; align-items: center; gap: .45rem;
   font-family: var(--font-mono);
@@ -81,12 +81,12 @@
   padding: .4rem .85rem; border-radius: var(--radius-pill);
 }
 .door-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
-.door-pill.open { background: #D1FAE5; color: #065F46; }
-.door-pill.open .dot { background: #059669; }
-.door-pill.limited { background: #FEF3C7; color: #92400E; }
-.door-pill.limited .dot { background: #D97706; }
-.door-pill.full { background: #FEE2E2; color: #991B1B; }
-.door-pill.full .dot { background: #DC2626; }
+.door-pill.open { background: #CDE7DB; color: #00532F; }
+.door-pill.open .dot { background: var(--s-confirmed); }
+.door-pill.limited { background: var(--color-highlight-wash); color: #6B4A00; }
+.door-pill.limited .dot { background: var(--s-contacted); }
+.door-pill.full { background: #FAD6D5; color: #8A2A29; }
+.door-pill.full .dot { background: var(--s-declined); }
 </style>
 {% endblock %}
 
@@ -110,21 +110,21 @@
   {# -- Banners -- #}
   {% if priority.deadline_passed %}
   <div class="walkin-banner warn">
-    <span class="walkin-banner-dot" style="background:#92400E;"></span>
+    <span class="walkin-banner-dot" style="background:var(--s-contacted);"></span>
     Registration closed{% if event.registration_deadline %} · deadline {{ event.registration_deadline[:16]|replace('T', ' ') }}{% endif %}
   </div>
   {% endif %}
 
   {% if metrics.venue_capacity > 0 and priority.spots_remaining <= 0 %}
   <div class="walkin-banner danger">
-    <span class="walkin-banner-dot" style="background:#DC2626;"></span>
+    <span class="walkin-banner-dot" style="background:var(--s-declined);"></span>
     At capacity — walk-ins will be turned away
   </div>
   {% endif %}
 
   {% if event.late_fee > 0 %}
   <div class="walkin-banner fee">
-    <span class="walkin-banner-dot" style="background:#CA8A04;"></span>
+    <span class="walkin-banner-dot" style="background:var(--color-highlight);"></span>
     Walk-in fee ${{ '%.2f'|format(event.late_fee) }}{% if event.late_fee_note %} — {{ event.late_fee_note }}{% endif %}
   </div>
   {% endif %}

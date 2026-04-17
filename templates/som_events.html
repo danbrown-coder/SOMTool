@@ -24,11 +24,11 @@
   letter-spacing: .08em;
   font-family: var(--font-mono);
 }
-.som-badge.upcoming { background: #D1FAE5; color: #065F46; }
+.som-badge.upcoming { background: #CDE7DB; color: #00532F; }
 .som-badge.past { background: var(--surface-subtle); color: var(--text-secondary); }
-.som-badge.tba { background: var(--accent-soft); color: #92400E; }
-.som-badge.open { background: #DBEAFE; color: #1E40AF; }
-.som-badge.closed { background: #FEE2E2; color: #991B1B; }
+.som-badge.tba { background: var(--color-highlight-wash); color: var(--highlight-ink); }
+.som-badge.open { background: #D9E6F2; color: #123F61; }
+.som-badge.closed { background: #FAD6D5; color: #8A2A29; }
 .som-series {
   font-size: .68rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: .14em;
@@ -43,11 +43,11 @@
 .som-actions { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: auto; padding-top: .85rem; border-top: 1px solid var(--border-subtle); }
 .change-alert {
   display: flex; align-items: flex-start; gap: .85rem;
-  background: var(--accent-soft); border: 1px solid rgba(202,138,4,.3);
+  background: var(--accent-soft); border: 1px solid var(--border-strong);
   border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: .75rem;
 }
-.change-alert.reg { background: #EFF6FF; border-color: #BFDBFE; }
-.change-alert.date { background: #FEF2F2; border-color: #FECACA; }
+.change-alert.reg { background: #E3EDF7; border-color: #C6D7EC; }
+.change-alert.date { background: #FBE9E9; border-color: #F2B5B5; }
 .change-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: .1rem; }
 .change-body { flex: 1; min-width: 0; }
 .change-body strong { font-size: .95rem; color: var(--text-strong); }
@@ -65,8 +65,8 @@
 <div class="card mb-2" style="padding:.85rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:.85rem;">
   {% if monitor.running %}
   <span style="display:inline-flex;align-items:center;gap:.45rem;">
-    <span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;animation:pulse 2s infinite;box-shadow:0 0 8px rgba(16,185,129,.5);"></span>
-    <strong>Auto-monitoring</strong> <span class="chip" style="background:#D1FAE5;color:#065F46;">ON</span>
+    <span style="width:8px;height:8px;border-radius:50%;background:var(--s-confirmed);display:inline-block;animation:pulse 2s infinite;box-shadow:0 0 8px rgba(0,133,79,.5);"></span>
+    <strong>Auto-monitoring</strong> <span class="chip" style="background:#CDE7DB;color:#00532F;">ON</span>
     <span class="muted">every {{ monitor.interval_minutes }} min</span>
   </span>
   {% else %}
@@ -104,10 +104,10 @@
         <summary style="cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent);">Show specific changes</summary>
         <div style="margin-top:.4rem;font-size:.8rem;font-family:monospace;border-radius:6px;overflow:hidden;border:1px solid var(--border);">
           {% for line in c.get('diff_removed', []) %}
-          <div style="background:#fef2f2;color:#991b1b;padding:.2rem .5rem;border-bottom:1px solid #fecaca;">- {{ line }}</div>
+          <div style="background:#FBE9E9;color:#7A1D1C;padding:.2rem .5rem;border-bottom:1px solid #F2B5B5;">- {{ line }}</div>
           {% endfor %}
           {% for line in c.get('diff_added', []) %}
-          <div style="background:#f0fdf4;color:#166534;padding:.2rem .5rem;border-bottom:1px solid #bbf7d0;">+ {{ line }}</div>
+          <div style="background:#E1F1E8;color:#00532F;padding:.2rem .5rem;border-bottom:1px solid #B6D9C3;">+ {{ line }}</div>
           {% endfor %}
         </div>
       </details>

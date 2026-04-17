@@ -35,65 +35,66 @@
 <style>
   .cap-bar { height:10px; background:var(--surface-subtle); border-radius:5px; overflow:hidden; margin-top:.5rem; border:1px solid var(--border); }
   .cap-fill { height:100%; border-radius:5px; transition:width .4s var(--ease-out); }
-  .cap-fill.green { background:linear-gradient(90deg,#059669,#10B981); }
-  .cap-fill.yellow { background:linear-gradient(90deg,#D97706,#F59E0B); }
-  .cap-fill.red { background:linear-gradient(90deg,#DC2626,#EF4444); }
+  .cap-fill.green { background:linear-gradient(90deg,#00854F,#31B27D); }
+  .cap-fill.yellow { background:linear-gradient(90deg,#997F39,#C8A75D); }
+  .cap-fill.red { background:linear-gradient(90deg,#E74645,#F0885D); }
   .reg-badge { display:inline-block; padding:.2rem .6rem; font-size:.72rem; font-weight:600; border-radius:var(--radius-pill); font-family:var(--font-mono); letter-spacing:.02em; }
-  .reg-badge.pre { background:#DBEAFE; color:#1e40af; }
-  .reg-badge.dayof { background:#FEF3C7; color:#92400e; }
-  .reg-badge.walkin { background:#FCE7F3; color:#9d174d; }
+  .reg-badge.pre { background:#D9E6F2; color:#123F61; }
+  .reg-badge.dayof { background:var(--color-highlight-wash); color:#6B4A00; }
+  .reg-badge.walkin { background:#F5D9DC; color:#8A2A29; }
   .urgency-pill { display:inline-block; padding:.2rem .65rem; font-size:.7rem; font-weight:700; border-radius:var(--radius-pill); text-transform:uppercase; letter-spacing:.1em; font-family:var(--font-mono); }
-  .urgency-pill.critical { background:#FEF2F2; color:#DC2626; }
-  .urgency-pill.high { background:#FFF7ED; color:#EA580C; }
-  .urgency-pill.medium { background:var(--accent-soft); color:#92400E; }
+  .urgency-pill.critical { background:#FBE9E9; color:#8A2A29; }
+  .urgency-pill.high { background:#FDEAD9; color:#8C3F1A; }
+  .urgency-pill.medium { background:var(--color-highlight-wash); color:#6B4A00; }
   .urgency-pill.low { background:var(--surface-subtle); color:var(--text-secondary); }
   .door-badge { display:inline-flex; align-items:center; gap:.45rem; padding:.4rem .8rem; border-radius:var(--radius-pill); font-size:.72rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.1em; }
   .door-badge .dot { width:8px; height:8px; border-radius:50%; }
-  .door-badge.open { background:#D1FAE5; color:#065F46; }
-  .door-badge.open .dot { background:#059669; box-shadow:0 0 6px rgba(5,150,105,.5); }
-  .door-badge.limited { background:#FEF3C7; color:#92400E; }
-  .door-badge.limited .dot { background:#D97706; box-shadow:0 0 6px rgba(217,119,6,.5); }
-  .door-badge.full { background:#FEE2E2; color:#991B1B; }
-  .door-badge.full .dot { background:#DC2626; box-shadow:0 0 6px rgba(220,38,38,.5); }
-  .door-badge.over_capacity { background:#FECACA; color:#7F1D1D; }
-  .door-badge.over_capacity .dot { background:#7F1D1D; box-shadow:0 0 6px rgba(127,29,29,.5); }
+  .door-badge.open { background:#CDE7DB; color:#00532F; }
+  .door-badge.open .dot { background:var(--s-confirmed); box-shadow:0 0 6px rgba(0,133,79,.5); }
+  .door-badge.limited { background:var(--color-highlight-wash); color:#6B4A00; }
+  .door-badge.limited .dot { background:var(--s-contacted); box-shadow:0 0 6px rgba(153,127,57,.5); }
+  .door-badge.full { background:#FAD6D5; color:#8A2A29; }
+  .door-badge.full .dot { background:var(--s-declined); box-shadow:0 0 6px rgba(231,70,69,.5); }
+  .door-badge.over_capacity { background:#F4B8B7; color:#5C1817; }
+  .door-badge.over_capacity .dot { background:#5C1817; box-shadow:0 0 6px rgba(92,24,23,.5); }
   .reg-status { display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; font-weight:600; }
-  .reg-status.open-status { color:#059669; }
-  .reg-status.closed-status { color:#DC2626; }
+  .reg-status.open-status { color:var(--s-confirmed); }
+  .reg-status.closed-status { color:var(--s-declined); }
 
   .pin-card {
     display:flex; justify-content:space-between; align-items:center;
     gap:1.25rem; flex-wrap:wrap;
     background:
-      linear-gradient(135deg, rgba(202,138,4,.08) 0%, rgba(255,255,255,0) 65%),
-      linear-gradient(180deg, #1C1917 0%, #292524 100%);
-    color:#FAFAF9;
-    border:1px solid rgba(202,138,4,.25);
+      linear-gradient(135deg, rgba(255,194,34,.10) 0%, rgba(255,255,255,0) 65%),
+      linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
+    color:#FFFFFF;
+    border:1px solid rgba(255,194,34,.35);
     padding:1.5rem 1.75rem;
     position:relative;
     overflow:hidden;
   }
   .pin-card::before {
     content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    background:linear-gradient(90deg, transparent, var(--color-highlight), transparent);
   }
   .pin-card .pin-eyebrow {
     font-family:var(--font-mono); font-size:.7rem;
     text-transform:uppercase; letter-spacing:.14em;
-    color:#F0B429; font-weight:600;
+    color:var(--color-highlight); font-weight:600;
   }
   .pin-card .pin-value {
     font-size:2rem; font-weight:700; letter-spacing:.35em;
-    font-family:var(--font-mono); color:#FAFAF9;
+    font-family:var(--font-mono); color:var(--color-highlight);
     margin:.35rem 0 .25rem;
+    text-shadow: 0 1px 0 rgba(0,0,0,.25);
   }
-  .pin-card .pin-hint { color:#A8A29E; font-size:.8rem; }
+  .pin-card .pin-hint { color:#D7C9E8; font-size:.8rem; }
   .pin-card .btn-secondary {
-    background:rgba(250,250,249,.08); border-color:rgba(250,250,249,.2); color:#FAFAF9;
+    background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.22); color:#FFFFFF;
   }
-  .pin-card .btn-secondary:hover { background:rgba(202,138,4,.18); border-color:var(--accent); color:#FAFAF9; }
-  .pin-card .btn-ghost { color:#A8A29E; }
-  .pin-card .btn-ghost:hover { background:rgba(250,250,249,.08); color:#FAFAF9; }
+  .pin-card .btn-secondary:hover { background:rgba(255,194,34,.22); border-color:var(--color-highlight); color:#FFFFFF; }
+  .pin-card .btn-ghost { color:#D7C9E8; }
+  .pin-card .btn-ghost:hover { background:rgba(255,255,255,.10); color:#FFFFFF; }
 
   .dashed-card { border:1px dashed var(--border-strong); background:transparent; box-shadow:none; }
 
@@ -181,7 +182,7 @@
           {% set pct_capped = [pct, 100] | min %}
           <div style="display:flex;align-items:center;gap:.4rem;">
             <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
-              <div style="width:{{ pct_capped }}%;height:100%;background:{% if row.met %}#059669{% elif pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %};border-radius:3px;"></div>
+              <div style="width:{{ pct_capped }}%;height:100%;background:{% if row.met %}var(--s-confirmed){% elif pct >= 50 %}var(--s-contacted){% else %}var(--s-declined){% endif %};border-radius:3px;"></div>
             </div>
             <span style="font-size:.75rem;color:var(--text-secondary);">{{ pct }}%</span>
           </div>
@@ -191,9 +192,9 @@
         </td>
         <td style="padding:.4rem .6rem;text-align:center;">
           {% if row.met == true %}
-          <span style="color:#059669;font-weight:700;">&#10003;</span>
+          <span style="color:var(--s-confirmed);font-weight:700;">&#10003;</span>
           {% elif row.met == false %}
-          <span style="color:#dc2626;font-weight:700;">&#10007;</span>
+          <span style="color:var(--s-declined);font-weight:700;">&#10007;</span>
           {% else %}
           <span style="color:#9ca3af;">—</span>
           {% endif %}
@@ -207,7 +208,7 @@
   {% if total_goals > 0 %}
   <div style="margin-top:.6rem;font-size:.85rem;color:var(--text-secondary);">
     <strong>{{ met_count }}/{{ total_goals }}</strong> goals met
-    {% if met_count == total_goals %}<span style="color:#059669;font-weight:600;margin-left:.3rem;">All targets hit!</span>{% endif %}
+    {% if met_count == total_goals %}<span style="color:var(--s-confirmed);font-weight:600;margin-left:.3rem;">All targets hit!</span>{% endif %}
   </div>
   {% endif %}
   {% else %}
@@ -222,9 +223,9 @@
   {% set net = event.sponsorship_revenue - event.actual_spend %}
   <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.88rem;margin-bottom:.75rem;">
     <div><span style="color:var(--text-secondary);">Planned:</span> <strong>${{ '%.2f'|format(event.planned_budget) }}</strong></div>
-    <div><span style="color:var(--text-secondary);">Spent:</span> <strong style="color:{% if event.planned_budget and event.actual_spend > event.planned_budget %}#dc2626{% else %}var(--text){% endif %};">${{ '%.2f'|format(event.actual_spend) }}</strong></div>
+    <div><span style="color:var(--text-secondary);">Spent:</span> <strong style="color:{% if event.planned_budget and event.actual_spend > event.planned_budget %}var(--s-declined){% else %}var(--text){% endif %};">${{ '%.2f'|format(event.actual_spend) }}</strong></div>
     <div><span style="color:var(--text-secondary);">Sponsorship:</span> <strong>${{ '%.2f'|format(event.sponsorship_revenue) }}</strong></div>
-    <div><span style="color:var(--text-secondary);">Net:</span> <strong style="color:{% if net >= 0 %}#059669{% else %}#dc2626{% endif %};">${{ '%.2f'|format(net) }}</strong></div>
+    <div><span style="color:var(--text-secondary);">Net:</span> <strong style="color:{% if net >= 0 %}var(--s-confirmed){% else %}var(--s-declined){% endif %};">${{ '%.2f'|format(net) }}</strong></div>
   </div>
   {% if event.planned_budget > 0 %}
   {% set spend_pct = ((event.actual_spend / event.planned_budget * 100) | round | int) %}
@@ -234,7 +235,7 @@
       <span>Budget used</span><span>{{ spend_pct }}%</span>
     </div>
     <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
-      <div style="width:{{ spend_capped }}%;height:100%;background:{% if spend_pct > 100 %}#dc2626{% elif spend_pct > 80 %}#f59e0b{% else %}#059669{% endif %};border-radius:4px;"></div>
+      <div style="width:{{ spend_capped }}%;height:100%;background:{% if spend_pct > 100 %}var(--s-declined){% elif spend_pct > 80 %}var(--s-contacted){% else %}var(--s-confirmed){% endif %};border-radius:4px;"></div>
     </div>
   </div>
   {% endif %}
@@ -280,7 +281,7 @@
   <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin:.75rem 0;font-size:.88rem;">
     <div>
       <span style="color:var(--text-secondary);">Avg rating:</span>
-      <strong style="color:#f59e0b;">
+      <strong style="color:var(--color-highlight);">
         {% for s in range(fb_summary.avg_rating|int) %}&#9733;{% endfor %}{% if fb_summary.avg_rating % 1 >= 0.5 %}&#9733;{% endif %}
       </strong>
       <span style="font-size:.8rem;color:var(--text-secondary);">{{ fb_summary.avg_rating }}/5</span>
@@ -293,7 +294,7 @@
     {% for e in fb_summary.entries[:5] %}
     <div style="padding:.4rem 0;border-top:1px solid var(--border);">
       <strong>{{ e.respondent_name or 'Anonymous' }}</strong>
-      <span style="color:#f59e0b;">{% for s in range(e.rating) %}&#9733;{% endfor %}</span>
+      <span style="color:var(--color-highlight);">{% for s in range(e.rating) %}&#9733;{% endfor %}</span>
       {% if e.liked %}<div style="color:var(--text-secondary);margin-top:.2rem;">&#128077; {{ e.liked[:120] }}</div>{% endif %}
     </div>
     {% endfor %}
@@ -343,7 +344,7 @@
   </div>
 
   {% if event.late_fee > 0 %}
-  <div style="margin-top:.6rem;padding:.4rem .7rem;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-sm);font-size:.82rem;">
+  <div style="margin-top:.6rem;padding:.4rem .7rem;background:var(--color-highlight-wash);border:1px solid #F2DFA0;border-radius:var(--radius-sm);font-size:.82rem;">
     <strong>Late / walk-in fee: ${{ '%.2f'|format(event.late_fee) }}</strong>
     {% if event.late_fee_note %}<span class="muted" style="margin-left:.5rem;">{{ event.late_fee_note }}</span>{% endif %}
   </div>
@@ -374,7 +375,7 @@
   </div>
 
   {% if metrics.buffer_used > metrics.buffer_slots %}
-  <div style="margin-top:.6rem;padding:.5rem .8rem;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#991b1b;font-size:.82rem;font-weight:600;">
+  <div style="margin-top:.6rem;padding:.5rem .8rem;background:#FBE9E9;border:1px solid #F2B5B5;border-radius:var(--radius-sm);color:#7A1D1C;font-size:.82rem;font-weight:600;">
     Walk-ins exceeded your planned buffer by {{ metrics.buffer_used - metrics.buffer_slots }}
   </div>
   {% endif %}
@@ -496,7 +497,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
               </button>
               <form method="post" action="{{ url_for('delete_contact_route', event_id=event.id, contact_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Remove {{ c.name|e }} from this event?')">
-                <button type="submit" class="btn btn-ghost btn-sm" title="Remove" aria-label="Remove contact" style="color:#DC2626;">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Remove" aria-label="Remove contact" style="color:var(--s-declined);">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                 </button>
               </form>
@@ -624,7 +625,7 @@
       <div class="metric-value">{{ metrics.attended }}</div>
       <div class="metric-label">Attended</div>
     </div>
-    <div class="metric-card mc-5" style="border-left-color:#ec4899;">
+    <div class="metric-card mc-5" style="border-left-color:var(--m-teal);">
       <div class="metric-value">{{ metrics.walkin_count }}</div>
       <div class="metric-label">Walk-ins</div>
     </div>

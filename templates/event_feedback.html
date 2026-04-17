@@ -65,7 +65,7 @@
     }
     .stars input:checked ~ label,
     .stars label:hover,
-    .stars label:hover ~ label { color: var(--accent); }
+    .stars label:hover ~ label { color: var(--color-highlight); }
     .yn-group { display: flex; gap: .5rem; }
     .yn-btn {
       flex: 1; padding: .65rem;
@@ -79,8 +79,8 @@
     }
     .yn-btn:hover { border-color: var(--accent); color: var(--accent); }
     .yn-btn.active {
-      background: var(--text-strong); color: #FFF;
-      border-color: var(--text-strong);
+      background: var(--color-primary); color: #FFF;
+      border-color: var(--color-primary);
     }
     .fb-thanks {
       text-align: center; padding: 1.5rem 0;
@@ -88,8 +88,8 @@
     .fb-thanks-icon {
       width: 56px; height: 56px;
       border-radius: 50%;
-      background: var(--accent);
-      color: #FFF;
+      background: var(--color-primary);
+      color: var(--color-highlight);
       display: inline-flex; align-items: center; justify-content: center;
       font-size: 1.6rem; font-weight: 700;
       margin-bottom: .85rem;

@@ -75,12 +75,12 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-.cal-event-dot.critical { background: #dc2626; }
-.cal-event-dot.high { background: #ea580c; }
-.cal-event-dot.medium { background: #ca8a04; }
-.cal-event-dot.low { background: #9ca3af; }
-.cal-event-dot.past { background: #d1d5db; }
-.cal-event-dot.tba { background: #38bdf8; }
+.cal-event-dot.critical { background: var(--s-declined); }
+.cal-event-dot.high { background: #F0885D; }
+.cal-event-dot.medium { background: var(--s-contacted); }
+.cal-event-dot.low { background: var(--s-not-contacted); }
+.cal-event-dot.past { background: #D6D3D1; }
+.cal-event-dot.tba { background: #4796C1; }
 .cal-event-name {
   flex: 1;
   min-width: 0;
@@ -125,12 +125,12 @@
   letter-spacing: .03em;
   flex-shrink: 0;
 }
-.pri-urgency.critical { background: #fef2f2; color: #dc2626; }
-.pri-urgency.high { background: #fff7ed; color: #ea580c; }
-.pri-urgency.medium { background: #fefce8; color: #ca8a04; }
-.pri-urgency.low { background: #f3f4f6; color: #6b7280; }
-.pri-urgency.past { background: #f3f4f6; color: #9ca3af; }
-.pri-urgency.tba { background: #f0f9ff; color: #0284c7; }
+.pri-urgency.critical { background: #FBE9E9; color: #8A2A29; }
+.pri-urgency.high { background: #FDEAD9; color: #8C3F1A; }
+.pri-urgency.medium { background: var(--color-highlight-wash); color: #6B4A00; }
+.pri-urgency.low { background: var(--surface-subtle); color: var(--text-secondary); }
+.pri-urgency.past { background: var(--surface-subtle); color: var(--text-tertiary); }
+.pri-urgency.tba { background: #E3F3F9; color: #0F4A6A; }
 .pri-meta {
   font-size: .65rem;
   color: var(--text-secondary);
@@ -196,11 +196,11 @@
   font-weight: 600;
   border-radius: 100px;
 }
-.status-pill.planned { background: #e0e7ff; color: #3730a3; }
-.status-pill.approved { background: #d1fae5; color: #065f46; }
-.status-pill.sent { background: #f3f4f6; color: #374151; }
-.status-pill.skipped { background: #fee2e2; color: #991b1b; }
-.status-pill.failed { background: #fee2e2; color: #991b1b; }
+.status-pill.planned { background: #E5DEF2; color: #3B2360; }
+.status-pill.approved { background: #CDE7DB; color: #00532F; }
+.status-pill.sent { background: var(--surface-subtle); color: var(--text-secondary); }
+.status-pill.skipped { background: #FAD6D5; color: #8A2A29; }
+.status-pill.failed { background: #FAD6D5; color: #8A2A29; }
 
 @media (max-width: 900px) {
   .cal-layout { flex-direction: column; }
@@ -212,7 +212,7 @@
 .pri-item:hover { background: var(--accent-soft); }
 .cal-stat-val { color: var(--accent); font-family: var(--font-display); }
 .cal-chip { font-family: var(--font-mono); letter-spacing: .04em; text-transform: uppercase; border: 1px solid var(--border-strong); }
-.cal-chip.active { background: var(--color-primary); color: #FAFAF9; border-color: var(--color-primary); }
+.cal-chip.active { background: var(--color-primary); color: #FFFFFF; border-color: var(--color-primary); }
 .cal-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
 .status-pill { font-family: var(--font-mono); letter-spacing: .03em; }
 .cal-event-dot.medium { background: var(--accent); }
@@ -255,7 +255,7 @@
         <span class="pri-urgency {{ ep.get('urgency', 'low') }}">{{ ep.get('urgency', 'low')|upper }}</span>
         <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.name|truncate(20) }}</span>
         <span class="pri-meta">{{ ep.get('days_until', '?') }}d</span>
-        <span class="pri-door" aria-hidden="true" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:{% if ep.get('door_status') == 'open' %}#059669{% elif ep.get('door_status') == 'limited' %}#D97706{% elif ep.get('door_status') == 'full' or ep.get('door_status') == 'over_capacity' %}#DC2626{% else %}#D6D3D1{% endif %};box-shadow:0 0 4px rgba(0,0,0,.15);"></span>
+        <span class="pri-door" aria-hidden="true" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:{% if ep.get('door_status') == 'open' %}var(--s-confirmed){% elif ep.get('door_status') == 'limited' %}var(--s-contacted){% elif ep.get('door_status') == 'full' or ep.get('door_status') == 'over_capacity' %}var(--s-declined){% else %}#D6D3D1{% endif %};box-shadow:0 0 4px rgba(0,0,0,.15);"></span>
         {% if ep.get('spots_remaining', -1) >= 0 %}<span class="pri-meta">{{ ep.spots_remaining }}sp</span>{% endif %}
         {% endif %}
       </li>
@@ -316,14 +316,14 @@
 {% block scripts %}
 <style>
   :root {
-    --ev-color-0: #3b82f6;
-    --ev-color-1: #10b981;
-    --ev-color-2: #f59e0b;
-    --ev-color-3: #ef4444;
-    --ev-color-4: #8b5cf6;
-    --ev-color-5: #ec4899;
-    --ev-color-6: #14b8a6;
-    --ev-color-7: #f97316;
+    --ev-color-0: #1E5989;
+    --ev-color-1: #00854F;
+    --ev-color-2: #FFC222;
+    --ev-color-3: #E74645;
+    --ev-color-4: #6A4C92;
+    --ev-color-5: #4796C1;
+    --ev-color-6: #31B27D;
+    --ev-color-7: #F0885D;
   }
 </style>
 <script>

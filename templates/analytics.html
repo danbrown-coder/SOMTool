@@ -112,7 +112,7 @@
   <h2>Engagement levels</h2>
   <div style="display:flex;gap:1rem;">
     {% for level, count in call_metrics.engagement.items() %}
-    {% set lvl_color = '#059669' if level == 'high' else ('#CA8A04' if level == 'medium' else '#A8A29E') %}
+    {% set lvl_color = 'var(--s-confirmed)' if level == 'high' else ('var(--s-contacted)' if level == 'medium' else 'var(--s-not-contacted)') %}
     <div style="flex:1;text-align:center;">
       <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:{{ lvl_color }};">{{ count }}</div>
       <div style="font-size:.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.12em;font-family:var(--font-mono);margin-top:.25rem;">{{ level }}</div>
@@ -128,7 +128,7 @@
 <!-- What works / doesn't -->
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
   <div class="card">
-    <div class="section-eyebrow" style="color:#059669;">Strengths</div>
+    <div class="section-eyebrow" style="color:var(--s-confirmed);">Strengths</div>
     <h2>What works</h2>
     {% if call_metrics.top_worked %}
     <ol class="insight-list">
@@ -139,7 +139,7 @@
     {% endif %}
   </div>
   <div class="card">
-    <div class="section-eyebrow" style="color:#DC2626;">Friction</div>
+    <div class="section-eyebrow" style="color:var(--s-declined);">Friction</div>
     <h2>What doesn't work</h2>
     {% if call_metrics.top_didnt_work %}
     <ol class="insight-list">
@@ -243,7 +243,7 @@
           <td>
             <div class="yoy-bar-wrap">
               <div class="yoy-bar-track">
-                <div class="yoy-bar-fill" style="width:{{ row.attendance_rate }}%;background:{% if row.attendance_rate >= 80 %}#059669{% elif row.attendance_rate >= 50 %}#CA8A04{% else %}#DC2626{% endif %};"></div>
+                <div class="yoy-bar-fill" style="width:{{ row.attendance_rate }}%;background:{% if row.attendance_rate >= 80 %}var(--s-confirmed){% elif row.attendance_rate >= 50 %}var(--s-contacted){% else %}var(--s-declined){% endif %};"></div>
               </div>
               <span style="font-family:var(--font-mono);font-size:.82rem;">{{ row.attendance_rate }}%</span>
             </div>
@@ -265,9 +265,9 @@
   <h2>Budget overview</h2>
   <div style="display:flex;gap:1.75rem;flex-wrap:wrap;font-size:.92rem;">
     <div><span class="muted text-sm">Planned</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;">${{ '%.2f'|format(budget_overview.total_planned) }}</strong></div>
-    <div><span class="muted text-sm">Spent</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;color:{% if budget_overview.total_actual > budget_overview.total_planned %}#DC2626{% else %}var(--text-strong){% endif %};">${{ '%.2f'|format(budget_overview.total_actual) }}</strong></div>
+    <div><span class="muted text-sm">Spent</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;color:{% if budget_overview.total_actual > budget_overview.total_planned %}var(--s-declined){% else %}var(--text-strong){% endif %};">${{ '%.2f'|format(budget_overview.total_actual) }}</strong></div>
     <div><span class="muted text-sm">Sponsorship</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;">${{ '%.2f'|format(budget_overview.total_sponsorship) }}</strong></div>
-    <div><span class="muted text-sm">Net</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;color:{% if budget_overview.net >= 0 %}#059669{% else %}#DC2626{% endif %};">${{ '%.2f'|format(budget_overview.net) }}</strong></div>
+    <div><span class="muted text-sm">Net</span><br><strong style="font-family:var(--font-mono);font-size:1.05rem;color:{% if budget_overview.net >= 0 %}var(--s-confirmed){% else %}var(--s-declined){% endif %};">${{ '%.2f'|format(budget_overview.net) }}</strong></div>
   </div>
 </div>
 {% endif %}
