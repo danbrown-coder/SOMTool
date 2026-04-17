@@ -175,6 +175,7 @@ ALLOWED_REGISTER_ONLY_ENDPOINTS = frozenset({
     "registration_gate",
     "event_register",
     "register_pin",
+    "register_leave_pin_session",
     "register_checkin",
     "register_checkout",
     "register_walkin",
@@ -207,6 +208,26 @@ def inject_user():
     uid = auth.current_user_id()
     user = auth.get_user_by_id(uid) if uid else None
     return dict(current_user=user)
+
+
+@app.template_filter("mask_email")
+def _mask_email_filter(value: str | None) -> str:
+    if not value or "@" not in value:
+        return ""
+    local, _, domain = value.partition("@")
+    if len(local) <= 1:
+        masked = "*"
+    else:
+        masked = local[0] + "*" * max(1, len(local) - 1)
+    return f"{masked}@{domain}"
+
+
+@app.template_filter("mask_phone")
+def _mask_phone_filter(value: str | None) -> str:
+    digits = [c for c in (value or "") if c.isdigit()]
+    if len(digits) < 4:
+        return ""
+    return "***-***-" + "".join(digits[-4:])
 
 
 def login_required(view):
@@ -1073,6 +1094,18 @@ def _reg_authed(event) -> bool:
     return session.get(f"reg_pin_{event.id}") is True
 
 
+def _register_desk_template_vars(event) -> dict[str, bool]:
+    """Flags for register desk UI: exit-to-PIN, admin full PII, register_only hides PII."""
+    uid = auth.current_user_id()
+    user = auth.get_user_by_id(uid) if uid else None
+    return {
+        "show_leave_to_pin": bool(session.get(f"reg_pin_{event.id}"))
+        or (user is not None and user.role == "register_only"),
+        "is_admin": bool(user and user.role == "admin"),
+        "register_only_user": bool(user and user.role == "register_only"),
+    }
+
+
 @app.route("/events/<event_id>/register")
 def event_register(event_id: str):
     event = em.get_event(event_id)
@@ -1082,11 +1115,28 @@ def event_register(event_id: str):
         return "Registration not enabled for this event", 403
     authed = _reg_authed(event)
     pin_error = request.args.get("pin_error") == "1"
+    desk_ctx = _register_desk_template_vars(event)
+    uid = auth.current_user_id()
+    current_user_present = uid is not None
     if authed:
         metrics = em.compute_metrics(event)
-        return render_template("event_register.html", event=event, authed=True,
-                               metrics=metrics, pin_error=False)
-    return render_template("event_register.html", event=event, authed=False, pin_error=pin_error)
+        return render_template(
+            "event_register.html",
+            event=event,
+            authed=True,
+            metrics=metrics,
+            pin_error=False,
+            current_user_present=False,
+            **desk_ctx,
+        )
+    return render_template(
+        "event_register.html",
+        event=event,
+        authed=False,
+        pin_error=pin_error,
+        current_user_present=current_user_present,
+        **desk_ctx,
+    )
 
 
 @app.route("/events/<event_id>/register/pin", methods=["POST"])
@@ -1099,6 +1149,20 @@ def register_pin(event_id: str):
         session[f"reg_pin_{event.id}"] = True
         return redirect(url_for("event_register", event_id=event_id))
     return redirect(url_for("event_register", event_id=event_id, pin_error="1"))
+
+
+@app.post("/events/<event_id>/register/leave-pin")
+def register_leave_pin_session(event_id: str):
+    """Clear PIN session and return to PIN entry (global gate for register_only)."""
+    event = em.get_event(event_id)
+    if not event or not _reg_authed(event):
+        return "Not authorized", 403
+    session.pop(f"reg_pin_{event_id}", None)
+    uid = auth.current_user_id()
+    user = auth.get_user_by_id(uid) if uid else None
+    if user and user.role == "register_only":
+        return redirect(url_for("registration_gate"))
+    return redirect(url_for("event_register", event_id=event_id))
 
 
 @app.route("/events/<event_id>/register/checkin", methods=["POST"])
@@ -1168,10 +1232,19 @@ def _walkin_lookup(event_id: str, event, name: str, contact_id: str):
         return redirect(url_for("event_register", event_id=event_id))
     metrics = em.compute_metrics(event)
     event = em.get_event(event_id)
-    return render_template("event_register.html", event=event, authed=True,
-                           metrics=metrics, pin_error=False,
-                           lookup_results=results, lookup_name=name,
-                           lookup_contact_id=contact_id)
+    desk_ctx = _register_desk_template_vars(event)
+    return render_template(
+        "event_register.html",
+        event=event,
+        authed=True,
+        metrics=metrics,
+        pin_error=False,
+        lookup_results=results,
+        lookup_name=name,
+        lookup_contact_id=contact_id,
+        current_user_present=False,
+        **desk_ctx,
+    )
 
 
 @app.route("/events/<event_id>/register/approve-lookup", methods=["POST"])

@@ -69,18 +69,30 @@
         </div>
       </form>
     </div>
+    {% if current_user_present %}
+    <form method="post" action="{{ url_for('logout_route') }}" style="margin-top:.75rem;">
+      <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+    </form>
+    {% endif %}
   </div>
 
   {% else %}
   <!-- ── Registration Desk ── -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem;">
     <div>
       <h1>{{ event.name }}</h1>
       <p class="muted text-sm">{{ event.date or 'TBA' }} &middot; Registration Desk</p>
     </div>
-    <div style="text-align:right;">
-      <div style="font-size:1.5rem;font-weight:700;">{{ metrics.attended }}</div>
-      <div class="muted text-sm">checked in{% if metrics.venue_capacity %} / {{ metrics.venue_capacity }}{% endif %}</div>
+    <div style="display:flex;align-items:flex-start;gap:.75rem;flex-wrap:wrap;">
+      {% if show_leave_to_pin %}
+      <form method="post" action="{{ url_for('register_leave_pin_session', event_id=event.id) }}" style="margin:0;">
+        <button type="submit" class="btn btn-ghost btn-sm" title="Return to PIN entry">Exit desk</button>
+      </form>
+      {% endif %}
+      <div style="text-align:right;">
+        <div style="font-size:1.5rem;font-weight:700;">{{ metrics.attended }}</div>
+        <div class="muted text-sm">checked in{% if metrics.venue_capacity %} / {{ metrics.venue_capacity }}{% endif %}</div>
+      </div>
     </div>
   </div>
 
@@ -157,7 +169,15 @@
       <div class="contact-row" data-name="{{ c.name|lower }}">
         <div style="min-width:0;">
           <div style="font-weight:600;font-size:.88rem;">{{ c.name }}</div>
+          {% if register_only_user %}
+          {% elif is_admin %}
           <div class="muted text-sm">{{ c.email }}{% if c.phone %} &middot; {{ c.phone }}{% endif %}</div>
+          {% else %}
+          <div class="muted text-sm">
+            {% if c.email %}{{ c.email|mask_email }}{% endif %}
+            {% if c.phone %}{% if c.email %} &middot; {% endif %}{{ c.phone|mask_phone }}{% endif %}
+          </div>
+          {% endif %}
         </div>
         <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;justify-content:flex-end;">
           {% if c.attended %}
