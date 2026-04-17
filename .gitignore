@@ -1,6 +1,6 @@
 .env
 __pycache__/
 *.pyc
-data/
-scripts/
+/data/
+/scripts/
 *.tmp
