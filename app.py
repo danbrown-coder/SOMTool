@@ -176,6 +176,7 @@ ALLOWED_REGISTER_ONLY_ENDPOINTS = frozenset({
     "event_register",
     "register_pin",
     "register_checkin",
+    "register_checkout",
     "register_walkin",
     "register_approve_lookup",
     "logout_route",
@@ -1117,6 +1118,17 @@ def register_checkin(event_id: str):
             em.save_events(events)
             break
     flash("Checked in!", "info")
+    return redirect(url_for("event_register", event_id=event_id))
+
+
+@app.route("/events/<event_id>/register/checkout", methods=["POST"])
+def register_checkout(event_id: str):
+    event = em.get_event(event_id)
+    if not event or not _reg_authed(event):
+        return "Not authorized", 403
+    contact_id = request.form.get("contact_id", "")
+    if em.set_contact_attended(event_id, contact_id, False):
+        flash("Check-in removed.", "info")
     return redirect(url_for("event_register", event_id=event_id))
 
 

@@ -24,6 +24,8 @@
     .btn-ghost:hover{background:var(--accent-light);}
     .btn-success{background:#059669;color:#fff;border-color:#059669;}
     .btn-success:hover{background:#047857;}
+    .btn-danger{background:#fff;color:#b91c1c;border-color:#fecaca;}
+    .btn-danger:hover{background:#fef2f2;border-color:#f87171;}
     input,select{padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;font-family:inherit;background:#f9fafb;width:100%;transition:border .15s;}
     input:focus{outline:none;border-color:var(--accent);}
     .flash{padding:.6rem 1rem;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:.85rem;margin-bottom:.75rem;}
@@ -157,9 +159,13 @@
           <div style="font-weight:600;font-size:.88rem;">{{ c.name }}</div>
           <div class="muted text-sm">{{ c.email }}{% if c.phone %} &middot; {{ c.phone }}{% endif %}</div>
         </div>
-        <div>
+        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;justify-content:flex-end;">
           {% if c.attended %}
           <span class="badge badge-checked">Checked in</span>
+          <form method="post" action="{{ url_for('register_checkout', event_id=event.id) }}" style="margin:0;" onsubmit="return confirm('Remove check-in for ' + {{ c.name|tojson }} + '?');">
+            <input type="hidden" name="contact_id" value="{{ c.id }}">
+            <button type="submit" class="btn btn-danger btn-sm">Check out</button>
+          </form>
           {% else %}
           <form method="post" action="{{ url_for('register_checkin', event_id=event.id) }}" style="margin:0;">
             <input type="hidden" name="contact_id" value="{{ c.id }}">
