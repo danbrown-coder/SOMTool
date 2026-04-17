@@ -2,14 +2,22 @@
 {% block title %}Register — SOM Event OS{% endblock %}
 {% block topbar %}{% endblock %}
 {% block content %}
-<div class="auth-center">
-  <div class="card" style="box-shadow: var(--shadow-lg);">
-    <h2 style="margin-bottom:.25rem;">Create account</h2>
-    <p class="muted text-sm mb-2">Join your team&rsquo;s event workspace.</p>
+<div class="auth-hero">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <div>
+        <div class="brand-name">SOM Event OS</div>
+        <div class="brand-sub">Event Operating System</div>
+      </div>
+    </div>
+    <h1>Create your account</h1>
+    <p class="auth-sub">Join your team&rsquo;s event workspace to plan, outreach, and run the desk.</p>
+
     <form method="post" action="{{ url_for('register') }}">
       <div class="field">
         <label for="username">Username</label>
-        <input type="text" id="username" name="username" required autocomplete="username">
+        <input type="text" id="username" name="username" required autocomplete="username" autofocus>
       </div>
       <div class="field">
         <label for="display_name">Display name</label>
@@ -22,11 +30,13 @@
       <div class="field">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required autocomplete="new-password" minlength="6">
+        <p class="text-xs muted mt-1">Minimum 6 characters.</p>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Register</button>
+      <button type="submit" class="btn btn-primary btn-block btn-hero">Create account</button>
     </form>
-    <p class="text-sm muted" style="margin-top:1rem;text-align:center;">
-      <a href="{{ url_for('login') }}">Back to sign in</a>
+
+    <p class="text-sm muted mt-3" style="text-align:center;">
+      Already have one? <a href="{{ url_for('login') }}">Back to sign in</a>
     </p>
   </div>
 </div>
