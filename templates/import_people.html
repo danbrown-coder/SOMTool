@@ -3,15 +3,19 @@
 
 {% block topbar %}
 <div class="topbar">
-  <h2>Import people</h2>
-  <a href="{{ url_for('people_page') }}" class="btn btn-ghost btn-sm">Back to People</a>
+  <div>
+    <div class="breadcrumb"><a href="{{ url_for('people_page') }}">People</a><span class="sep">/</span>Import</div>
+    <h2>Import people</h2>
+  </div>
+  <a href="{{ url_for('people_page') }}" class="btn btn-ghost btn-sm">&larr; Back to People</a>
 </div>
 {% endblock %}
 
 {% block content %}
 {% if step == 'preview' %}
 <div class="card">
-  <h2>Preview (first {{ preview_rows|length }} of {{ total }} rows)</h2>
+  <div class="section-eyebrow">Preview</div>
+  <h2 class="mb-0">First {{ preview_rows|length }} of {{ total }} rows</h2>
   <p class="muted text-sm mb-2">Confirm to import. Duplicates by email are skipped.</p>
   <div class="table-wrap">
     <table>
@@ -28,16 +32,17 @@
       </tbody>
     </table>
   </div>
-  <form method="post" style="margin-top:1rem;">
+  <form method="post" class="gap-row mt-2">
     <input type="hidden" name="step" value="confirm">
-    <button type="submit" class="btn btn-primary">Import {{ total }} row(s)</button>
+    <button type="submit" class="btn btn-primary btn-hero">Import {{ total }} row(s)</button>
     <a href="{{ url_for('import_people_page') }}" class="btn btn-secondary">Cancel</a>
   </form>
 </div>
 {% else %}
-<div class="card" style="max-width:560px;">
-  <h2>Upload file</h2>
-  <p class="muted text-sm mb-2">CSV or Excel (.xlsx). Required columns: <strong>name</strong> (or Full name), <strong>email</strong>.</p>
+<div class="card" style="max-width:640px;">
+  <div class="section-eyebrow">Upload</div>
+  <h2 class="mb-0">Upload file</h2>
+  <p class="muted text-sm mb-2">CSV or Excel (.xlsx). Required columns: <span class="text-strong">name</span> (or Full name), <span class="text-strong">email</span>.</p>
   <form method="post" enctype="multipart/form-data">
     <div class="field">
       <label for="file">File</label>

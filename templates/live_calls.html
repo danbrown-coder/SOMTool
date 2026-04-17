@@ -5,38 +5,41 @@
 <div class="topbar">
   <div>
     <h2>Live Call Monitor</h2>
-    <p class="muted text-sm">Real-time AI voice call tracking</p>
+    <div class="breadcrumb">Real-time AI voice call tracking</div>
   </div>
   <a href="{{ url_for('live_calls_page') }}" class="btn btn-secondary btn-sm">Refresh</a>
 </div>
 {% endblock %}
 
 {% block extra_css %}
+<style>
 .call-card { border-left: 4px solid var(--s-contacted); }
 .call-card.status-queued { border-left-color: var(--s-not-contacted); }
 .call-card.status-ringing { border-left-color: var(--s-contacted); }
 .call-card.status-in-progress { border-left-color: var(--m-emerald); }
 .call-card.status-ended { border-left-color: var(--s-confirmed); }
 .transcript-box {
-  background: var(--input-bg);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: .8rem 1rem;
-  font-size: .84rem;
-  line-height: 1.65;
-  max-height: 300px;
+  padding: .9rem 1.1rem;
+  font-size: .86rem;
+  line-height: 1.7;
+  max-height: 320px;
   overflow-y: auto;
   white-space: pre-wrap;
-  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-family: var(--font-mono);
 }
 .status-dot {
   display: inline-block;
-  width: 8px; height: 8px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   margin-right: 6px;
 }
-.status-dot.live { background: #10b981; animation: pulse 1.5s infinite; }
+.status-dot.live { background: #10B981; animation: pulse 1.6s infinite; box-shadow: 0 0 8px rgba(16,185,129,.6); }
 .status-dot.ended { background: var(--s-not-contacted); }
-@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+@keyframes pulse { 0%,100% { opacity:1; transform: scale(1); } 50% { opacity:.5; transform: scale(.85); } }
+</style>
 {% endblock %}
 
 {% block content %}

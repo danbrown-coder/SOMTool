@@ -3,95 +3,233 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registration — {{ event.name }}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Registration — {{ event.name }} · SOM Event OS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/som-theme.css') }}">
   <style>
-    :root { --accent:#4f46e5; --accent-hover:#4338ca; --accent-light:#eef2ff; --border:#e5e7eb; --bg:#f8f9fb; --card:#fff; --text:#111827; --text-sec:#6b7280; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.06); }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-    .wrap{max-width:720px;margin:0 auto;padding:1.5rem 1rem;}
-    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.25rem;margin-bottom:1rem;}
-    h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;}
-    h2{font-size:1.05rem;font-weight:700;margin-bottom:.6rem;}
-    .muted{color:var(--text-sec);}
-    .text-sm{font-size:.85rem;}
-    .btn{display:inline-flex;align-items:center;justify-content:center;padding:.45rem .9rem;border-radius:8px;font-size:.85rem;font-weight:600;font-family:inherit;cursor:pointer;border:1.5px solid transparent;transition:all .15s;}
-    .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
-    .btn-primary:hover{background:var(--accent-hover);}
-    .btn-sm{padding:.3rem .65rem;font-size:.8rem;}
-    .btn-ghost{background:transparent;color:var(--accent);border-color:var(--border);}
-    .btn-ghost:hover{background:var(--accent-light);}
-    .btn-success{background:#059669;color:#fff;border-color:#059669;}
-    .btn-success:hover{background:#047857;}
-    .btn-danger{background:#fff;color:#b91c1c;border-color:#fecaca;}
-    .btn-danger:hover{background:#fef2f2;border-color:#f87171;}
-    input,select{padding:.5rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;font-family:inherit;background:#f9fafb;width:100%;transition:border .15s;}
-    input:focus{outline:none;border-color:var(--accent);}
-    .flash{padding:.6rem 1rem;border-radius:8px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;font-size:.85rem;margin-bottom:.75rem;}
-    .bar-bg{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden;}
-    .bar-fill{height:100%;border-radius:5px;transition:width .3s;}
-    .contact-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);}
-    .contact-row:last-child{border-bottom:none;}
-    .badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.72rem;font-weight:600;}
-    .badge-checked{background:#d1fae5;color:#065f46;}
-    .badge-pending{background:#fef3c7;color:#92400e;}
-    .search-input{margin-bottom:.6rem;}
-    .pin-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:1rem;}
-    .pin-wrap h1{text-align:center;}
-    .pin-form{display:flex;gap:.5rem;align-items:flex-end;}
-    .pin-form input{width:160px;text-align:center;font-size:1.5rem;letter-spacing:.3em;font-weight:700;}
-    .lookup-card{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:.75rem;margin-top:.5rem;}
-    .lookup-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid #e0f2fe;}
-    .lookup-row:last-child{border-bottom:none;}
-    .section-label{font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-sec);margin:1rem 0 .4rem;}
+    body { background: var(--bg); }
+    .desk-shell { max-width: 760px; margin: 0 auto; padding: 1.75rem 1rem 4rem; }
+    .desk-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem;
+      padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle);
+    }
+    .desk-brand { display: flex; align-items: center; gap: .65rem; }
+    .desk-brand .brand-mark { width: 36px; height: 36px; font-size: .9rem; }
+    .desk-event-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 700;
+      letter-spacing: -.02em; line-height: 1.15;
+      margin: 0;
+    }
+    .desk-event-meta {
+      font-size: .82rem; color: var(--text-secondary);
+      font-family: var(--font-mono); letter-spacing: .03em;
+      text-transform: uppercase; margin-top: .2rem;
+    }
+    .desk-counter {
+      text-align: right;
+      padding: .65rem 1.1rem;
+      border-radius: var(--radius);
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+    .desk-counter-value {
+      font-family: var(--font-display);
+      font-size: 1.85rem; font-weight: 700;
+      letter-spacing: -.03em; line-height: 1;
+      color: var(--text-strong);
+    }
+    .desk-counter-label {
+      font-size: .68rem; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: .14em;
+      font-family: var(--font-mono); margin-top: .25rem;
+    }
+    .cap-track {
+      height: 8px; background: var(--surface-subtle);
+      border-radius: var(--radius-pill); overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
+    }
+    .cap-fill {
+      height: 100%; border-radius: var(--radius-pill);
+      transition: width .4s var(--ease-out);
+    }
+    .cap-meta {
+      font-size: .72rem; color: var(--text-secondary);
+      text-align: right; margin-top: .35rem;
+      font-family: var(--font-mono); letter-spacing: .05em;
+    }
+    .desk-flash {
+      padding: .7rem 1rem;
+      border-radius: var(--radius-sm);
+      background: #ECFDF5; border: 1px solid #A7F3D0;
+      color: #065F46; font-size: .87rem; margin-bottom: .85rem;
+    }
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: .65rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .16em;
+      color: var(--text-secondary); margin-bottom: .35rem;
+    }
+    .desk-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem; margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .desk-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.05rem; font-weight: 700;
+      letter-spacing: -.01em; margin: 0 0 .75rem;
+    }
+    .walkin-grid {
+      display: grid; gap: .55rem;
+      grid-template-columns: 2fr 2fr 1.4fr;
+      margin-bottom: .65rem;
+    }
+    @media (max-width: 640px) { .walkin-grid { grid-template-columns: 1fr; } }
+    .search-input { margin-bottom: .8rem; }
+    .contact-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: .75rem; padding: .7rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .contact-row:last-child { border-bottom: none; }
+    .contact-name {
+      font-weight: 600; font-size: .92rem;
+      color: var(--text-strong); letter-spacing: -.01em;
+    }
+    .contact-meta {
+      font-size: .78rem; color: var(--text-secondary);
+      font-family: var(--font-mono); margin-top: .15rem;
+    }
+    .badge-checked {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: #D1FAE5; color: #065F46;
+      padding: .25rem .65rem; border-radius: var(--radius-pill);
+      font-size: .7rem; font-weight: 600;
+      font-family: var(--font-mono); letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .badge-checked::before {
+      content: ''; width: 6px; height: 6px;
+      background: #059669; border-radius: 50%;
+    }
+    .lookup-card {
+      background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);
+      border: 1px solid #BAE6FD;
+      border-radius: var(--radius);
+      padding: 1rem; margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .lookup-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: .6rem; padding: .55rem 0;
+      border-bottom: 1px solid #E0F2FE;
+    }
+    .lookup-row:last-child { border-bottom: none; }
+    .recent-card { padding: .85rem 1.1rem; }
+    .recent-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: .85rem; padding: .35rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .recent-row:last-child { border-bottom: none; }
+    .recent-name { font-weight: 600; color: var(--text-strong); }
+    .recent-type {
+      font-family: var(--font-mono); font-size: .7rem;
+      color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .desk-actions {
+      display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .gate-wrap {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 70vh; gap: 1.25rem; padding: 1rem;
+    }
+    .gate-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem; font-weight: 700;
+      letter-spacing: -.02em; text-align: center;
+      margin: 0;
+    }
+    .gate-sub {
+      color: var(--text-secondary); font-size: .85rem;
+      text-align: center; margin-top: .3rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase; letter-spacing: .1em;
+    }
+    .gate-card {
+      width: 100%; max-width: 24rem; text-align: center;
+    }
+    .pin-error {
+      background: #FEF2F2; border: 1px solid #FECACA;
+      color: #991B1B; padding: .5rem .9rem;
+      border-radius: var(--radius-sm);
+      font-size: .82rem; margin-bottom: .85rem;
+      font-family: var(--font-mono); letter-spacing: .02em;
+    }
   </style>
 </head>
 <body>
-<div class="wrap">
+<div class="desk-shell">
   {% if not authed %}
-  <!-- ── PIN Gate ── -->
-  <div class="pin-wrap">
+  <!-- PIN Gate -->
+  <div class="gate-wrap">
     <div>
-      <h1>{{ event.name }}</h1>
-      <p class="muted text-sm" style="text-align:center;margin-top:.3rem;">{{ event.date or 'TBA' }}</p>
-    </div>
-    <div class="card" style="width:320px;text-align:center;">
-      <h2 style="margin-bottom:.3rem;">Staff Registration</h2>
-      <p class="muted text-sm" style="margin-bottom:1rem;">Enter the event PIN to access check-in</p>
-      {% if pin_error %}
-      <div style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:.4rem .7rem;border-radius:6px;font-size:.82rem;margin-bottom:.75rem;">Incorrect PIN</div>
-      {% endif %}
-      <form method="post" action="{{ url_for('register_pin', event_id=event.id) }}">
-        <div class="pin-form" style="justify-content:center;">
-          <input type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autofocus placeholder="••••">
-          <button type="submit" class="btn btn-primary">Enter</button>
+      <div class="auth-brand" style="justify-content:center;">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <div style="text-align:left;">
+          <div class="brand-name">{{ event.name }}</div>
+          <div class="brand-sub">{{ event.date or 'Date TBA' }}</div>
         </div>
+      </div>
+    </div>
+    <div class="card gate-card">
+      <div class="section-eyebrow">Staff registration</div>
+      <h2 class="mb-1">Enter event PIN</h2>
+      <p class="muted text-sm mb-2">Provide the event's check-in PIN to open the desk.</p>
+      {% if pin_error %}<div class="pin-error">Incorrect PIN</div>{% endif %}
+      <form method="post" action="{{ url_for('register_pin', event_id=event.id) }}">
+        <input class="pin-input" type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autofocus placeholder="••••" autocomplete="one-time-code">
+        <button type="submit" class="btn btn-primary btn-block btn-hero mt-2">Open desk</button>
       </form>
     </div>
     {% if current_user_present %}
-    <form method="post" action="{{ url_for('logout_route') }}" style="margin-top:.75rem;">
+    <form method="post" action="{{ url_for('logout_route') }}">
       <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
     </form>
     {% endif %}
   </div>
 
   {% else %}
-  <!-- ── Registration Desk ── -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.75rem;margin-bottom:1rem;">
-    <div>
-      <h1>{{ event.name }}</h1>
-      <p class="muted text-sm">{{ event.date or 'TBA' }} &middot; Registration Desk</p>
+  <!-- Registration Desk -->
+  <div class="desk-header">
+    <div class="desk-brand">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <div>
+        <h1 class="desk-event-name">{{ event.name }}</h1>
+        <div class="desk-event-meta">{{ event.date or 'TBA' }} · Registration desk</div>
+      </div>
     </div>
-    <div style="display:flex;align-items:flex-start;gap:.75rem;flex-wrap:wrap;">
+    <div class="desk-actions">
       {% if show_leave_to_pin %}
       <form method="post" action="{{ url_for('register_leave_pin_session', event_id=event.id) }}" style="margin:0;">
         <button type="submit" class="btn btn-ghost btn-sm" title="Return to PIN entry">Exit desk</button>
       </form>
       {% endif %}
-      <div style="text-align:right;">
-        <div style="font-size:1.5rem;font-weight:700;">{{ metrics.attended }}</div>
-        <div class="muted text-sm">checked in{% if metrics.venue_capacity %} / {{ metrics.venue_capacity }}{% endif %}</div>
+      {% if current_user_present %}
+      <form method="post" action="{{ url_for('logout_route') }}" style="margin:0;">
+        <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+      </form>
+      {% endif %}
+      <div class="desk-counter">
+        <div class="desk-counter-value">{{ metrics.attended }}</div>
+        <div class="desk-counter-label">Checked in{% if metrics.venue_capacity %} / {{ metrics.venue_capacity }}{% endif %}</div>
       </div>
     </div>
   </div>
@@ -99,89 +237,83 @@
   {% if metrics.venue_capacity > 0 %}
   {% set pct = (metrics.attended / metrics.venue_capacity * 100)|round|int %}
   {% set pct_c = [pct, 100]|min %}
-  <div style="margin-bottom:1rem;">
-    <div class="bar-bg">
-      <div class="bar-fill" style="width:{{ pct_c }}%;background:{% if pct > 100 %}#dc2626{% elif pct > 85 %}#f59e0b{% else %}#059669{% endif %};"></div>
+  <div style="margin-bottom:1.25rem;">
+    <div class="cap-track">
+      <div class="cap-fill" style="width:{{ pct_c }}%;background:{% if pct > 100 %}#DC2626{% elif pct > 85 %}#F59E0B{% else %}#059669{% endif %};"></div>
     </div>
-    <div class="muted text-sm" style="text-align:right;margin-top:.2rem;">{{ pct }}% capacity</div>
+    <div class="cap-meta">{{ pct }}% capacity</div>
   </div>
   {% endif %}
 
   {% for msg in get_flashed_messages() %}
-  <div class="flash">{{ msg }}</div>
+  <div class="desk-flash">{{ msg }}</div>
   {% endfor %}
 
   <!-- Walk-in Form -->
-  <div class="card">
-    <h2>Walk-in Registration</h2>
+  <div class="desk-card">
+    <div class="section-eyebrow">Walk-in</div>
+    <h3>Register a walk-in</h3>
     <form method="post" action="{{ url_for('register_walkin', event_id=event.id) }}">
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem;">
-        <div style="flex:2;min-width:160px;">
-          <input type="text" name="name" placeholder="Full name *" required>
-        </div>
-        <div style="flex:2;min-width:160px;">
-          <input type="email" name="email" placeholder="Email (optional)">
-        </div>
-        <div style="flex:1;min-width:120px;">
-          <input type="tel" name="phone" placeholder="Phone (optional)">
-        </div>
+      <div class="walkin-grid">
+        <input type="text" name="name" placeholder="Full name *" required>
+        <input type="email" name="email" placeholder="Email (optional)">
+        <input type="tel" name="phone" placeholder="Phone (optional)">
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Register Walk-in</button>
+      <button type="submit" class="btn btn-primary btn-block">Register walk-in</button>
     </form>
   </div>
 
   <!-- Web Lookup Results -->
   {% if lookup_results is defined and lookup_results %}
   <div class="lookup-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
-      <strong style="font-size:.88rem;">Possible matches for "{{ lookup_name }}"</strong>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem;">
+      <strong style="font-size:.9rem;color:var(--text-strong);">Possible matches for "{{ lookup_name }}"</strong>
       <span class="muted text-sm">{{ lookup_results|length }} found</span>
     </div>
     {% for r in lookup_results %}
     <div class="lookup-row">
       <div style="min-width:0;flex:1;">
-        <div style="font-weight:600;font-size:.88rem;">{{ r.title }}</div>
+        <div style="font-weight:600;font-size:.88rem;color:var(--text-strong);">{{ r.title }}</div>
         <div class="muted text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.snippet[:120] }}</div>
       </div>
-      <div style="display:flex;gap:.3rem;margin-left:.5rem;flex-shrink:0;">
-        <form method="post" action="{{ url_for('register_approve_lookup', event_id=event.id) }}" style="margin:0;">
-          <input type="hidden" name="contact_id" value="{{ lookup_contact_id }}">
-          <input type="hidden" name="url" value="{{ r.url }}">
-          <input type="hidden" name="title" value="{{ r.title }}">
-          <input type="hidden" name="snippet" value="{{ r.snippet[:200] }}">
-          <button type="submit" class="btn btn-success btn-sm">This is them</button>
-        </form>
-      </div>
+      <form method="post" action="{{ url_for('register_approve_lookup', event_id=event.id) }}" style="margin:0;">
+        <input type="hidden" name="contact_id" value="{{ lookup_contact_id }}">
+        <input type="hidden" name="url" value="{{ r.url }}">
+        <input type="hidden" name="title" value="{{ r.title }}">
+        <input type="hidden" name="snippet" value="{{ r.snippet[:200] }}">
+        <button type="submit" class="btn btn-success btn-sm">This is them</button>
+      </form>
     </div>
     {% endfor %}
-    <div style="margin-top:.4rem;text-align:center;">
+    <div style="margin-top:.6rem;text-align:center;">
       <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-ghost btn-sm">Skip — none match</a>
     </div>
   </div>
   {% endif %}
 
   <!-- Pre-registered Contacts -->
-  <div class="card">
-    <h2>Pre-registered Contacts</h2>
-    <input type="text" class="search-input" id="contactSearch" placeholder="Search by name..." oninput="filterContacts()">
+  <div class="desk-card">
+    <div class="section-eyebrow">Roster</div>
+    <h3>Pre-registered contacts</h3>
+    <input type="text" class="search-input" id="contactSearch" placeholder="Search by name…" oninput="filterContacts()">
     <div id="contactList">
       {% for c in event.contacts|sort(attribute='name') %}
       <div class="contact-row" data-name="{{ c.name|lower }}">
         <div style="min-width:0;">
-          <div style="font-weight:600;font-size:.88rem;">{{ c.name }}</div>
+          <div class="contact-name">{{ c.name }}</div>
           {% if register_only_user %}
           {% elif is_admin %}
-          <div class="muted text-sm">{{ c.email }}{% if c.phone %} &middot; {{ c.phone }}{% endif %}</div>
+          {% if c.email or c.phone %}<div class="contact-meta">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</div>{% endif %}
           {% else %}
-          <div class="muted text-sm">
+          {% if c.email or c.phone %}<div class="contact-meta">
             {% if c.email %}{{ c.email|mask_email }}{% endif %}
-            {% if c.phone %}{% if c.email %} &middot; {% endif %}{{ c.phone|mask_phone }}{% endif %}
-          </div>
+            {% if c.phone %}{% if c.email %} · {% endif %}{{ c.phone|mask_phone }}{% endif %}
+          </div>{% endif %}
           {% endif %}
         </div>
-        <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;justify-content:flex-end;">
+        <div style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;justify-content:flex-end;">
           {% if c.attended %}
-          <span class="badge badge-checked">Checked in</span>
+          <span class="badge-checked">Checked in</span>
           <form method="post" action="{{ url_for('register_checkout', event_id=event.id) }}" style="margin:0;" onsubmit="return confirm('Remove check-in for ' + {{ c.name|tojson }} + '?');">
             <input type="hidden" name="contact_id" value="{{ c.id }}">
             <button type="submit" class="btn btn-danger btn-sm">Check out</button>
@@ -204,12 +336,12 @@
   <!-- Recent Check-ins -->
   {% set recent = event.contacts|selectattr('attended')|sort(attribute='registered_at', reverse=true)|list %}
   {% if recent %}
-  <div class="section-label">Recent Check-ins</div>
-  <div class="card" style="padding:.75rem;">
+  <div class="section-eyebrow" style="margin-top:1.25rem;">Recent activity</div>
+  <div class="desk-card recent-card">
     {% for c in recent[:10] %}
-    <div style="display:flex;justify-content:space-between;font-size:.85rem;padding:.25rem 0;{% if not loop.last %}border-bottom:1px solid var(--border);{% endif %}">
-      <span><strong>{{ c.name }}</strong></span>
-      <span class="muted">{{ c.registration_type.value|replace('_',' ')|title }}</span>
+    <div class="recent-row">
+      <span class="recent-name">{{ c.name }}</span>
+      <span class="recent-type">{{ c.registration_type.value|replace('_',' ') }}</span>
     </div>
     {% endfor %}
   </div>

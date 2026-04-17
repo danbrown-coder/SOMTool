@@ -5,9 +5,9 @@
 <div class="topbar">
   <div>
     <h2>Calendar</h2>
-    <p class="muted text-sm">AI-planned outreach across all events</p>
+    <div class="breadcrumb">AI-planned outreach across all events</div>
   </div>
-  <div style="display:flex;gap:.5rem;">
+  <div class="gap-row">
     <form method="post" action="{{ url_for('plan_all_outreach') }}" style="margin:0;">
       <button type="submit" class="btn btn-primary btn-sm">Plan all events</button>
     </form>
@@ -22,7 +22,7 @@
 {% set planned_count = queue|selectattr('status', 'eq', 'planned')|list|length %}
 {% set approved_count = queue|selectattr('status', 'eq', 'approved')|list|length %}
 {% set sent_count = queue|selectattr('status', 'eq', 'sent')|list|length %}
-
+<style>
 .cal-layout {
   display: flex;
   gap: 0;
@@ -207,6 +207,16 @@
   .cal-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: none; position: static; padding: .75rem 0; }
   .cal-main { padding: .75rem 0 0; }
 }
+.cal-event-item:hover { background: var(--accent-soft); }
+.cal-event-item.active { background: var(--accent-soft); }
+.pri-item:hover { background: var(--accent-soft); }
+.cal-stat-val { color: var(--accent); font-family: var(--font-display); }
+.cal-chip { font-family: var(--font-mono); letter-spacing: .04em; text-transform: uppercase; border: 1px solid var(--border-strong); }
+.cal-chip.active { background: var(--color-primary); color: #FAFAF9; border-color: var(--color-primary); }
+.cal-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.status-pill { font-family: var(--font-mono); letter-spacing: .03em; }
+.cal-event-dot.medium { background: var(--accent); }
+</style>
 {% endblock %}
 
 {% block content %}

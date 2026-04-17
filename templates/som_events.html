@@ -5,84 +5,80 @@
 <div class="topbar">
   <div>
     <h2>SOM Events Feed</h2>
-    <span class="muted text-sm">Live data from callutheran.edu School of Management</span>
+    <div class="breadcrumb">Live data from callutheran.edu School of Management</div>
   </div>
   <form method="post" action="{{ url_for('som_refresh') }}">
-    <button type="submit" class="btn btn-secondary btn-sm" id="refresh-btn">🔄 Refresh from Web</button>
+    <button type="submit" class="btn btn-secondary btn-sm" id="refresh-btn">Refresh from web</button>
   </form>
 </div>
 {% endblock %}
 
 {% block extra_css %}
+<style>
 .som-badge {
   display: inline-block;
-  padding: .15rem .55rem;
-  font-size: .7rem;
-  font-weight: 600;
-  border-radius: 100px;
+  padding: .2rem .65rem;
+  font-size: .7rem; font-weight: 600;
+  border-radius: var(--radius-pill);
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: .08em;
+  font-family: var(--font-mono);
 }
-.som-badge.upcoming { background: #d1fae5; color: #065f46; }
-.som-badge.past { background: #f3f4f6; color: #6b7280; }
-.som-badge.tba { background: #fef3c7; color: #92400e; }
-.som-badge.open { background: #dbeafe; color: #1e40af; }
-.som-badge.closed { background: #fee2e2; color: #991b1b; }
-.som-series { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin-bottom: .3rem; }
+.som-badge.upcoming { background: #D1FAE5; color: #065F46; }
+.som-badge.past { background: var(--surface-subtle); color: var(--text-secondary); }
+.som-badge.tba { background: var(--accent-soft); color: #92400E; }
+.som-badge.open { background: #DBEAFE; color: #1E40AF; }
+.som-badge.closed { background: #FEE2E2; color: #991B1B; }
+.som-series {
+  font-size: .68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .14em;
+  color: var(--accent); margin-bottom: .45rem;
+  font-family: var(--font-mono);
+}
 .som-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
 .som-card { display: flex; flex-direction: column; justify-content: space-between; }
-.som-card .som-desc { font-size: .85rem; color: var(--text-secondary); margin: .5rem 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.som-card .som-meta { font-size: .8rem; color: var(--text-secondary); margin-top: .35rem; }
-.som-card .som-speakers { font-size: .8rem; color: var(--text-secondary); margin-top: .3rem; }
-.som-actions { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: auto; padding-top: .75rem; }
+.som-card .som-desc { font-size: .86rem; color: var(--text-secondary); margin: .6rem 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.55; }
+.som-card .som-meta { font-size: .82rem; color: var(--text-secondary); margin-top: .35rem; display:flex; align-items:center; gap:.4rem; }
+.som-card .som-speakers { font-size: .82rem; color: var(--text-secondary); margin-top: .35rem; }
+.som-actions { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: auto; padding-top: .85rem; border-top: 1px solid var(--border-subtle); }
 .change-alert {
-  display: flex; align-items: flex-start; gap: .75rem;
-  background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius);
-  padding: 1rem 1.25rem; margin-bottom: .65rem;
+  display: flex; align-items: flex-start; gap: .85rem;
+  background: var(--accent-soft); border: 1px solid rgba(202,138,4,.3);
+  border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: .75rem;
 }
-.change-alert.reg { background: #eff6ff; border-color: #bfdbfe; }
-.change-alert.date { background: #fef2f2; border-color: #fecaca; }
-.change-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: .1rem; }
-.change-body { flex: 1; }
-.change-body strong { font-size: .9rem; }
-.change-body p { font-size: .82rem; color: var(--text-secondary); margin: .2rem 0 .5rem; }
+.change-alert.reg { background: #EFF6FF; border-color: #BFDBFE; }
+.change-alert.date { background: #FEF2F2; border-color: #FECACA; }
+.change-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: .1rem; }
+.change-body { flex: 1; min-width: 0; }
+.change-body strong { font-size: .95rem; color: var(--text-strong); }
+.change-body p { font-size: .85rem; color: var(--text-secondary); margin: .3rem 0 .75rem; line-height: 1.55; }
 .som-details { margin-top: .5rem; }
-.som-details summary { font-size: .82rem; font-weight: 600; color: var(--accent); cursor: pointer; }
-.som-details-content { font-size: .82rem; color: var(--text-secondary); margin-top: .5rem; line-height: 1.6; white-space: pre-wrap; }
+.som-details summary { font-size: .82rem; font-weight: 600; color: var(--accent); cursor: pointer; font-family: var(--font-mono); letter-spacing: .04em; text-transform: uppercase; }
+.som-details-content { font-size: .85rem; color: var(--text-secondary); margin-top: .6rem; line-height: 1.7; white-space: pre-wrap; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+</style>
 {% endblock %}
 
 {% block content %}
 
 <!-- Monitor Status -->
-<div class="card" style="padding:.75rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:.85rem;">
+<div class="card mb-2" style="padding:.85rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:.85rem;">
   {% if monitor.running %}
-  <span style="display:inline-flex;align-items:center;gap:.35rem;">
-    <span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;animation:pulse 2s infinite;"></span>
-    <strong>Auto-monitoring: ON</strong>
-    <span class="muted">(every {{ monitor.interval_minutes }} min)</span>
+  <span style="display:inline-flex;align-items:center;gap:.45rem;">
+    <span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;animation:pulse 2s infinite;box-shadow:0 0 8px rgba(16,185,129,.5);"></span>
+    <strong>Auto-monitoring</strong> <span class="chip" style="background:#D1FAE5;color:#065F46;">ON</span>
+    <span class="muted">every {{ monitor.interval_minutes }} min</span>
   </span>
   {% else %}
-  <span style="display:inline-flex;align-items:center;gap:.35rem;">
-    <span style="width:8px;height:8px;border-radius:50%;background:#9ca3af;display:inline-block;"></span>
-    <strong>Auto-monitoring: OFF</strong>
+  <span style="display:inline-flex;align-items:center;gap:.45rem;">
+    <span style="width:8px;height:8px;border-radius:50%;background:var(--text-tertiary);display:inline-block;"></span>
+    <strong>Auto-monitoring</strong> <span class="chip">OFF</span>
   </span>
   {% endif %}
-  {% if monitor.last_check %}
-  <span class="muted">Last checked: {{ monitor.last_check[:19] }}Z</span>
-  {% endif %}
-  {% if monitor.checks_count %}
-  <span class="muted">{{ monitor.checks_count }} auto-check{{ 's' if monitor.checks_count != 1 else '' }} completed</span>
-  {% endif %}
-  {% if changes %}
-  <span class="badge badge-declined" style="font-size:.72rem;">{{ changes|length }} pending alert{{ 's' if changes|length != 1 else '' }}</span>
-  {% endif %}
+  {% if monitor.last_check %}<span class="muted text-xs">Last: {{ monitor.last_check[:19] }}Z</span>{% endif %}
+  {% if monitor.checks_count %}<span class="muted text-xs">{{ monitor.checks_count }} auto-check{{ 's' if monitor.checks_count != 1 else '' }} completed</span>{% endif %}
+  {% if changes %}<span class="badge badge-declined">{{ changes|length }} pending alert{{ 's' if changes|length != 1 else '' }}</span>{% endif %}
 </div>
-<style>
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .4; }
-}
-</style>
 
 <!-- Change Alerts -->
 {% if changes %}

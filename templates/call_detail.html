@@ -12,43 +12,42 @@
 {% endblock %}
 
 {% block extra_css %}
+<style>
 .transcript-full {
-  background: var(--input-bg);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 1rem 1.2rem;
-  font-size: .84rem;
-  line-height: 1.7;
+  padding: 1.1rem 1.25rem;
+  font-size: .86rem;
+  line-height: 1.75;
   white-space: pre-wrap;
-  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-family: var(--font-mono);
   max-height: 500px;
   overflow-y: auto;
 }
-.analysis-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: .75rem;
-}
+.analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .85rem; }
 .analysis-item {
-  background: var(--input-bg);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: .8rem 1rem;
+  padding: .9rem 1.1rem;
 }
 .analysis-item .label {
-  font-size: .72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--text-secondary);
-  margin-bottom: .3rem;
+  font-size: .7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text-secondary); margin-bottom: .35rem;
+  font-family: var(--font-mono);
 }
-.analysis-item .value {
-  font-size: .9rem;
-  font-weight: 500;
-}
+.analysis-item .value { font-size: .95rem; font-weight: 500; }
+.message-row { margin-bottom:.5rem; padding:.6rem .85rem; border-radius:var(--radius-sm); font-size:.86rem; line-height:1.55; border:1px solid var(--border); }
+.message-row.assistant { background: var(--accent-soft); border-color: rgba(202,138,4,.18); }
+.message-row.user { background: #F0FDF4; border-color: #BBF7D0; }
+.message-role { font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--text-secondary); font-family:var(--font-mono); font-weight:600; margin-bottom:.2rem; display:block; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;">
+<div class="metrics-grid mb-3">
   <div class="metric-card mc-1">
     <div class="metric-value">{{ call.duration_seconds }}s</div>
     <div class="metric-label">Duration</div>
@@ -168,8 +167,8 @@
   <h2>Message Log</h2>
   <div style="max-height:400px;overflow-y:auto;">
     {% for msg in call.messages %}
-    <div style="margin-bottom:.5rem;padding:.4rem .6rem;background:{% if msg.role == 'assistant' %}#eef2ff{% elif msg.role == 'user' %}#f0fdf4{% else %}var(--input-bg){% endif %};border-radius:6px;font-size:.84rem;">
-      <strong style="font-size:.75rem;text-transform:uppercase;color:var(--text-secondary);">{{ msg.role or 'system' }}</strong><br>
+    <div class="message-row {% if msg.role == 'assistant' %}assistant{% elif msg.role == 'user' %}user{% endif %}">
+      <span class="message-role">{{ msg.role or 'system' }}</span>
       {{ msg.content or msg.message or '' }}
     </div>
     {% endfor %}

@@ -5,7 +5,7 @@
 <div class="topbar">
   <div>
     <h2>People directory</h2>
-    <span class="muted text-sm">University-wide contacts for outreach (admin can import &amp; edit)</span>
+    <div class="breadcrumb">University-wide contacts for outreach{% if can_edit_people %} &middot; admin can import &amp; edit{% endif %}</div>
   </div>
   {% if can_edit_people %}
   <div class="gap-row">
@@ -16,13 +16,13 @@
 {% endblock %}
 
 {% block content %}
-<form method="get" action="{{ url_for('people_page') }}" class="card" style="margin-bottom:1rem;">
-  <div class="form-row" style="align-items:flex-end;gap:.75rem;flex-wrap:wrap;">
-    <div class="field" style="flex:1;min-width:200px;">
+<form method="get" action="{{ url_for('people_page') }}" class="card mb-2">
+  <div class="form-row">
+    <div class="field" style="flex:1;min-width:220px;">
       <label for="q">Search</label>
       <input type="search" id="q" name="q" value="{{ q }}" placeholder="Name, email, company, tags...">
     </div>
-    <div class="field" style="width:160px;">
+    <div class="field" style="width:180px;">
       <label for="tag">Tag</label>
       <select id="tag" name="tag" onchange="this.form.submit()">
         <option value="">All tags</option>
@@ -31,26 +31,32 @@
         {% endfor %}
       </select>
     </div>
-    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    <button type="submit" class="btn btn-primary">Search</button>
   </div>
 </form>
 
 {% if can_edit_people %}
-<div class="card" style="border-left:3px solid var(--accent);margin-bottom:1rem;">
-  <h2 style="font-size:1rem;">Add person</h2>
-  <form method="post" action="{{ url_for('people_add_route') }}" class="form-row" style="flex-wrap:wrap;gap:.75rem;align-items:flex-end;">
-    <div class="field" style="width:140px;"><label>Name</label><input type="text" name="name" required></div>
-    <div class="field" style="width:200px;"><label>Email</label><input type="email" name="email" required></div>
-    <div class="field" style="width:140px;"><label>Company</label><input type="text" name="company"></div>
-    <div class="field" style="width:140px;"><label>Role</label><input type="text" name="role"></div>
-    <div class="field" style="flex:1;min-width:160px;"><label>Tags (comma)</label><input type="text" name="tags" placeholder="alumni, finance"></div>
-    <button type="submit" class="btn btn-primary btn-sm">Add</button>
+<div class="card card-accent mb-2">
+  <div class="section-eyebrow">Add</div>
+  <h2 class="mb-2">Add a person</h2>
+  <form method="post" action="{{ url_for('people_add_route') }}" class="form-row">
+    <div class="field" style="width:160px;"><label>Name</label><input type="text" name="name" required></div>
+    <div class="field" style="width:220px;"><label>Email</label><input type="email" name="email" required></div>
+    <div class="field" style="width:160px;"><label>Company</label><input type="text" name="company"></div>
+    <div class="field" style="width:160px;"><label>Role</label><input type="text" name="role"></div>
+    <div class="field" style="flex:1;min-width:180px;"><label>Tags</label><input type="text" name="tags" placeholder="alumni, finance"></div>
+    <button type="submit" class="btn btn-primary">Add</button>
   </form>
 </div>
 {% endif %}
 
 <div class="card">
-  <h2>Directory <span class="muted" style="font-weight:500;font-size:.85rem;">({{ people|length }})</span></h2>
+  <div class="row-between mb-2">
+    <div>
+      <div class="section-eyebrow">Directory</div>
+      <h2 class="mb-0">All people <span class="muted text-sm" style="font-weight:500;">({{ people|length }})</span></h2>
+    </div>
+  </div>
   {% if people %}
   <div class="table-wrap">
     <table>
@@ -73,9 +79,9 @@
           <td>{{ p.company or '—' }}</td>
           <td>
             {% for t in p.tags %}
-            <span class="badge badge-contacted" style="font-size:.68rem;">{{ t }}</span>
+            <span class="chip">{{ t }}</span>
             {% endfor %}
-            {% if not p.tags %}—{% endif %}
+            {% if not p.tags %}<span class="muted">—</span>{% endif %}
           </td>
           <td class="muted text-sm">{{ p.source or '—' }}</td>
           <td class="text-sm">
