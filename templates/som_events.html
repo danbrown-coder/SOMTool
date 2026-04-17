@@ -3,13 +3,18 @@
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <h2>SOM Events Feed</h2>
-    <div class="breadcrumb">Live data from callutheran.edu School of Management</div>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>SOM feed
+    </div>
+    <h1>SOM events feed</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">Live data scraped from the SOM website.</p>
   </div>
-  <form method="post" action="{{ url_for('som_refresh') }}">
-    <button type="submit" class="btn btn-secondary btn-sm" id="refresh-btn">Refresh from web</button>
-  </form>
+  <div class="topbar-actions">
+    <form method="post" action="{{ url_for('som_refresh') }}" style="margin:0;">
+      <button type="submit" class="btn btn-secondary btn-sm" id="refresh-btn">Refresh from web</button>
+    </form>
+  </div>
 </div>
 {% endblock %}
 

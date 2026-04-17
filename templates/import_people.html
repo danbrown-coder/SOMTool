@@ -3,11 +3,16 @@
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <div class="breadcrumb"><a href="{{ url_for('people_page') }}">People</a><span class="sep">/</span>Import</div>
-    <h2>Import people</h2>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('people_page') }}">People</a><span class="sep">/</span>Import
+    </div>
+    <h1>Import people</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">Bulk-add contacts from CSV or Excel.</p>
   </div>
-  <a href="{{ url_for('people_page') }}" class="btn btn-ghost btn-sm">&larr; Back to People</a>
+  <div class="topbar-actions">
+    <a href="{{ url_for('people_page') }}" class="btn btn-ghost btn-sm">Back to People</a>
+  </div>
 </div>
 {% endblock %}
 

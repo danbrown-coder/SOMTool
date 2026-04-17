@@ -1,19 +1,73 @@
 {% extends "base.html" %}
-{% block title %}Event registration PIN — SOM Event OS{% endblock %}
+{% block title %}Event check-in PIN — {{ brand.short_name }}{% endblock %}
 
 {% block extra_css %}
 <style>
   .gate-wrap {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    min-height: 60vh; gap: 1rem; padding: 1.5rem 0;
+    min-height: calc(100vh - 120px);
+    gap: 18px; padding: 32px 16px;
+  }
+  .gate-card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+    padding: 32px 28px;
+    width: 100%; max-width: 400px;
+    text-align: center;
+  }
+  .gate-mark {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--brand-soft); color: var(--brand-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .95rem; letter-spacing: .04em;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .gate-mark img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+  .gate-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem; font-weight: 600;
+    color: var(--text-strong); letter-spacing: -.02em;
+    line-height: 1.2; margin: 0 0 6px;
+  }
+  .gate-sub {
+    font-size: .78rem; color: var(--text-muted);
+    font-family: var(--font-mono);
+    text-transform: uppercase; letter-spacing: .1em;
+    margin-bottom: 22px;
+  }
+  .pin-input {
+    display: block;
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 1.75rem; font-weight: 600;
+    letter-spacing: .5em;
+    text-align: center;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface-tinted);
+    color: var(--text-strong);
+    transition: border-color .15s, background .15s, box-shadow .15s;
+  }
+  .pin-input:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    background: var(--surface-raised);
+    box-shadow: 0 0 0 3px var(--brand-soft);
   }
   .pin-error {
-    background: #FBE9E9; border: 1px solid #F2B5B5;
-    color: #7A1D1C; padding: .5rem .9rem;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger-soft);
+    color: var(--danger-ink);
+    padding: 8px 12px;
     border-radius: var(--radius-sm);
-    font-size: .82rem; margin-bottom: 1rem;
-    font-family: var(--font-mono); letter-spacing: .02em;
+    font-size: .82rem;
+    margin-bottom: 14px;
+    font-weight: 500;
   }
 </style>
 {% endblock %}
@@ -21,49 +75,35 @@
 {% block topbar %}
 {% if not hide_sidebar|default(false) %}
 <div class="topbar">
-  <div>
-    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a><span class="sep">/</span>Registration</div>
-    <h2>Enter event PIN</h2>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>Check-in
+    </div>
+    <h1>Enter event PIN</h1>
   </div>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block content %}
-{% if hide_sidebar|default(false) %}
-<div class="pin-wrap">
-  <div class="pin-form">
-    <div class="auth-brand" style="justify-content:center;">
-      <span class="brand-mark" aria-hidden="true">S</span>
-      <div style="text-align:left;">
-        <div class="brand-name">SOM Event OS</div>
-        <div class="brand-sub">Registration desk</div>
-      </div>
-    </div>
-    <h1>Event registration</h1>
-    <p class="pin-sub">Enter the event's registration PIN to open the check-in desk.</p>
-    {% if pin_error %}<div class="pin-error">Incorrect PIN</div>{% endif %}
-    <form method="post" action="{{ url_for('registration_gate') }}">
-      <input class="pin-input" type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autofocus placeholder="••••" autocomplete="one-time-code">
-      <button type="submit" class="btn btn-primary btn-block btn-hero mt-2">Open desk</button>
-    </form>
-    <form method="post" action="{{ url_for('logout_route') }}" class="mt-2" style="text-align:center;">
-      <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
-    </form>
-  </div>
-</div>
-{% else %}
 <div class="gate-wrap">
-  <div class="card" style="max-width:24rem;width:100%;text-align:center;">
-    <div class="section-eyebrow">Staff PIN</div>
-    <h2 class="mb-2">Enter event PIN</h2>
-    <p class="muted text-sm mb-2">Enter the event's registration PIN to open the check-in desk.</p>
-    {% if pin_error %}<div class="pin-error">Incorrect PIN</div>{% endif %}
+  <div class="gate-card">
+    <div class="gate-mark">
+      {% if brand.mark_url %}<img src="{{ brand.mark_url }}" alt="">{% else %}{{ brand.initials }}{% endif %}
+    </div>
+    <h1 class="gate-title">Staff check-in</h1>
+    <div class="gate-sub">{{ brand.short_name }} · Event OS</div>
+    {% if pin_error %}<div class="pin-error">That PIN didn't match. Try again.</div>{% endif %}
     <form method="post" action="{{ url_for('registration_gate') }}">
-      <input class="pin-input" type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autofocus placeholder="••••" autocomplete="one-time-code">
-      <button type="submit" class="btn btn-primary btn-block btn-hero mt-2">Enter</button>
+      <input class="pin-input" type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autofocus placeholder="••••" autocomplete="one-time-code" aria-label="Registration PIN">
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:16px;">Open check-in desk</button>
     </form>
+    <p class="muted text-sm" style="margin-top:14px;margin-bottom:0;">Ask the event organizer for the PIN.</p>
   </div>
+  {% if not hide_sidebar|default(false) %}
+  <form method="post" action="{{ url_for('logout_route') }}">
+    <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+  </form>
+  {% endif %}
 </div>
-{% endif %}
 {% endblock %}

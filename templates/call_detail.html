@@ -3,11 +3,15 @@
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <div class="breadcrumb"><a href="{{ url_for('live_calls_page') }}">Live Calls</a>  /  {{ call.contact_name }}</div>
-    <h2>{{ call.call_type|title }} Call — {{ call.contact_name }}</h2>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('live_calls_page') }}">Live calls</a><span class="sep">/</span>{{ call.contact_name }}
+    </div>
+    <h1>{{ call.call_type|title }} call — {{ call.contact_name }}</h1>
   </div>
-  <span class="badge badge-{{ 'confirmed' if call.status == 'ended' else 'contacted' }}">{{ call.status }}</span>
+  <div class="topbar-actions">
+    <span class="badge badge-{{ 'confirmed' if call.status == 'ended' else 'contacted' }}">{{ call.status }}</span>
+  </div>
 </div>
 {% endblock %}
 

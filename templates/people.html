@@ -1,14 +1,17 @@
 {% extends "base.html" %}
-{% block title %}People — SOM Event OS{% endblock %}
+{% block title %}People — {{ brand.short_name }}{% endblock %}
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <h2>People directory</h2>
-    <div class="breadcrumb">University-wide contacts for outreach{% if can_edit_people %} &middot; admin can import &amp; edit{% endif %}</div>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>People
+    </div>
+    <h1>People directory</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">{{ people|length if people is defined else '' }} university-wide contacts{% if can_edit_people %} · admin can import &amp; edit{% endif %}</p>
   </div>
   {% if can_edit_people %}
-  <div class="gap-row">
+  <div class="topbar-actions">
     <a href="{{ url_for('import_people_page') }}" class="btn btn-secondary btn-sm">Import CSV / Excel</a>
   </div>
   {% endif %}

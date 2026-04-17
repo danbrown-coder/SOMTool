@@ -1,344 +1,429 @@
 {% extends "base.html" %}
-{% block title %}Events — SOM Event OS{% endblock %}
+{% block title %}Overview — {{ brand.short_name }}{% endblock %}
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <h2>Events</h2>
-    <div class="breadcrumb">Plan, outreach, and run every event from one workspace.</div>
+  <div class="topbar-left">
+    <div class="breadcrumb"><span>Workspace</span><span class="sep">/</span><span>Overview</span></div>
+    <h1>Overview</h1>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="btn btn-secondary btn-sm" id="cmdk-open-btn-top" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <span>Search</span>
+      <span class="kbd-hint" style="margin-left:6px;">⌘K</span>
+    </button>
+    <button type="button" class="btn btn-primary btn-sm" id="openCreateDrawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      New event
+    </button>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-  .event-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-  .event-row-link { display: flex; align-items: center; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
-  .event-row-main { min-width: 0; flex: 1; }
-  .event-row-title { font-weight: 600; font-size: 1rem; letter-spacing: -.01em; color: var(--text-strong); }
-  .event-row-meta { display: flex; align-items: center; gap: .6rem; margin-top: .35rem; flex-wrap: wrap; }
-  .event-row-feedback { font-size: .8rem; margin-top: .3rem; color: var(--text-secondary); display: flex; align-items: center; gap: .35rem; }
-  .event-row-feedback .star { color: var(--color-highlight); }
-  .filter-bar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
-  .filter-bar input, .filter-bar select { height: 36px; font-size: .82rem; width: auto; min-width: 140px; }
-  .filter-bar select { min-width: 150px; padding: 0 2rem 0 .7rem; }
-  details summary.disclosure {
-    cursor: pointer;
-    font-weight: 600;
-    font-size: .8rem;
-    color: var(--accent);
-    font-family: var(--font-mono);
-    letter-spacing: .03em;
-    text-transform: uppercase;
-    padding: .5rem 0;
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-  }
-  details summary.disclosure::before {
-    content: '›';
-    display: inline-block;
-    transition: transform var(--dur) var(--ease-out);
-    font-size: 1.1rem;
-    line-height: 1;
-  }
-  details[open] summary.disclosure::before { transform: rotate(90deg); }
-  details summary.disclosure::-webkit-details-marker { display: none; }
-</style>
 {% endblock %}
 
 {% block content %}
-<!-- ── Create event ── -->
-<div class="card card-accent">
-  <div class="section-header">
-    <div>
-      <div class="section-eyebrow">Create</div>
-      <h2 class="mb-0">New event</h2>
-    </div>
+<!-- ── Greeting hero ── -->
+<section class="page-hero" style="border-bottom:0;margin-bottom:var(--space-lg);">
+  <div class="page-hero-title">
+    <div class="eyebrow">{{ today_str }}</div>
+    <h1 class="display" style="font-size:2rem;line-height:1.15;">
+      Good day, {{ current_user.display_name.split(' ')[0] if current_user.display_name else current_user.username }}.
+    </h1>
+    <p>Here's what needs you today across {{ all_events_count }} event{{ 's' if all_events_count != 1 else '' }}.</p>
   </div>
-  <p class="muted text-sm mb-2">Set up a new event to start managing outreach.</p>
-  <form method="post" action="{{ url_for('create_event_route') }}">
-    <div class="form-row">
-      <div class="field" style="flex:1;min-width:200px;">
-        <label for="name">Event name</label>
-        <input type="text" id="name" name="name" required placeholder="e.g. AI in Healthcare Panel">
-      </div>
-      <div class="field" style="width:180px;">
-        <label for="date">Date</label>
-        <input type="date" id="date" name="date" required>
-      </div>
-      <div class="field" style="width:200px;">
-        <label for="audience_type">Audience</label>
-        <select id="audience_type" name="audience_type" required>
-          <option value="Students">Students</option>
-          <option value="Faculty">Faculty</option>
-          <option value="Alumni">Alumni</option>
-          <option value="Industry partners">Industry partners</option>
-          <option value="General public">General public</option>
-        </select>
-      </div>
-    </div>
-    <div class="field">
-      <label for="description">Description</label>
-      <textarea id="description" name="description" placeholder="Brief description of the event..."></textarea>
-    </div>
-    <details class="mb-2">
-      <summary class="disclosure">Registration &amp; capacity</summary>
-      <div class="form-row mt-1">
-        <div class="field" style="width:200px;">
-          <label for="reg_pin_new">Registration PIN</label>
-          <input type="text" id="reg_pin_new" name="registration_pin" maxlength="6" pattern="[0-9]*" inputmode="numeric" placeholder="e.g. 1234">
-          <p class="text-xs muted mt-1">4–6 digit PIN for the check-in desk.</p>
-        </div>
-        <div class="field" style="width:180px;">
-          <label for="venue_capacity_new">Venue capacity</label>
-          <input type="number" id="venue_capacity_new" name="venue_capacity" min="0" value="0" placeholder="0 = no limit">
-        </div>
-        <div class="field" style="width:160px;">
-          <label for="walkin_buffer_new">Walk-in buffer %</label>
-          <input type="number" id="walkin_buffer_new" name="walkin_buffer_pct" min="0" max="100" value="15">
-        </div>
-        <div class="field" style="display:flex;align-items:flex-end;min-width:200px;">
-          <span class="muted text-xs" id="buffer_hint_new" style="padding-bottom:.55rem;"></span>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="field" style="width:260px;">
-          <label for="reg_deadline_new">Registration deadline</label>
-          <input type="datetime-local" id="reg_deadline_new" name="registration_deadline">
-        </div>
-        <div class="field" style="width:180px;">
-          <label for="late_fee_new">Late / walk-in fee</label>
-          <div style="display:flex;align-items:center;gap:.35rem;">
-            <span class="text-strong">$</span>
-            <input type="number" id="late_fee_new" name="late_fee" min="0" step="0.01" value="0" placeholder="0.00">
-          </div>
-        </div>
-        <div class="field" style="flex:1;min-width:200px;">
-          <label for="late_fee_note_new">Fee note</label>
-          <input type="text" id="late_fee_note_new" name="late_fee_note" placeholder="e.g. Cash only at the door">
-        </div>
-      </div>
-    </details>
-    <details class="mb-2">
-      <summary class="disclosure">Goals</summary>
-      <p class="muted text-xs mt-1 mb-2">Set targets to track event success.</p>
-      <div class="form-row">
-        <div class="field" style="width:180px;">
-          <label for="goal_reg_new">Target registrations</label>
-          <input type="number" id="goal_reg_new" name="goal_registrations" min="0" value="0">
-        </div>
-        <div class="field" style="width:180px;">
-          <label for="goal_att_new">Target attendance</label>
-          <input type="number" id="goal_att_new" name="goal_attendance" min="0" value="0">
-        </div>
-        <div class="field" style="width:180px;">
-          <label for="goal_spon_new">Target sponsorship $</label>
-          <input type="number" id="goal_spon_new" name="goal_sponsorship" min="0" step="0.01" value="0">
-        </div>
-        <div class="field" style="width:180px;">
-          <label for="goal_bud_new">Target budget $</label>
-          <input type="number" id="goal_bud_new" name="goal_budget" min="0" step="0.01" value="0">
-        </div>
-      </div>
-      <div id="customGoalsNew"></div>
-      <button type="button" class="btn btn-ghost btn-sm mt-1" onclick="addCustomGoal('customGoalsNew','new')">+ Add custom goal</button>
-    </details>
-    <details class="mb-2">
-      <summary class="disclosure">Budget</summary>
-      <p class="muted text-xs mt-1 mb-2">Track planned spending and sponsorship income.</p>
-      <div class="form-row">
-        <div class="field" style="width:200px;">
-          <label for="planned_bud_new">Planned budget $</label>
-          <input type="number" id="planned_bud_new" name="planned_budget" min="0" step="0.01" value="0">
-        </div>
-        <div class="field" style="width:220px;">
-          <label for="spon_rev_new">Sponsorship revenue $</label>
-          <input type="number" id="spon_rev_new" name="sponsorship_revenue" min="0" step="0.01" value="0">
-        </div>
-      </div>
-    </details>
-    <details class="mb-3">
-      <summary class="disclosure">Advanced: sender override</summary>
-      <p class="muted text-xs mt-1 mb-2">Override the global AI sender identity for this event. Leave blank to use defaults.</p>
-      <div class="form-row">
-        <div class="field" style="flex:1;min-width:160px;">
-          <label for="sender_name_new">Sender name</label>
-          <input type="text" id="sender_name_new" name="sender_name" placeholder="e.g. Alex">
-        </div>
-        <div class="field" style="flex:1;min-width:200px;">
-          <label for="sender_title_new">Sender title</label>
-          <input type="text" id="sender_title_new" name="sender_title" placeholder="e.g. Events Coordinator">
-        </div>
-        <div class="field" style="flex:1;min-width:220px;">
-          <label for="sender_email_new">Reply-to email</label>
-          <input type="email" id="sender_email_new" name="sender_email" placeholder="alex@callutheran.edu">
-        </div>
-      </div>
-    </details>
-    <button type="submit" class="btn btn-primary btn-hero">Create event</button>
-  </form>
-</div>
-
-<!-- ── Filters ── -->
-<div class="row-between mt-3 mb-2">
-  <div>
-    <div class="section-eyebrow">Workspace</div>
-    <h2 class="mb-0">Your events</h2>
+  <div class="page-hero-actions">
+    <span class="chip chip-brand" title="{{ brand.name }}">{{ brand.short_name }}</span>
   </div>
-  <form method="get" action="{{ url_for('index') }}" class="filter-bar">
-    <input type="text" name="q" value="{{ search_q }}" placeholder="Search events...">
-    <select name="sort" onchange="this.form.submit()">
-      <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date (newest)</option>
-      <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
-      <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A–Z)</option>
-      <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z–A)</option>
-      <option value="contacts_desc" {% if sort_by == 'contacts_desc' %}selected{% endif %}>Most contacts</option>
-      <option value="contacts_asc" {% if sort_by == 'contacts_asc' %}selected{% endif %}>Fewest contacts</option>
-    </select>
-    <select name="audience" onchange="this.form.submit()">
-      <option value="">All audiences</option>
-      {% for a in all_audiences %}
-      <option value="{{ a }}" {% if filter_audience == a %}selected{% endif %}>{{ a }}</option>
-      {% endfor %}
-    </select>
-    <select name="status" onchange="this.form.submit()">
-      <option value="">All events</option>
-      <option value="upcoming" {% if filter_status == 'upcoming' %}selected{% endif %}>Upcoming</option>
-      <option value="past" {% if filter_status == 'past' %}selected{% endif %}>Past</option>
-      <option value="has_contacts" {% if filter_status == 'has_contacts' %}selected{% endif %}>Has contacts</option>
-      <option value="no_contacts" {% if filter_status == 'no_contacts' %}selected{% endif %}>No contacts</option>
-    </select>
-    <button type="submit" class="btn btn-ghost btn-sm">Apply</button>
-    {% if search_q or filter_audience or filter_status != '' or sort_by != 'date_desc' %}
-    <a href="{{ url_for('index') }}" class="btn btn-ghost btn-sm">Clear</a>
-    {% endif %}
-  </form>
-</div>
+</section>
 
-<!-- ── Upcoming Events ── -->
-<div class="section-eyebrow mt-3">Upcoming</div>
-{% if upcoming_events %}
-  {% for e in upcoming_events %}
-  <div class="card card-hoverable">
-    <div class="event-row">
-      <a href="{{ url_for('event_detail', event_id=e.id) }}" class="event-row-link">
-        <div class="event-row-main">
-          <div class="event-row-title">{{ e.name }}</div>
-          <div class="event-row-meta">
-            <span class="chip">{{ e.date or 'TBA' }}</span>
-            <span class="chip">{{ e.audience_type }}</span>
-            <span class="muted text-xs">{{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</span>
-          </div>
-        </div>
-      </a>
-      {% set er = event_roles.get(e.id, 'viewer') %}
-      {% if er in ['owner', 'editor'] %}
-      <div class="kebab-wrapper">
-        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">&#8943;</button>
-        <div class="kebab-menu">
-          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">Edit</a>
-          {% if er == 'owner' %}
-          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
-            <button type="submit" class="kebab-item kebab-danger">Delete</button>
-          </form>
-          {% endif %}
-        </div>
-      </div>
+<!-- ── Attention row ── -->
+<div class="grid-3 mb-3">
+  <!-- Today's events -->
+  <div class="card" style="margin:0;">
+    <div class="section-eyebrow">Today</div>
+    <h3 style="margin-bottom:10px;">
+      {% if metrics.today_events %}
+        {{ metrics.today_events|length }} event{{ 's' if metrics.today_events|length != 1 else '' }} today
+      {% else %}
+        Nothing on deck today
       {% endif %}
+    </h3>
+    {% if metrics.today_events %}
+      {% for e in metrics.today_events[:3] %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);">
+        <div style="min-width:0;">
+          <a href="{{ url_for('event_detail', event_id=e.id) }}" style="color:var(--text-strong);font-weight:600;text-decoration:none;">{{ e.name }}</a>
+          <div class="muted text-xs">{{ e.audience_type }} · {{ e.contacts|length }} contacts</div>
+        </div>
+        {% if e.registration_pin %}
+        <a href="{{ url_for('registration_gate') }}" class="btn btn-subtle btn-sm" title="Open check-in desk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Desk
+        </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted text-sm">No events scheduled for {{ today_str }}. Enjoy the calm.</p>
+    {% endif %}
+  </div>
+
+  <!-- Awaiting approval -->
+  <div class="card" style="margin:0;">
+    <div class="section-eyebrow">Awaiting approval</div>
+    <h3 style="margin-bottom:10px;">
+      {% if pending_outreach %}
+        {{ pending_outreach }} queued outreach
+      {% else %}
+        Inbox zero
+      {% endif %}
+    </h3>
+    {% if pending_outreach %}
+      <p class="muted text-sm mb-1">Emails and calls waiting for you to approve before they go out.</p>
+      <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-secondary btn-sm">Review queue →</a>
+    {% else %}
+      <p class="muted text-sm">Nothing queued. Future outreach will appear here for review.</p>
+    {% endif %}
+  </div>
+
+  <!-- Capacity warnings -->
+  <div class="card" style="margin:0;">
+    <div class="section-eyebrow">Capacity</div>
+    <h3 style="margin-bottom:10px;">
+      {% if metrics.capacity_alerts %}
+        {{ metrics.capacity_alerts|length }} near or over capacity
+      {% else %}
+        All events have headroom
+      {% endif %}
+    </h3>
+    {% if metrics.capacity_alerts %}
+      {% for a in metrics.capacity_alerts[:3] %}
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border);">
+        <div class="progress-ring {% if a.pct >= 100 %}danger{% elif a.pct >= 92 %}warn{% endif %}" style="--size:38px;--stroke:4px;">
+          <svg viewBox="0 0 36 36">
+            <circle class="track" cx="18" cy="18" r="15.5"></circle>
+            <circle class="fill" cx="18" cy="18" r="15.5"
+              stroke-dasharray="{{ ((a.pct if a.pct < 100 else 100) * 0.974)|round(1) }} 100"></circle>
+          </svg>
+          <span class="label" style="font-size:.6rem;">{{ a.pct }}%</span>
+        </div>
+        <div style="min-width:0;flex:1;">
+          <a href="{{ url_for('event_detail', event_id=a.event.id) }}" style="color:var(--text-strong);font-weight:600;text-decoration:none;">{{ a.event.name }}</a>
+          <div class="muted text-xs">{{ a.confirmed }}/{{ a.capacity }} confirmed</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted text-sm">Every upcoming event is comfortably under 85% of its venue capacity.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── KPI strip ── -->
+<div class="grid-4 mb-3">
+  <div class="stat-tile">
+    <div class="stat-label">Events this month</div>
+    <div class="stat-value">{{ metrics.events_this_month }}</div>
+    <div class="stat-sub">{{ metrics.total_events }} total all time</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Confirmed guests</div>
+    <div class="stat-value">{{ metrics.confirmed_total }}</div>
+    <div class="stat-sub">this month</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Emails sent</div>
+    <div class="stat-value">{{ metrics.emails_sent }}</div>
+    <div class="stat-sub">this month</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Attendance rate</div>
+    <div class="stat-value">{{ metrics.attendance_rate }}<span class="stat-unit">%</span></div>
+    <div class="stat-sub">of confirmed this month</div>
+  </div>
+</div>
+
+<!-- ── Upcoming events (compact) ── -->
+<div class="section-header mt-3">
+  <div>
+    <div class="section-eyebrow">Upcoming</div>
+    <h2 style="margin:0;">Next 5 events</h2>
+  </div>
+  <a href="{{ url_for('events_list') }}" class="btn btn-ghost btn-sm">View all {{ all_events_count }} →</a>
+</div>
+
+{% if upcoming_events %}
+<div class="card card-flat" style="padding:4px 8px;">
+  {% for e in upcoming_events %}
+  {% set er = event_roles.get(e.id, 'viewer') %}
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;{% if not loop.last %}border-bottom:1px solid var(--border-subtle);{% endif %}">
+    <a href="{{ url_for('event_detail', event_id=e.id) }}" style="flex:1;min-width:0;color:inherit;text-decoration:none;display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div class="truncate" style="font-weight:600;color:var(--text-strong);">{{ e.name }}</div>
+        <div class="muted text-xs">{{ e.audience_type }}</div>
+      </div>
+      <span class="chip chip-neutral">{{ e.date or 'TBA' }}</span>
+      <span class="muted text-xs nowrap" style="min-width:80px;text-align:right;">{{ e.contacts|length }} contacts</span>
+    </a>
+    {% if er in ['owner', 'editor'] %}
+    <div class="kebab-wrapper">
+      <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">&#8943;</button>
+      <div class="kebab-menu">
+        <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">Edit</a>
+        {% if er == 'owner' %}
+        <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
+          <button type="submit" class="kebab-item kebab-danger">Delete</button>
+        </form>
+        {% endif %}
+      </div>
     </div>
+    {% endif %}
   </div>
   {% endfor %}
+</div>
 {% else %}
-  <div class="card"><p class="empty-state">No upcoming events.</p></div>
+<div class="empty-state-card">
+  <div class="empty-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+  </div>
+  <h3>No upcoming events</h3>
+  <p>Create your first event and start inviting guests.</p>
+  <button type="button" class="btn btn-primary" id="openCreateDrawerEmpty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    New event
+  </button>
+</div>
 {% endif %}
 
-<!-- ── Past Events ── -->
-<div class="section-eyebrow mt-3">Past</div>
+<!-- ── Recent past events ── -->
 {% if past_events %}
+<div class="section-header mt-3">
+  <div>
+    <div class="section-eyebrow">Recent</div>
+    <h2 style="margin:0;">Past events</h2>
+  </div>
+  <a href="{{ url_for('events_list') }}?status=past" class="btn btn-ghost btn-sm">View all past →</a>
+</div>
+<div class="card card-flat" style="padding:4px 8px;">
   {% for e in past_events %}
   {% set fb = past_fb.get(e.id, {}) %}
-  <div class="card card-hoverable">
-    <div class="event-row">
-      <a href="{{ url_for('event_detail', event_id=e.id) }}" class="event-row-link">
-        <div class="event-row-main">
-          <div class="event-row-title">{{ e.name }}</div>
-          <div class="event-row-meta">
-            <span class="chip">{{ e.date }}</span>
-            <span class="chip">{{ e.audience_type }}</span>
-            <span class="muted text-xs">{{ e.contacts|length }} contact{{ 's' if e.contacts|length != 1 else '' }}</span>
-          </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;{% if not loop.last %}border-bottom:1px solid var(--border-subtle);{% endif %}">
+    <a href="{{ url_for('event_detail', event_id=e.id) }}" style="flex:1;min-width:0;color:inherit;text-decoration:none;display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div class="truncate" style="font-weight:600;color:var(--text-strong);">{{ e.name }}</div>
+        <div class="muted text-xs">
+          {{ e.audience_type }}
           {% if fb.get('count', 0) > 0 %}
-          <div class="event-row-feedback">
-            <span class="star">&#9733;</span> {{ fb.avg_rating }} avg &middot; {{ fb.count }} response{{ 's' if fb.count != 1 else '' }} &middot; {{ fb.would_return_pct }}% would return
-          </div>
-          {% else %}
-          <div class="muted text-xs mt-1">No feedback yet</div>
-          {% endif %}
-        </div>
-      </a>
-      {% set er = event_roles.get(e.id, 'viewer') %}
-      {% if er in ['owner', 'editor'] %}
-      <div class="kebab-wrapper">
-        <button class="kebab-btn" onclick="toggleKebab(event, this)" type="button" aria-label="Actions">&#8943;</button>
-        <div class="kebab-menu">
-          <a href="{{ url_for('edit_event_page', event_id=e.id) }}" class="kebab-item">Edit</a>
-          {% if er == 'owner' %}
-          <form method="post" action="{{ url_for('delete_event_route', event_id=e.id) }}" onsubmit="return confirm('Delete this event and all its contacts?');" style="margin:0;">
-            <button type="submit" class="kebab-item kebab-danger">Delete</button>
-          </form>
+            · {{ fb.avg_rating }}★ ({{ fb.count }} response{{ 's' if fb.count != 1 else '' }})
           {% endif %}
         </div>
       </div>
-      {% endif %}
-    </div>
+      <span class="chip chip-neutral">{{ e.date }}</span>
+    </a>
   </div>
   {% endfor %}
-{% else %}
-  <div class="card"><p class="empty-state">No past events.</p></div>
+</div>
 {% endif %}
 
-{% if not upcoming_events and not past_events %}
-  <div class="card">
-    <p class="empty-state">
-      {% if search_q or filter_audience or filter_status %}
-        No events match your filters. <a href="{{ url_for('index') }}">Clear filters</a>
-      {% else %}
-        No events yet — create one above to get started.
-      {% endif %}
-    </p>
-  </div>
-{% endif %}
+<!-- ── Create-event drawer (2-step stepper) ── -->
+<div class="drawer-overlay" id="createDrawerOverlay" aria-hidden="true">
+  <aside class="drawer-panel" role="dialog" aria-label="Create event" aria-modal="true">
+    <div class="modal-header">
+      <div>
+        <h2 id="create">New event</h2>
+        <div class="breadcrumb" style="margin-top:2px;"><span>Essentials</span><span class="sep">/</span><span>Advanced</span></div>
+      </div>
+      <button type="button" class="modal-close" id="closeCreateDrawer" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <form method="post" action="{{ url_for('create_event_route') }}" id="createEventForm" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+      <div class="modal-body">
+        <div class="stepper">
+          <div class="step active" data-step="1"><span class="step-num">1</span> Essentials</div>
+          <div class="step-line"></div>
+          <div class="step" data-step="2"><span class="step-num">2</span> Advanced</div>
+        </div>
+
+        <div id="drawerStep1">
+          <div class="field">
+            <label for="name">Event name</label>
+            <input type="text" id="name" name="name" required placeholder="e.g. AI in Healthcare Panel">
+          </div>
+          <div class="form-row">
+            <div class="field" style="flex:1;min-width:180px;">
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" required>
+            </div>
+            <div class="field" style="flex:1;min-width:180px;">
+              <label for="audience_type">Audience</label>
+              <select id="audience_type" name="audience_type" required>
+                <option value="Students">Students</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Alumni">Alumni</option>
+                <option value="Industry partners">Industry partners</option>
+                <option value="General public">General public</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" placeholder="Brief description of the event…"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="field" style="flex:1;min-width:160px;">
+              <label for="reg_pin_new">Registration PIN</label>
+              <input type="text" id="reg_pin_new" name="registration_pin" maxlength="6" pattern="[0-9]*" inputmode="numeric" placeholder="e.g. 1234">
+              <div class="field-help">4–6 digits for the check-in desk.</div>
+            </div>
+            <div class="field" style="flex:1;min-width:160px;">
+              <label for="venue_capacity_new">Venue capacity</label>
+              <input type="number" id="venue_capacity_new" name="venue_capacity" min="0" value="0" placeholder="0 = no limit">
+            </div>
+          </div>
+        </div>
+
+        <div id="drawerStep2" hidden>
+          <div class="section-eyebrow">Registration</div>
+          <div class="form-row">
+            <div class="field" style="flex:1;min-width:200px;">
+              <label for="reg_deadline_new">Deadline</label>
+              <input type="datetime-local" id="reg_deadline_new" name="registration_deadline">
+            </div>
+            <div class="field" style="flex:1;min-width:160px;">
+              <label for="walkin_buffer_new">Walk-in buffer %</label>
+              <input type="number" id="walkin_buffer_new" name="walkin_buffer_pct" min="0" max="100" value="15">
+            </div>
+            <div class="field" style="flex:1;min-width:160px;">
+              <label for="late_fee_new">Late fee $</label>
+              <input type="number" id="late_fee_new" name="late_fee" min="0" step="0.01" value="0" placeholder="0.00">
+            </div>
+          </div>
+          <div class="field">
+            <label for="late_fee_note_new">Fee note</label>
+            <input type="text" id="late_fee_note_new" name="late_fee_note" placeholder="e.g. Cash only at the door">
+          </div>
+
+          <hr class="section-divider">
+
+          <div class="section-eyebrow">Goals &amp; budget</div>
+          <div class="form-row">
+            <div class="field" style="flex:1;min-width:140px;">
+              <label for="goal_reg_new">Target registrations</label>
+              <input type="number" id="goal_reg_new" name="goal_registrations" min="0" value="0">
+            </div>
+            <div class="field" style="flex:1;min-width:140px;">
+              <label for="goal_att_new">Target attendance</label>
+              <input type="number" id="goal_att_new" name="goal_attendance" min="0" value="0">
+            </div>
+            <div class="field" style="flex:1;min-width:140px;">
+              <label for="goal_spon_new">Target sponsorship $</label>
+              <input type="number" id="goal_spon_new" name="goal_sponsorship" min="0" step="0.01" value="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field" style="flex:1;min-width:160px;">
+              <label for="planned_bud_new">Planned budget $</label>
+              <input type="number" id="planned_bud_new" name="planned_budget" min="0" step="0.01" value="0">
+            </div>
+            <div class="field" style="flex:1;min-width:160px;">
+              <label for="spon_rev_new">Sponsorship revenue $</label>
+              <input type="number" id="spon_rev_new" name="sponsorship_revenue" min="0" step="0.01" value="0">
+            </div>
+          </div>
+
+          <hr class="section-divider">
+
+          <div class="section-eyebrow">Sender override (optional)</div>
+          <div class="form-row">
+            <div class="field" style="flex:1;min-width:140px;">
+              <label for="sender_name_new">Sender name</label>
+              <input type="text" id="sender_name_new" name="sender_name" placeholder="Alex">
+            </div>
+            <div class="field" style="flex:1;min-width:160px;">
+              <label for="sender_title_new">Sender title</label>
+              <input type="text" id="sender_title_new" name="sender_title" placeholder="Events Coordinator">
+            </div>
+          </div>
+          <div class="field">
+            <label for="sender_email_new">Reply-to email</label>
+            <input type="email" id="sender_email_new" name="sender_email" placeholder="alex@callutheran.edu">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="drawerBack" hidden>← Back</button>
+        <span style="flex:1;"></span>
+        <button type="button" class="btn btn-ghost" id="closeCreateDrawer2">Cancel</button>
+        <button type="button" class="btn btn-primary" id="drawerNext">Next →</button>
+        <button type="submit" class="btn btn-primary" id="drawerSubmit" hidden>Create event</button>
+      </div>
+    </form>
+  </aside>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
 (function(){
-  var cap=document.getElementById('venue_capacity_new'),
-      buf=document.getElementById('walkin_buffer_new'),
-      hint=document.getElementById('buffer_hint_new');
-  if(!cap||!buf||!hint) return;
-  function upd(){
-    var c=parseInt(cap.value)||0, b=parseInt(buf.value)||0;
-    if(c>0) hint.textContent='Plan for '+(c+Math.round(c*b/100))+' total ('+Math.round(c*b/100)+' buffer spots)';
-    else hint.textContent='No capacity limit set';
+  var overlay = document.getElementById('createDrawerOverlay');
+  var open1 = document.getElementById('openCreateDrawer');
+  var open2 = document.getElementById('openCreateDrawerEmpty');
+  var openTop = document.getElementById('cmdk-open-btn-top');
+  var close1 = document.getElementById('closeCreateDrawer');
+  var close2 = document.getElementById('closeCreateDrawer2');
+  var step1 = document.getElementById('drawerStep1');
+  var step2 = document.getElementById('drawerStep2');
+  var stepperSteps = overlay.querySelectorAll('.stepper .step');
+  var nextBtn = document.getElementById('drawerNext');
+  var backBtn = document.getElementById('drawerBack');
+  var submitBtn = document.getElementById('drawerSubmit');
+
+  function openDrawer() {
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    showStep(1);
+    setTimeout(function(){ var n = document.getElementById('name'); if(n) n.focus(); }, 40);
   }
-  cap.addEventListener('input',upd);
-  buf.addEventListener('input',upd);
-  upd();
+  function closeDrawer() {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+  function showStep(n) {
+    step1.hidden = (n !== 1);
+    step2.hidden = (n !== 2);
+    nextBtn.hidden = (n !== 1);
+    backBtn.hidden = (n !== 2);
+    submitBtn.hidden = (n !== 2);
+    stepperSteps.forEach(function(el) {
+      var s = parseInt(el.dataset.step, 10);
+      el.classList.toggle('active', s === n);
+      el.classList.toggle('done', s < n);
+    });
+  }
+
+  if (open1) open1.addEventListener('click', openDrawer);
+  if (open2) open2.addEventListener('click', openDrawer);
+  if (openTop) openTop.addEventListener('click', function(){
+    var btn = document.getElementById('cmdk-open-btn');
+    if (btn) btn.click();
+  });
+  if (close1) close1.addEventListener('click', closeDrawer);
+  if (close2) close2.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeDrawer(); });
+  nextBtn.addEventListener('click', function(){
+    var name = document.getElementById('name');
+    var d = document.getElementById('date');
+    if (!name.value.trim() || !d.value) {
+      if (!name.value.trim()) name.focus(); else d.focus();
+      return;
+    }
+    showStep(2);
+  });
+  backBtn.addEventListener('click', function(){ showStep(1); });
+
+  if (location.hash === '#create') openDrawer();
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && overlay.classList.contains('open')) closeDrawer(); });
 })();
-var _cgIdx = 0;
-function addCustomGoal(containerId, prefix) {
-  var c = document.getElementById(containerId);
-  var i = _cgIdx++;
-  var row = document.createElement('div');
-  row.className = 'form-row';
-  row.style.marginTop = '.4rem';
-  row.innerHTML = '<div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_label" placeholder="Goal name"></div>' +
-    '<div class="field" style="flex:1;min-width:140px;"><input type="text" name="cg_target" placeholder="Target value"></div>' +
-    '<button type="button" class="btn btn-ghost btn-sm" onclick="this.parentElement.remove()">Remove</button>';
-  c.appendChild(row);
-}
 </script>
 {% endblock %}

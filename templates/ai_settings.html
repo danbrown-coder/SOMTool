@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-{% block title %}AI Settings — SOM Event OS{% endblock %}
+{% block title %}AI settings — {{ brand.short_name }}{% endblock %}
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <h2>AI Settings</h2>
-    <div class="breadcrumb">Configure how the AI behaves when generating emails, scheduling calls, and planning outreach</div>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>
+      <a href="{{ url_for('outreach_schedule_page') }}">Outreach</a><span class="sep">/</span>AI settings
+    </div>
+    <h1>AI settings</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">Tune how the AI generates emails, schedules calls, and plans outreach.</p>
   </div>
-  <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-secondary btn-sm">&larr; Back to schedule</a>
+  <div class="topbar-actions">
+    <a href="{{ url_for('outreach_schedule_page') }}" class="btn btn-secondary btn-sm">Back to schedule</a>
+  </div>
 </div>
 {% endblock %}
 

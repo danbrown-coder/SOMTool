@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Analytics — SOM Event OS{% endblock %}
+{% block title %}Analytics — {{ brand.short_name }}{% endblock %}
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <h2>Outreach analytics</h2>
-    <div class="breadcrumb">AI-powered insights across all channels</div>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>Analytics
+    </div>
+    <h1>Outreach analytics</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">AI-powered insights across email, calls, and conversions.</p>
   </div>
 </div>
 {% endblock %}

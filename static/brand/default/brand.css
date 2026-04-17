@@ -1,0 +1,10 @@
+/* Default tenant — neutral slate-blue for schools without a brand kit.
+   ONLY --brand-* allowed in this file. */
+:root {
+  --brand-primary:        #3E4B63;
+  --brand-primary-hover:  #2D3849;
+  --brand-primary-fg:     #FFFFFF;
+  --brand-soft:           #ECEEF3;
+  --brand-ring:           rgba(62, 75, 99, 0.30);
+  --brand-accent:         #3E4B63;
+}

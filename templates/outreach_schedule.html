@@ -1,18 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Calendar — SOM Event OS{% endblock %}
+{% block title %}Outreach calendar — {{ brand.short_name }}{% endblock %}
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <h2>Calendar</h2>
-    <div class="breadcrumb">AI-planned outreach across all events</div>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>Outreach calendar
+    </div>
+    <h1>Outreach calendar</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">AI-planned emails and calls across every event.</p>
   </div>
-  <div class="gap-row">
-    <form method="post" action="{{ url_for('plan_all_outreach') }}" style="margin:0;">
-      <button type="submit" class="btn btn-primary btn-sm">Plan all events</button>
-    </form>
+  <div class="topbar-actions">
     <form method="post" action="{{ url_for('approve_all_outreach') }}" style="margin:0;">
       <button type="submit" class="btn btn-secondary btn-sm">Approve all planned</button>
+    </form>
+    <form method="post" action="{{ url_for('plan_all_outreach') }}" style="margin:0;">
+      <button type="submit" class="btn btn-primary btn-sm">Plan all events</button>
     </form>
   </div>
 </div>

@@ -1,29 +1,43 @@
 {% extends "base.html" %}
-{% block title %}{{ event.name }} — SOM Event OS{% endblock %}
+{% block title %}{{ event.name }} — {{ brand.short_name }}{% endblock %}
 
-{% block sidebar_extra %}
-  <div class="sidebar-section">Current event</div>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}" class="active" style="font-size:.82rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg></span> {{ event.name|truncate(22) }}</a></li>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#contacts" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Contacts</a></li>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#outreach" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span> Outreach</a></li>
-  <li><a href="{{ url_for('event_schedule_page', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> Calendar</a></li>
-  <li><a href="{{ url_for('event_detail', event_id=event.id) }}#metrics" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Metrics</a></li>
-  <li><a href="{{ url_for('event_logs', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span> Log</a></li>
-  {% if event.registration_pin %}
-  <li><a href="{{ url_for('event_register', event_id=event.id) }}" style="font-size:.82rem;padding-left:2.6rem;" target="_blank"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span> Registration desk</a></li>
-  {% endif %}
-{% endblock %}
+{% set active_tab = request.args.get('tab', 'overview') %}
+{% set tab_urls = {
+  'overview':  url_for('event_detail', event_id=event.id) + '?tab=overview',
+  'guests':    url_for('event_detail', event_id=event.id) + '?tab=guests',
+  'outreach':  url_for('event_detail', event_id=event.id) + '?tab=outreach',
+  'schedule':  url_for('event_detail', event_id=event.id) + '?tab=schedule',
+  'analytics': url_for('event_detail', event_id=event.id) + '?tab=analytics',
+  'settings':  url_for('event_detail', event_id=event.id) + '?tab=settings',
+} %}
 
 {% block topbar %}
 <div class="topbar">
-  <div style="min-width:0;">
-    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a><span class="sep">/</span>{{ event.name|truncate(40) }}</div>
-    <h2 style="margin-top:.2rem;">{{ event.name }}</h2>
-    <p class="muted text-xs" style="margin-top:.25rem;">Your role: <span class="text-strong">{{ event_role|title }}</span></p>
+  <div class="topbar-left" style="min-width:0;">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>
+      <a href="{{ url_for('events_list') }}">Events</a><span class="sep">/</span>
+      <span class="truncate" style="max-width:260px;">{{ event.name }}</span>
+    </div>
+    <h1 style="display:flex;align-items:center;gap:10px;">
+      <span class="truncate" style="max-width:520px;">{{ event.name }}</span>
+      <span class="chip chip-neutral">{{ event.date or 'TBA' }}</span>
+      <span class="chip chip-neutral">{{ event.audience_type }}</span>
+      {% if metrics.venue_capacity and priority.door_status %}
+        {% set st = priority.door_status %}
+        <span class="badge {% if st == 'open' %}badge-success{% elif st == 'limited' %}badge-warning{% elif st == 'full' %}badge-danger{% else %}badge-danger{% endif %}">
+          {% if st == 'open' %}Door open{% elif st == 'limited' %}Limited spots{% elif st == 'full' %}Full{% else %}Over capacity{% endif %}
+        </span>
+      {% endif %}
+    </h1>
   </div>
-  <div class="gap-row">
-    <span class="chip">{{ event.date }}</span>
-    <span class="chip">{{ event.audience_type }}</span>
+  <div class="topbar-actions">
+    {% if event.registration_pin %}
+    <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-secondary btn-sm" target="_blank" rel="noopener" title="Open check-in desk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      PIN {{ event.registration_pin }}
+    </a>
+    {% endif %}
     {% if can_owner %}
     <a href="{{ url_for('share_event_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Share</a>
     {% endif %}
@@ -31,629 +45,668 @@
 </div>
 {% endblock %}
 
-{% block extra_css %}
-<style>
-  .cap-bar { height:10px; background:var(--surface-subtle); border-radius:5px; overflow:hidden; margin-top:.5rem; border:1px solid var(--border); }
-  .cap-fill { height:100%; border-radius:5px; transition:width .4s var(--ease-out); }
-  .cap-fill.green { background:linear-gradient(90deg,#00854F,#31B27D); }
-  .cap-fill.yellow { background:linear-gradient(90deg,#997F39,#C8A75D); }
-  .cap-fill.red { background:linear-gradient(90deg,#E74645,#F0885D); }
-  .reg-badge { display:inline-block; padding:.2rem .6rem; font-size:.72rem; font-weight:600; border-radius:var(--radius-pill); font-family:var(--font-mono); letter-spacing:.02em; }
-  .reg-badge.pre { background:#D9E6F2; color:#123F61; }
-  .reg-badge.dayof { background:var(--color-highlight-wash); color:#6B4A00; }
-  .reg-badge.walkin { background:#F5D9DC; color:#8A2A29; }
-  .urgency-pill { display:inline-block; padding:.2rem .65rem; font-size:.7rem; font-weight:700; border-radius:var(--radius-pill); text-transform:uppercase; letter-spacing:.1em; font-family:var(--font-mono); }
-  .urgency-pill.critical { background:#FBE9E9; color:#8A2A29; }
-  .urgency-pill.high { background:#FDEAD9; color:#8C3F1A; }
-  .urgency-pill.medium { background:var(--color-highlight-wash); color:#6B4A00; }
-  .urgency-pill.low { background:var(--surface-subtle); color:var(--text-secondary); }
-  .door-badge { display:inline-flex; align-items:center; gap:.45rem; padding:.4rem .8rem; border-radius:var(--radius-pill); font-size:.72rem; font-weight:700; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.1em; }
-  .door-badge .dot { width:8px; height:8px; border-radius:50%; }
-  .door-badge.open { background:#CDE7DB; color:#00532F; }
-  .door-badge.open .dot { background:var(--s-confirmed); box-shadow:0 0 6px rgba(0,133,79,.5); }
-  .door-badge.limited { background:var(--color-highlight-wash); color:#6B4A00; }
-  .door-badge.limited .dot { background:var(--s-contacted); box-shadow:0 0 6px rgba(153,127,57,.5); }
-  .door-badge.full { background:#FAD6D5; color:#8A2A29; }
-  .door-badge.full .dot { background:var(--s-declined); box-shadow:0 0 6px rgba(231,70,69,.5); }
-  .door-badge.over_capacity { background:#F4B8B7; color:#5C1817; }
-  .door-badge.over_capacity .dot { background:#5C1817; box-shadow:0 0 6px rgba(92,24,23,.5); }
-  .reg-status { display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; font-weight:600; }
-  .reg-status.open-status { color:var(--s-confirmed); }
-  .reg-status.closed-status { color:var(--s-declined); }
-
-  .pin-card {
-    display:flex; justify-content:space-between; align-items:center;
-    gap:1.25rem; flex-wrap:wrap;
-    background:
-      linear-gradient(135deg, rgba(255,194,34,.10) 0%, rgba(255,255,255,0) 65%),
-      linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
-    color:#FFFFFF;
-    border:1px solid rgba(255,194,34,.35);
-    padding:1.5rem 1.75rem;
-    position:relative;
-    overflow:hidden;
-  }
-  .pin-card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg, transparent, var(--color-highlight), transparent);
-  }
-  .pin-card .pin-eyebrow {
-    font-family:var(--font-mono); font-size:.7rem;
-    text-transform:uppercase; letter-spacing:.14em;
-    color:var(--color-highlight); font-weight:600;
-  }
-  .pin-card .pin-value {
-    font-size:2rem; font-weight:700; letter-spacing:.35em;
-    font-family:var(--font-mono); color:var(--color-highlight);
-    margin:.35rem 0 .25rem;
-    text-shadow: 0 1px 0 rgba(0,0,0,.25);
-  }
-  .pin-card .pin-hint { color:#D7C9E8; font-size:.8rem; }
-  .pin-card .btn-secondary {
-    background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.22); color:#FFFFFF;
-  }
-  .pin-card .btn-secondary:hover { background:rgba(255,194,34,.22); border-color:var(--color-highlight); color:#FFFFFF; }
-  .pin-card .btn-ghost { color:#D7C9E8; }
-  .pin-card .btn-ghost:hover { background:rgba(255,255,255,.10); color:#FFFFFF; }
-
-  .dashed-card { border:1px dashed var(--border-strong); background:transparent; box-shadow:none; }
-
-  .goal-bar-wrap { display:flex; align-items:center; gap:.5rem; }
-  .goal-bar-track { flex:1; height:6px; background:var(--surface-muted); border-radius:3px; overflow:hidden; }
-  .goal-bar-fill { height:100%; border-radius:3px; transition:width .4s var(--ease-out); }
-
-  .stat-tile { text-align:center; min-width:70px; padding:.25rem .5rem; }
-  .stat-tile .stat-num { font-size:1.3rem; font-weight:700; letter-spacing:-.02em; font-family:var(--font-display); font-variant-numeric:tabular-nums; }
-  .stat-tile .stat-lbl { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-secondary); font-family:var(--font-mono); margin-top:.15rem; }
-
-  .modal-overlay {
-    display:none; position:fixed; inset:0; z-index:500;
-    background:rgba(12,10,9,.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    align-items:center; justify-content:center;
-    animation: fadeIn .2s var(--ease-out);
-  }
-  .modal-panel {
-    background:var(--surface); border-radius:var(--radius-lg);
-    padding:1.75rem; width:440px; max-width:95vw;
-    box-shadow:var(--shadow-xl);
-    animation: modalRise .25s var(--ease-out);
-  }
-  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-  @keyframes modalRise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-</style>
-{% endblock %}
-
 {% block content %}
-{% if event.description %}
-<div class="card">
-  <p style="margin:0;">{{ event.description }}</p>
-</div>
+<!-- ── Right-rail alert strip ── -->
+{% set alerts = [] %}
+{% if event.late_fee and event.late_fee > 0 %}
+  {% set _ = alerts.append(['warning', 'Late / walk-in fee $' ~ '%.2f'|format(event.late_fee), event.late_fee_note or 'Collected at the door for late or walk-in registrants.']) %}
 {% endif %}
-
-{% if can_edit and event.registration_pin %}
-<div class="card pin-card">
-  <div>
-    <div class="pin-eyebrow">Registration PIN</div>
-    <div class="pin-value" id="regPinValue">{{ event.registration_pin }}</div>
-    <div class="pin-hint">Staff enter this PIN via the sidebar Registration button to check people in.</div>
-  </div>
-  <div class="gap-row">
-    <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText('{{ event.registration_pin }}');this.textContent='Copied';setTimeout(()=>this.textContent='Copy PIN',1500);">Copy PIN</button>
-    <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Open register</a>
-  </div>
-</div>
-{% elif can_edit %}
-<div class="card dashed-card">
-  <p class="muted text-sm mb-0">No registration PIN set. <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set a PIN</a> to enable the staff check-in desk.</p>
-</div>
+{% if metrics.venue_capacity and metrics.capacity_pct >= 92 %}
+  {% set _ = alerts.append(['danger', 'Capacity nearly full — ' ~ metrics.capacity_pct ~ '%', 'Consider closing registration or moving to a larger venue.']) %}
 {% endif %}
-
-<!-- ── Goals & Budget Section ── -->
-<div class="row-between mt-3 mb-1">
-  <div class="section-eyebrow">Goals &amp; Budget</div>
-  {% if can_edit %}<a href="{{ url_for('edit_event_page', event_id=event.id) }}" class="text-xs muted">Edit goals &amp; budget &rarr;</a>{% endif %}
+{% if event.registration_deadline and not priority.registration_open %}
+  {% set _ = alerts.append(['info', 'Registration closed', 'Deadline: ' ~ (event.registration_deadline[:16]|replace('T', ' '))]) %}
+{% endif %}
+{% for kind, title, body in alerts %}
+<div class="alert alert-{{ kind }}">
+  <span class="alert-icon" aria-hidden="true">
+    {% if kind == 'warning' %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    {% elif kind == 'danger' %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    {% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    {% endif %}
+  </span>
+  <div class="alert-body">
+    <div class="alert-title">{{ title }}</div>
+    <div class="alert-msg">{{ body }}</div>
+  </div>
 </div>
+{% endfor %}
 
-<!-- ── Goals ── -->
-<div class="card" id="goals">
-  <h3 style="margin:0 0 .75rem;font-size:1rem;font-weight:700;">Goals</h3>
-  {% if goal_review %}
-  <table style="width:100%;border-collapse:collapse;font-size:.88rem;">
-    <thead>
-      <tr style="text-align:left;border-bottom:2px solid var(--border);">
-        <th style="padding:.4rem .6rem;">Goal</th>
-        <th style="padding:.4rem .6rem;">Target</th>
-        <th style="padding:.4rem .6rem;">Actual</th>
-        <th style="padding:.4rem .6rem;">Progress</th>
-        <th style="padding:.4rem .6rem;text-align:center;">Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in goal_review %}
-      <tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:.4rem .6rem;">{{ row.label }}</td>
-        <td style="padding:.4rem .6rem;">{{ row.target }}</td>
-        <td style="padding:.4rem .6rem;">{{ row.actual }}</td>
-        <td style="padding:.4rem .6rem;width:120px;">
-          {% if row.target is number and row.target > 0 and row.actual is number %}
-          {% set pct = ((row.actual / row.target * 100) | round | int) %}
-          {% set pct_capped = [pct, 100] | min %}
-          <div style="display:flex;align-items:center;gap:.4rem;">
-            <div style="flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;">
-              <div style="width:{{ pct_capped }}%;height:100%;background:{% if row.met %}var(--s-confirmed){% elif pct >= 50 %}var(--s-contacted){% else %}var(--s-declined){% endif %};border-radius:3px;"></div>
-            </div>
-            <span style="font-size:.75rem;color:var(--text-secondary);">{{ pct }}%</span>
-          </div>
-          {% else %}
-          <span style="color:#9ca3af;font-size:.8rem;">—</span>
-          {% endif %}
-        </td>
-        <td style="padding:.4rem .6rem;text-align:center;">
-          {% if row.met == true %}
-          <span style="color:var(--s-confirmed);font-weight:700;">&#10003;</span>
-          {% elif row.met == false %}
-          <span style="color:var(--s-declined);font-weight:700;">&#10007;</span>
-          {% else %}
-          <span style="color:#9ca3af;">—</span>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% set met_count = goal_review|selectattr('met', 'equalto', true)|list|length %}
-  {% set total_goals = goal_review|length %}
-  {% if total_goals > 0 %}
-  <div style="margin-top:.6rem;font-size:.85rem;color:var(--text-secondary);">
-    <strong>{{ met_count }}/{{ total_goals }}</strong> goals met
-    {% if met_count == total_goals %}<span style="color:var(--s-confirmed);font-weight:600;margin-left:.3rem;">All targets hit!</span>{% endif %}
-  </div>
-  {% endif %}
-  {% else %}
-  <p class="muted text-sm" style="margin:0;">No goals set yet.{% if can_edit %} <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set goals</a>{% endif %}</p>
-  {% endif %}
-</div>
-
-<!-- ── Budget ── -->
-<div class="card" id="budget">
-  <h3 style="margin:0 0 .75rem;font-size:1rem;font-weight:700;">Budget</h3>
-  {% if event.planned_budget or event.actual_spend or event.sponsorship_revenue or event.expenses %}
-  {% set net = event.sponsorship_revenue - event.actual_spend %}
-  <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.88rem;margin-bottom:.75rem;">
-    <div><span style="color:var(--text-secondary);">Planned:</span> <strong>${{ '%.2f'|format(event.planned_budget) }}</strong></div>
-    <div><span style="color:var(--text-secondary);">Spent:</span> <strong style="color:{% if event.planned_budget and event.actual_spend > event.planned_budget %}var(--s-declined){% else %}var(--text){% endif %};">${{ '%.2f'|format(event.actual_spend) }}</strong></div>
-    <div><span style="color:var(--text-secondary);">Sponsorship:</span> <strong>${{ '%.2f'|format(event.sponsorship_revenue) }}</strong></div>
-    <div><span style="color:var(--text-secondary);">Net:</span> <strong style="color:{% if net >= 0 %}var(--s-confirmed){% else %}var(--s-declined){% endif %};">${{ '%.2f'|format(net) }}</strong></div>
-  </div>
-  {% if event.planned_budget > 0 %}
-  {% set spend_pct = ((event.actual_spend / event.planned_budget * 100) | round | int) %}
-  {% set spend_capped = [spend_pct, 100] | min %}
-  <div style="margin-bottom:.75rem;">
-    <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-secondary);margin-bottom:.2rem;">
-      <span>Budget used</span><span>{{ spend_pct }}%</span>
-    </div>
-    <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
-      <div style="width:{{ spend_capped }}%;height:100%;background:{% if spend_pct > 100 %}var(--s-declined){% elif spend_pct > 80 %}var(--s-contacted){% else %}var(--s-confirmed){% endif %};border-radius:4px;"></div>
-    </div>
-  </div>
-  {% endif %}
-  {% if event.expenses %}
-  <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
-    <thead>
-      <tr style="text-align:left;border-bottom:2px solid var(--border);">
-        <th style="padding:.3rem .5rem;">Expense</th>
-        <th style="padding:.3rem .5rem;text-align:right;">Amount</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for exp in event.expenses %}
-      <tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:.3rem .5rem;">{{ exp.description }}</td>
-        <td style="padding:.3rem .5rem;text-align:right;">${{ '%.2f'|format(exp.amount) }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
+<!-- ── Tabs ── -->
+<nav class="tabs" role="tablist" aria-label="Event sections">
+  <a class="tab {% if active_tab == 'overview' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if active_tab == 'overview' else 'false' }}" href="{{ tab_urls.overview }}">Overview</a>
+  <a class="tab {% if active_tab == 'guests' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if active_tab == 'guests' else 'false' }}" href="{{ tab_urls.guests }}">Guests <span class="tab-count">{{ event.contacts|length }}</span></a>
+  <a class="tab {% if active_tab == 'outreach' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if active_tab == 'outreach' else 'false' }}" href="{{ tab_urls.outreach }}">Outreach</a>
+  <a class="tab {% if active_tab == 'schedule' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if active_tab == 'schedule' else 'false' }}" href="{{ tab_urls.schedule }}">Schedule</a>
+  <a class="tab {% if active_tab == 'analytics' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if active_tab == 'analytics' else 'false' }}" href="{{ tab_urls.analytics }}">Analytics</a>
   {% if can_edit %}
-  <form method="post" action="{{ url_for('add_expense', event_id=event.id) }}" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:flex-end;">
-    <input type="text" name="description" placeholder="Expense description" required style="flex:2;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;font-size:.85rem;">
-    <input type="number" name="amount" step="0.01" placeholder="$0.00" required style="width:100px;padding:.4rem .6rem;border:1.5px solid var(--border);border-radius:6px;font-size:.85rem;">
-    <button type="submit" class="btn btn-primary btn-sm">Add</button>
-  </form>
+  <a class="tab {% if active_tab == 'settings' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if active_tab == 'settings' else 'false' }}" href="{{ tab_urls.settings }}">Settings</a>
   {% endif %}
-  {% else %}
-  <p class="muted text-sm" style="margin:0;">No budget set yet.{% if can_edit %} <a href="{{ url_for('edit_event_page', event_id=event.id) }}">Set budget</a>{% endif %}</p>
-  {% endif %}
-</div>
+</nav>
 
-<!-- ── Attendee Feedback (past events only) ── -->
-{% if is_past %}
-<div class="section-eyebrow mt-3">Attendee Feedback</div>
-{% if fb_summary.count > 0 %}
-<div class="card" id="feedback">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
-    <h3 style="margin:0;font-size:1rem;font-weight:700;">Feedback</h3>
-    <button type="button" class="btn btn-ghost btn-sm" onclick="copyFeedbackLink()" id="copyFbBtn" style="font-size:.78rem;">Copy feedback link</button>
-  </div>
-  <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin:.75rem 0;font-size:.88rem;">
-    <div>
-      <span style="color:var(--text-secondary);">Avg rating:</span>
-      <strong style="color:var(--color-highlight);">
-        {% for s in range(fb_summary.avg_rating|int) %}&#9733;{% endfor %}{% if fb_summary.avg_rating % 1 >= 0.5 %}&#9733;{% endif %}
-      </strong>
-      <span style="font-size:.8rem;color:var(--text-secondary);">{{ fb_summary.avg_rating }}/5</span>
-    </div>
-    <div><span style="color:var(--text-secondary);">Responses:</span> <strong>{{ fb_summary.count }}</strong></div>
-    <div><span style="color:var(--text-secondary);">Would return:</span> <strong>{{ fb_summary.would_return_pct }}%</strong></div>
-  </div>
-  {% if fb_summary.entries %}
-  <div style="font-size:.82rem;">
-    {% for e in fb_summary.entries[:5] %}
-    <div style="padding:.4rem 0;border-top:1px solid var(--border);">
-      <strong>{{ e.respondent_name or 'Anonymous' }}</strong>
-      <span style="color:var(--color-highlight);">{% for s in range(e.rating) %}&#9733;{% endfor %}</span>
-      {% if e.liked %}<div style="color:var(--text-secondary);margin-top:.2rem;">&#128077; {{ e.liked[:120] }}</div>{% endif %}
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-</div>
-{% else %}
-<div class="card" id="feedback">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
-    <h3 style="margin:0;font-size:1rem;font-weight:700;">Feedback</h3>
-    {% if can_edit %}<button type="button" class="btn btn-ghost btn-sm" onclick="copyFeedbackLink()" id="copyFbBtn" style="font-size:.78rem;">Copy feedback link</button>{% endif %}
-  </div>
-  <p style="color:var(--text-secondary);font-size:.85rem;margin:.5rem 0 0;">No feedback yet.{% if can_edit %} Share the link with attendees or use "Request Feedback" in AI Outreach above.{% endif %}</p>
-</div>
-{% endif %}
-{% endif %}
+{# ─────────────────────────────────────────────────────────── #}
+{# Tab: OVERVIEW                                              #}
+{# ─────────────────────────────────────────────────────────── #}
+{% if active_tab == 'overview' %}
 
-<!-- ── Capacity & Registration ── -->
-{% if metrics.venue_capacity > 0 %}
-<div class="card" id="capacity">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
-    <div>
-      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
-        <h2 style="margin:0;">Capacity Planning</h2>
-        <span class="urgency-pill {{ priority.urgency }}">{{ priority.urgency|title }}</span>
+<div class="split-layout">
+  <div>
+    {% if event.description %}
+    <div class="card">
+      <div class="section-eyebrow">About</div>
+      <p style="margin:0;">{{ event.description }}</p>
+    </div>
+    {% endif %}
+
+    <!-- KPI tiles -->
+    <div class="grid-4 mb-2">
+      <div class="stat-tile">
+        <div class="stat-label">Confirmed</div>
+        <div class="stat-value">{{ metrics.confirmed }}</div>
+        <div class="stat-sub">of {{ metrics.total_invited }} invited</div>
       </div>
-      <p class="muted text-sm" style="margin-top:.2rem;">{{ metrics.venue_capacity }} seats · {{ metrics.walkin_buffer_pct }}% walk-in buffer ({{ metrics.buffer_slots }} extra spots)</p>
+      <div class="stat-tile">
+        <div class="stat-label">Attended</div>
+        <div class="stat-value">{{ metrics.attended }}</div>
+        <div class="stat-sub">{{ metrics.attendance_rate }}% of confirmed</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">RSVP rate</div>
+        <div class="stat-value">{{ metrics.rsvp_rate }}<span class="stat-unit">%</span></div>
+        <div class="stat-sub">{{ metrics.rsvp_count }} responses</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Spend vs budget</div>
+        <div class="stat-value">${{ '%.0f'|format(event.actual_spend) }}</div>
+        <div class="stat-sub">of ${{ '%.0f'|format(event.planned_budget) }} planned</div>
+      </div>
     </div>
-    {% if can_edit %}
-    <a href="{{ url_for('walkin_checkin', event_id=event.id) }}" class="btn btn-primary btn-sm" style="white-space:nowrap;">Walk-in Check-in</a>
+
+    <!-- Goals -->
+    {% if goal_review %}
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="section-eyebrow">Goals</div>
+          <h3 style="margin:0;">Progress toward targets</h3>
+        </div>
+        {% if can_edit %}<a href="{{ tab_urls.settings }}" class="btn btn-ghost btn-sm">Edit</a>{% endif %}
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Goal</th><th>Target</th><th>Actual</th><th>Progress</th><th style="text-align:center;width:60px;">Met</th></tr></thead>
+          <tbody>
+            {% for row in goal_review %}
+            <tr>
+              <td style="font-weight:500;color:var(--text-strong);">{{ row.label }}</td>
+              <td class="num">{{ row.target }}</td>
+              <td class="num">{{ row.actual }}</td>
+              <td style="width:160px;">
+                {% if row.target is number and row.target > 0 and row.actual is number %}
+                  {% set pct = ((row.actual / row.target * 100) | round | int) %}
+                  {% set pct_capped = pct if pct < 100 else 100 %}
+                  <div class="progress-bar {% if not row.met and pct < 50 %}danger{% elif not row.met %}warn{% endif %}">
+                    <div class="fill" style="width:{{ pct_capped }}%;"></div>
+                  </div>
+                  <div class="muted text-xs" style="margin-top:2px;">{{ pct }}%</div>
+                {% else %}
+                  <span class="muted">—</span>
+                {% endif %}
+              </td>
+              <td style="text-align:center;">
+                {% if row.met == true %}<span class="badge badge-success">Met</span>
+                {% elif row.met == false %}<span class="badge badge-danger">Missed</span>
+                {% else %}<span class="muted">—</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Feedback (past events) -->
+    {% if is_past %}
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="section-eyebrow">Feedback</div>
+          <h3 style="margin:0;">
+            {% if fb_summary.count > 0 %}{{ fb_summary.avg_rating }}★ avg · {{ fb_summary.count }} response{{ 's' if fb_summary.count != 1 else '' }}
+            {% else %}No responses yet{% endif %}
+          </h3>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="copyFeedbackLink()" id="copyFbBtn">Copy feedback link</button>
+      </div>
+      {% if fb_summary.count > 0 %}
+      <dl class="kv-list" style="margin-top:8px;">
+        <dt>Would return</dt><dd>{{ fb_summary.would_return_pct }}%</dd>
+        <dt>Responses</dt><dd>{{ fb_summary.count }}</dd>
+      </dl>
+      {% if fb_summary.entries %}
+      <div style="margin-top:14px;">
+        {% for e in fb_summary.entries[:5] %}
+        <div style="padding:10px 0;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <strong>{{ e.respondent_name or 'Anonymous' }}</strong>
+            <span class="chip chip-neutral">{{ e.rating }}★</span>
+          </div>
+          {% if e.liked %}<div class="muted text-sm mt-1">{{ e.liked[:160] }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% else %}
+      <p class="muted text-sm">Share the feedback link with attendees or use Outreach → Request feedback.</p>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 
-  <!-- Registration status + door status row -->
-  <div style="display:flex;gap:1rem;margin-top:.75rem;flex-wrap:wrap;align-items:center;">
-    {% if event.registration_deadline %}
-    <span class="reg-status {% if priority.registration_open %}open-status{% else %}closed-status{% endif %}">
-      {% if priority.registration_open %}● Registration open{% else %}● Registration closed{% endif %}
-    </span>
-    <span class="muted text-sm">Deadline: {{ event.registration_deadline[:16]|replace('T', ' ') }}</span>
+  <!-- Right rail -->
+  <aside class="stack-lg">
+    {% if metrics.venue_capacity > 0 %}
+    <div class="card card-compact">
+      <div class="section-eyebrow">Capacity</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:10px;">
+        {% set pct = metrics.capacity_pct if metrics.capacity_pct < 100 else 100 %}
+        <div class="progress-ring {% if pct >= 92 %}danger{% elif pct >= 75 %}warn{% endif %}" style="--size:64px;--stroke:6px;">
+          <svg viewBox="0 0 36 36">
+            <circle class="track" cx="18" cy="18" r="15.5"></circle>
+            <circle class="fill" cx="18" cy="18" r="15.5" stroke-dasharray="{{ (pct * 0.974)|round(1) }} 100"></circle>
+          </svg>
+          <span class="label">{{ metrics.capacity_pct }}%</span>
+        </div>
+        <div>
+          <div style="font-weight:600;color:var(--text-strong);">{{ metrics.confirmed }} / {{ metrics.venue_capacity }}</div>
+          <div class="muted text-xs">{{ metrics.walkin_buffer_pct }}% walk-in buffer · {{ metrics.buffer_used }}/{{ metrics.buffer_slots }} used</div>
+        </div>
+      </div>
+      <div class="gap-row mt-2">
+        <span class="chip chip-neutral">{{ metrics.pre_registered_count }} pre-reg</span>
+        <span class="chip chip-neutral">{{ metrics.day_of_count }} day-of</span>
+        <span class="chip chip-neutral">{{ metrics.walkin_count }} walk-in</span>
+      </div>
+      {% if can_edit %}
+      <a href="{{ url_for('walkin_checkin', event_id=event.id) }}" class="btn btn-secondary btn-sm btn-block" style="margin-top:12px;">Walk-in check-in</a>
+      {% endif %}
+    </div>
     {% endif %}
-    <span class="door-badge {{ priority.door_status }}">
-      <span class="dot" aria-hidden="true"></span>
-      {% if priority.door_status == 'open' %}Open{% elif priority.door_status == 'limited' %}Limited spots{% elif priority.door_status == 'full' %}Full{% else %}Over capacity{% endif %}
-      {% if priority.spots_remaining >= 0 %}· {{ priority.spots_remaining }} spot{{ 's' if priority.spots_remaining != 1 }} remaining{% endif %}
-    </span>
-  </div>
 
-  {% if event.late_fee > 0 %}
-  <div style="margin-top:.6rem;padding:.4rem .7rem;background:var(--color-highlight-wash);border:1px solid #F2DFA0;border-radius:var(--radius-sm);font-size:.82rem;">
-    <strong>Late / walk-in fee: ${{ '%.2f'|format(event.late_fee) }}</strong>
-    {% if event.late_fee_note %}<span class="muted" style="margin-left:.5rem;">{{ event.late_fee_note }}</span>{% endif %}
-  </div>
-  {% endif %}
+    {% if event.registration_pin %}
+    <div class="card card-compact">
+      <div class="section-eyebrow">Registration PIN</div>
+      <div style="font-family:var(--font-mono);font-size:1.6rem;font-weight:600;letter-spacing:.3em;color:var(--text-strong);margin:8px 0;">{{ event.registration_pin }}</div>
+      <div class="muted text-xs mb-2">Staff enter this PIN to unlock the check-in desk.</div>
+      <div class="gap-row">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="copyPin()">Copy</button>
+        <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-secondary btn-sm" target="_blank" rel="noopener">Open desk</a>
+      </div>
+    </div>
+    {% elif can_edit %}
+    <div class="empty-state-card" style="padding:16px;">
+      <h3>No PIN set</h3>
+      <p>Set a 4-6 digit PIN to enable the staff check-in desk.</p>
+      <a href="{{ tab_urls.settings }}" class="btn btn-secondary btn-sm">Set PIN</a>
+    </div>
+    {% endif %}
 
-  <div style="margin-top:.75rem;">
-    <div style="display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;">
-      <span>{{ metrics.confirmed }} confirmed / {{ metrics.venue_capacity }} capacity</span>
-      <span>{{ metrics.capacity_pct }}%</span>
+    <div class="card card-compact">
+      <div class="card-header">
+        <div class="section-eyebrow">Schedule</div>
+        <a href="{{ tab_urls.schedule }}" class="btn btn-ghost btn-sm">All →</a>
+      </div>
+      <dl class="kv-list" style="margin-top:6px;">
+        <dt>Planned</dt><dd>{{ sched_metrics.planned }}</dd>
+        <dt>Approved</dt><dd>{{ sched_metrics.approved }}</dd>
+        <dt>Sent</dt><dd>{{ sched_metrics.sent }}</dd>
+        <dt>Total</dt><dd>{{ sched_metrics.total }}</dd>
+      </dl>
     </div>
-    <div class="cap-bar">
-      {% set pct = [metrics.capacity_pct, 100]|min %}
-      <div class="cap-fill {% if pct < 75 %}green{% elif pct < 95 %}yellow{% else %}red{% endif %}" style="width:{{ pct }}%;"></div>
-    </div>
-  </div>
-
-  <div class="gap-row mt-2">
-    <div>
-      <span class="muted text-xs text-mono" style="text-transform:uppercase;letter-spacing:.08em;">Walk-in buffer:</span>
-      <span class="text-strong text-sm">{{ metrics.buffer_used }} / {{ metrics.buffer_slots }}</span>
-      <span class="muted text-xs">used</span>
-    </div>
-    <div class="gap-row">
-      <span class="reg-badge pre">{{ metrics.pre_registered_count }} Pre-reg</span>
-      <span class="reg-badge dayof">{{ metrics.day_of_count }} Day-of</span>
-      <span class="reg-badge walkin">{{ metrics.walkin_count }} Walk-in</span>
-    </div>
-  </div>
-
-  {% if metrics.buffer_used > metrics.buffer_slots %}
-  <div style="margin-top:.6rem;padding:.5rem .8rem;background:#FBE9E9;border:1px solid #F2B5B5;border-radius:var(--radius-sm);color:#7A1D1C;font-size:.82rem;font-weight:600;">
-    Walk-ins exceeded your planned buffer by {{ metrics.buffer_used - metrics.buffer_slots }}
-  </div>
-  {% endif %}
+  </aside>
 </div>
-{% else %}
+
+{# ─────────────────────────────────────────────────────────── #}
+{# Tab: GUESTS                                                #}
+{# ─────────────────────────────────────────────────────────── #}
+{% elif active_tab == 'guests' %}
+
 {% if can_edit %}
-<div style="display:flex;justify-content:flex-end;margin-bottom:.5rem;gap:.5rem;">
-  <a href="{{ url_for('walkin_checkin', event_id=event.id) }}" class="btn btn-secondary btn-sm">Walk-in Check-in</a>
-</div>
-{% endif %}
-{% endif %}
-
-<!-- ── Add contact ── -->
-<div class="card" id="contacts">
-  <h2>Add contact</h2>
-  {% if not can_edit %}
-  <p class="muted text-sm">View-only access — you cannot add contacts.</p>
-  {% else %}
-  <form method="post" action="{{ url_for('add_contact_route', event_id=event.id) }}">
+<div class="card">
+  <div class="section-eyebrow">Add guest</div>
+  <form method="post" action="{{ url_for('add_contact_route', event_id=event.id) }}" style="margin-top:8px;">
     <div class="form-row">
       <div class="field" style="flex:1;min-width:160px;">
         <label for="cname">Full name</label>
         <input type="text" id="cname" name="name" required placeholder="Jane Doe">
       </div>
       <div class="field" style="flex:1;min-width:200px;">
-        <label for="cemail">Email address</label>
+        <label for="cemail">Email</label>
         <input type="email" id="cemail" name="email" required placeholder="jane@example.com">
       </div>
-      <div class="field" style="min-width:150px;">
+      <div class="field" style="width:160px;">
         <label for="cphone">Phone</label>
         <input type="tel" id="cphone" name="phone" placeholder="5551234567" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d]/g,'')">
       </div>
-      <div class="field" style="min-width:140px;">
+      <div class="field" style="width:150px;">
         <label for="crole">Role</label>
-        <select id="crole" name="contact_role" style="height:40px;">
+        <select id="crole" name="contact_role">
           {% for cr in contact_roles %}
             <option value="{{ cr.value }}" {% if cr.value == 'attendee' %}selected{% endif %}>{{ cr.value|replace('_',' ')|title }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="field" style="display:flex;align-items:flex-end;">
-        <button type="submit" class="btn btn-primary btn-sm" style="height:40px;">Add contact</button>
+        <button type="submit" class="btn btn-primary">Add guest</button>
       </div>
     </div>
   </form>
-  {% endif %}
+</div>
+{% endif %}
+
+{% if grouped_contacts %}
+{% for role, contacts in grouped_contacts %}
+<div class="section-header mt-3">
+  <div class="role-section-header" style="margin:0;padding:0;border:0;">
+    <span class="role-badge role-{{ role.value }}">{{ role.value|replace('_',' ')|title }}</span>
+    <span class="muted text-sm">{{ contacts|length }} {{ 'person' if contacts|length == 1 else 'people' }}</span>
+  </div>
+</div>
+<div class="table-wrap mb-2">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Status</th>
+        {% if can_edit %}<th style="width:130px;">Role</th>{% endif %}
+        <th style="width:90px;">Attended</th>
+        {% if can_edit %}<th style="width:80px;">Actions</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in contacts %}
+      <tr id="contact-row-{{ c.id }}">
+        <td style="font-weight:500;color:var(--text-strong);">{{ c.name }}</td>
+        <td class="muted">{{ c.email }}</td>
+        <td>
+          {% if can_edit %}
+          <form method="post" action="{{ url_for('update_contact_status_route', event_id=event.id, contact_id=c.id) }}" style="display:flex;gap:6px;align-items:center;">
+            <select name="status" class="input-inline" style="width:140px;">
+              {% for s in statuses %}
+                <option value="{{ s.value }}" {% if c.status.value == s.value %}selected{% endif %}>{{ s.value.replace('_', ' ') }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+          </form>
+          {% else %}
+          <span class="badge badge-{{ c.status.value }}">{{ c.status.value.replace('_', ' ') }}</span>
+          {% endif %}
+        </td>
+        {% if can_edit %}
+        <td>
+          <form method="post" action="{{ url_for('update_contact_role_route', event_id=event.id, contact_id=c.id) }}" style="margin:0;">
+            <select name="contact_role" class="input-inline" style="width:110px;" onchange="this.form.submit()">
+              {% for cr in contact_roles %}
+                <option value="{{ cr.value }}" {% if c.contact_role.value == cr.value %}selected{% endif %}>{{ cr.value|replace('_',' ')|title }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </td>
+        {% endif %}
+        <td>
+          {% if can_edit %}
+          <form method="post" action="{{ url_for('toggle_attended_route', event_id=event.id, contact_id=c.id) }}" style="margin:0;">
+            <input type="hidden" name="attended" value="0">
+            <input type="checkbox" name="attended" value="1" {% if c.attended %}checked{% endif %} onchange="this.form.submit()">
+          </form>
+          {% else %}
+          {{ 'Yes' if c.attended else 'No' }}
+          {% endif %}
+        </td>
+        {% if can_edit %}
+        <td style="white-space:nowrap;">
+          <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" aria-label="Edit contact" onclick="openEditModal('{{ c.id }}','{{ c.name|e }}','{{ c.email|e }}','{{ c.phone|e }}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          </button>
+          <form method="post" action="{{ url_for('delete_contact_route', event_id=event.id, contact_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Remove {{ c.name|e }}?')">
+            <button type="submit" class="btn btn-ghost btn-sm btn-icon" title="Remove" aria-label="Remove contact" style="color:var(--danger-ink);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state-card">
+  <div class="empty-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  </div>
+  <h3>No guests yet</h3>
+  <p>Add someone above or use <a href="{{ tab_urls.outreach }}">Outreach → Recommend from People</a> to pull candidates from the People directory.</p>
+</div>
+{% endif %}
+
+{# ─────────────────────────────────────────────────────────── #}
+{# Tab: OUTREACH                                              #}
+{# ─────────────────────────────────────────────────────────── #}
+{% elif active_tab == 'outreach' %}
+
+{% if not can_edit %}
+<div class="alert alert-info">
+  <span class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+  <div class="alert-body"><div class="alert-title">View-only</div><div class="alert-msg">Outreach actions are hidden for your role.</div></div>
+</div>
+{% else %}
+
+<div class="split-layout">
+  <div>
+    <div class="card">
+      <div class="section-eyebrow">Campaigns</div>
+      <h3 style="margin:0 0 4px;">Send outreach</h3>
+      <p class="muted text-sm mb-2">Role-aware, personalized emails to every guest. Review before sending in the Calendar.</p>
+
+      <div class="stack">
+        <form method="post" action="{{ url_for('generate_emails_route', event_id=event.id) }}">
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Generate outreach emails
+          </button>
+        </form>
+        <div class="grid-2">
+          <form method="post" action="{{ url_for('followup_emails_route', event_id=event.id) }}" style="margin:0;">
+            <button type="submit" class="btn btn-secondary btn-block">Send follow-ups</button>
+          </form>
+          <a href="{{ url_for('request_referrals_route', event_id=event.id) }}" class="btn btn-secondary">Request referrals</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-eyebrow">Voice outreach</div>
+      <h3 style="margin:0 0 4px;">AI voice calls</h3>
+      <p class="muted text-sm mb-2">Vapi calls guests with phone numbers — personalized and role-aware.</p>
+      <div class="grid-2">
+        <form method="post" action="{{ url_for('call_invite_route', event_id=event.id) }}" style="margin:0;">
+          <button type="submit" class="btn btn-secondary btn-block">AI call · Invite</button>
+        </form>
+        <form method="post" action="{{ url_for('call_followup_route', event_id=event.id) }}" style="margin:0;">
+          <button type="submit" class="btn btn-secondary btn-block">AI call · Follow-up</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-eyebrow">Post-event</div>
+      <h3 style="margin:0 0 4px;">Request feedback</h3>
+      <p class="muted text-sm mb-2">Schedules a feedback survey email to all attendees.</p>
+      {% if is_past %}
+      <form method="post" action="{{ url_for('request_feedback_route', event_id=event.id) }}" style="margin:0;">
+        <button type="submit" class="btn btn-secondary">Request feedback from attendees</button>
+      </form>
+      {% else %}
+      <button type="button" class="btn btn-secondary" disabled style="opacity:.45;cursor:not-allowed;" title="Available after event date">Available after event</button>
+      {% endif %}
+    </div>
+  </div>
+
+  <aside class="stack-lg">
+    <div class="card card-compact">
+      <div class="section-eyebrow">Discover</div>
+      <h3 style="margin:0 0 6px;font-size:.95rem;">Find new guests</h3>
+      <p class="muted text-sm mb-2">Pull candidates from your People directory or the web.</p>
+      <a href="{{ url_for('recommend_people_route', event_id=event.id) }}" class="btn btn-secondary btn-block mb-1">Recommend from People</a>
+      <a href="{{ url_for('discover_route', event_id=event.id) }}" class="btn btn-secondary btn-block">Discover prospects</a>
+    </div>
+
+    <div class="card card-compact">
+      <div class="section-eyebrow">Queue</div>
+      <h3 style="margin:0 0 6px;font-size:.95rem;">Outreach status</h3>
+      <dl class="kv-list" style="margin-top:4px;">
+        <dt>Planned</dt><dd>{{ sched_metrics.planned }}</dd>
+        <dt>Approved</dt><dd>{{ sched_metrics.approved }}</dd>
+        <dt>Sent</dt><dd>{{ sched_metrics.sent }}</dd>
+      </dl>
+      <a href="{{ tab_urls.schedule }}" class="btn btn-ghost btn-sm btn-block" style="margin-top:10px;">Open schedule →</a>
+    </div>
+  </aside>
+</div>
+{% endif %}
+
+{# ─────────────────────────────────────────────────────────── #}
+{# Tab: SCHEDULE                                              #}
+{# ─────────────────────────────────────────────────────────── #}
+{% elif active_tab == 'schedule' %}
+
+<div class="grid-4 mb-2">
+  <div class="stat-tile">
+    <div class="stat-label">Planned</div>
+    <div class="stat-value">{{ sched_metrics.planned }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Approved</div>
+    <div class="stat-value">{{ sched_metrics.approved }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Sent</div>
+    <div class="stat-value">{{ sched_metrics.sent }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">Total</div>
+    <div class="stat-value">{{ sched_metrics.total }}</div>
+  </div>
 </div>
 
-<!-- ── Contacts by role ── -->
-<div class="card">
-  <h2>Contacts <span class="muted" style="font-weight:500;font-size:.85rem;">({{ event.contacts|length }})</span></h2>
-  {% if grouped_contacts %}
-  {% for role, contacts in grouped_contacts %}
-  <div class="role-section" style="margin-bottom:1.5rem;">
-    <div class="role-section-header">
-      <span class="role-badge role-{{ role.value }}">{{ role.value|replace('_',' ')|title }}</span>
-      <span class="muted" style="font-size:.82rem;margin-left:.4rem;">({{ contacts|length }})</span>
+<div class="section-header">
+  <div>
+    <div class="section-eyebrow">Upcoming</div>
+    <h3 style="margin:0;">Queued outreach</h3>
+  </div>
+  <div class="gap-row">
+    {% if can_edit %}
+    <form method="post" action="{{ url_for('plan_event_outreach', event_id=event.id) }}" style="margin:0;">
+      <button type="submit" class="btn btn-primary btn-sm">Plan outreach</button>
+    </form>
+    {% endif %}
+    <a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Full calendar →</a>
+  </div>
+</div>
+
+{% if upcoming_actions %}
+<div class="card card-flat" style="padding:4px 8px;">
+  {% for item in upcoming_actions %}
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;{% if not loop.last %}border-bottom:1px solid var(--border-subtle);{% endif %}">
+    <span aria-hidden="true" style="color:var(--text-subtle);display:inline-flex;width:18px;height:18px;flex:0 0 18px;">
+      {% if 'email' in item.action_type %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>{% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.93.36 1.85.7 2.73a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.35-1.27a2 2 0 0 1 2.11-.45c.88.34 1.8.57 2.73.7A2 2 0 0 1 22 16.92z"/></svg>{% endif %}
+    </span>
+    <div style="flex:1;min-width:0;">
+      <div class="truncate" style="font-weight:500;color:var(--text-strong);">{{ item.contact_name }}</div>
+      <div class="muted text-xs">{{ item.action_type|replace('_',' ')|title }}</div>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Status</th>
-            {% if can_edit %}<th style="width:120px;">Role</th>{% endif %}
-            <th style="width:90px;">Attended</th>
-            {% if can_edit %}<th style="width:70px;">Actions</th>{% endif %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for c in contacts %}
-          <tr id="contact-row-{{ c.id }}">
-            <td style="font-weight:500;">
-              <span class="contact-display-{{ c.id }}">{{ c.name }}</span>
-            </td>
-            <td class="muted">
-              <span class="contact-display-{{ c.id }}">{{ c.email }}</span>
-            </td>
-            <td>
-              <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
-                <span class="badge badge-{{ c.status.value }}">{{ c.status.value.replace('_', ' ') }}</span>
-                {% if can_edit %}
-                <form method="post" action="{{ url_for('update_contact_status_route', event_id=event.id, contact_id=c.id) }}" style="display:flex;gap:.3rem;align-items:center;">
-                  <select name="status" style="height:32px;font-size:.8rem;width:130px;">
-                    {% for s in statuses %}
-                      <option value="{{ s.value }}" {% if c.status.value == s.value %}selected{% endif %}>{{ s.value.replace('_', ' ') }}</option>
-                    {% endfor %}
-                  </select>
-                  <button type="submit" class="btn btn-ghost btn-sm">Save</button>
-                </form>
-                {% endif %}
-              </div>
-            </td>
-            {% if can_edit %}
-            <td>
-              <form method="post" action="{{ url_for('update_contact_role_route', event_id=event.id, contact_id=c.id) }}" style="display:flex;gap:.3rem;align-items:center;">
-                <select name="contact_role" style="height:32px;font-size:.8rem;width:100px;" onchange="this.form.submit()">
-                  {% for cr in contact_roles %}
-                    <option value="{{ cr.value }}" {% if c.contact_role.value == cr.value %}selected{% endif %}>{{ cr.value|replace('_',' ')|title }}</option>
-                  {% endfor %}
-                </select>
-              </form>
-            </td>
-            {% endif %}
-            <td>
-              {% if can_edit %}
-              <form method="post" action="{{ url_for('toggle_attended_route', event_id=event.id, contact_id=c.id) }}">
-                <input type="hidden" name="attended" value="0">
-                <input type="checkbox" name="attended" value="1" {% if c.attended %}checked{% endif %} onchange="this.form.submit()">
-              </form>
-              {% else %}
-              {{ 'Yes' if c.attended else 'No' }}
-              {% endif %}
-            </td>
-            {% if can_edit %}
-            <td style="width:70px;white-space:nowrap;">
-              <button type="button" class="btn btn-ghost btn-sm" title="Edit" aria-label="Edit contact" onclick="openEditModal('{{ c.id }}','{{ c.name|e }}','{{ c.email|e }}','{{ c.phone|e }}')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-              </button>
-              <form method="post" action="{{ url_for('delete_contact_route', event_id=event.id, contact_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Remove {{ c.name|e }} from this event?')">
-                <button type="submit" class="btn btn-ghost btn-sm" title="Remove" aria-label="Remove contact" style="color:var(--s-declined);">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                </button>
-              </form>
-            </td>
-            {% endif %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    <span class="chip chip-neutral">{{ item.scheduled_at[5:16]|replace('T', ' ') if item.scheduled_at|length > 16 else item.scheduled_at[:10] }}</span>
   </div>
   {% endfor %}
-  {% else %}
-    <p class="empty-state">No contacts yet — add someone above to start outreach.</p>
-  {% endif %}
+</div>
+{% else %}
+<div class="empty-state-card">
+  <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+  <h3>Nothing scheduled</h3>
+  <p>Use the Outreach tab to queue emails and calls. They'll appear here for your review before sending.</p>
+  <a href="{{ tab_urls.outreach }}" class="btn btn-primary">Open Outreach →</a>
+</div>
+{% endif %}
+
+<div style="margin-top:var(--space-lg);">
+  <a href="{{ url_for('event_logs', event_id=event.id) }}" class="btn btn-ghost">Full outreach log →</a>
 </div>
 
-<!-- ── AI Outreach ── -->
-<div class="card" id="outreach">
-  <h2>AI outreach</h2>
-  <p class="muted text-sm" style="margin-bottom:1rem;">Role-aware, personalized emails powered by AI. Each email is tailored to the recipient's background and role.</p>
+{# ─────────────────────────────────────────────────────────── #}
+{# Tab: ANALYTICS                                             #}
+{# ─────────────────────────────────────────────────────────── #}
+{% elif active_tab == 'analytics' %}
+
+<div class="grid-4 mb-2">
+  <div class="stat-tile"><div class="stat-label">Invited</div><div class="stat-value">{{ metrics.total_invited }}</div></div>
+  <div class="stat-tile"><div class="stat-label">RSVPs</div><div class="stat-value">{{ metrics.rsvp_count }}</div></div>
+  <div class="stat-tile"><div class="stat-label">Confirmed</div><div class="stat-value">{{ metrics.confirmed }}</div></div>
+  <div class="stat-tile"><div class="stat-label">Declined</div><div class="stat-value">{{ metrics.declined }}</div></div>
+</div>
+<div class="grid-4 mb-3">
+  <div class="stat-tile"><div class="stat-label">Attended</div><div class="stat-value">{{ metrics.attended }}</div></div>
+  <div class="stat-tile"><div class="stat-label">Walk-ins</div><div class="stat-value">{{ metrics.walkin_count }}</div></div>
+  <div class="stat-tile"><div class="stat-label">RSVP rate</div><div class="stat-value">{{ metrics.rsvp_rate }}<span class="stat-unit">%</span></div></div>
+  <div class="stat-tile"><div class="stat-label">Attendance rate</div><div class="stat-value">{{ metrics.attendance_rate }}<span class="stat-unit">%</span></div></div>
+</div>
+
+<!-- Budget -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="section-eyebrow">Budget</div>
+      <h3 style="margin:0;">Spend vs plan</h3>
+    </div>
+    {% if can_edit %}<a href="{{ tab_urls.settings }}" class="btn btn-ghost btn-sm">Edit</a>{% endif %}
+  </div>
+  {% if event.planned_budget or event.actual_spend or event.sponsorship_revenue or event.expenses %}
+  {% set net = event.sponsorship_revenue - event.actual_spend %}
+  <dl class="kv-list">
+    <dt>Planned</dt><dd>${{ '%.2f'|format(event.planned_budget) }}</dd>
+    <dt>Spent</dt><dd style="color:{% if event.planned_budget and event.actual_spend > event.planned_budget %}var(--danger-ink){% endif %};">${{ '%.2f'|format(event.actual_spend) }}</dd>
+    <dt>Sponsorship</dt><dd>${{ '%.2f'|format(event.sponsorship_revenue) }}</dd>
+    <dt>Net</dt><dd style="color:{% if net >= 0 %}var(--success-ink){% else %}var(--danger-ink){% endif %};">${{ '%.2f'|format(net) }}</dd>
+  </dl>
+  {% if event.planned_budget > 0 %}
+  {% set spend_pct = ((event.actual_spend / event.planned_budget * 100) | round | int) %}
+  {% set spend_capped = spend_pct if spend_pct < 100 else 100 %}
+  <div style="margin-top:14px;">
+    <div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:4px;">
+      <span>Budget used</span><span>{{ spend_pct }}%</span>
+    </div>
+    <div class="progress-bar {% if spend_pct > 100 %}danger{% elif spend_pct > 80 %}warn{% endif %}">
+      <div class="fill" style="width:{{ spend_capped }}%;"></div>
+    </div>
+  </div>
+  {% endif %}
+  {% if event.expenses %}
+  <div class="table-wrap" style="margin-top:14px;">
+    <table>
+      <thead><tr><th>Expense</th><th style="text-align:right;width:120px;">Amount</th></tr></thead>
+      <tbody>
+        {% for exp in event.expenses %}
+        <tr><td>{{ exp.description }}</td><td style="text-align:right;" class="num">${{ '%.2f'|format(exp.amount) }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
   {% if can_edit %}
-  <div class="outreach-grid">
-    <form method="post" action="{{ url_for('generate_emails_route', event_id=event.id) }}" style="grid-column:1/-1;">
-      <button type="submit" class="btn btn-primary btn-hero" style="width:100%;">Generate outreach emails</button>
-    </form>
-    <form method="post" action="{{ url_for('followup_emails_route', event_id=event.id) }}">
-      <button type="submit" class="btn btn-secondary" style="width:100%;">Send follow-ups</button>
-    </form>
-    <a href="{{ url_for('request_referrals_route', event_id=event.id) }}" class="btn btn-secondary">Request referrals</a>
-    <a href="{{ url_for('recommend_people_route', event_id=event.id) }}" class="btn btn-secondary">Recommend from People</a>
-    <a href="{{ url_for('discover_route', event_id=event.id) }}" class="btn btn-secondary">Discover prospects</a>
-  </div>
-
-  <div style="margin-top:1.25rem;">
-    <div class="section-eyebrow">AI voice calls</div>
-    <div class="outreach-grid">
-      <form method="post" action="{{ url_for('call_invite_route', event_id=event.id) }}">
-        <button type="submit" class="btn btn-secondary" style="width:100%;">AI call · Invite</button>
-      </form>
-      <form method="post" action="{{ url_for('call_followup_route', event_id=event.id) }}">
-        <button type="submit" class="btn btn-secondary" style="width:100%;">AI call · Follow-up</button>
-      </form>
-    </div>
-    <p class="muted" style="font-size:.75rem;margin-top:.5rem;">Vapi AI calls contacts with phone numbers — personalized, role-aware conversations powered by voice AI.</p>
-  </div>
-
-  <div style="margin-top:1.25rem;">
-    <div class="section-eyebrow">Post-event</div>
-    {% if is_past %}
-    <form method="post" action="{{ url_for('request_feedback_route', event_id=event.id) }}">
-      <button type="submit" class="btn btn-secondary" style="width:100%;">Request feedback</button>
-    </form>
-    <p class="muted" style="font-size:.75rem;margin-top:.5rem;">Schedules feedback survey emails to all attendees. Review and approve them in the Calendar.</p>
-    {% else %}
-    <button type="button" class="btn btn-secondary" disabled style="width:100%;opacity:.45;cursor:not-allowed;" title="Available after the event has passed">Request feedback</button>
-    <p class="muted" style="font-size:.75rem;margin-top:.5rem;">Available after the event date has passed.</p>
-    {% endif %}
-  </div>
+  <form method="post" action="{{ url_for('add_expense', event_id=event.id) }}" style="display:flex;gap:8px;margin-top:12px;align-items:flex-end;">
+    <input type="text" name="description" placeholder="Expense description" required style="flex:2;">
+    <input type="number" name="amount" step="0.01" placeholder="$0.00" required style="width:120px;">
+    <button type="submit" class="btn btn-primary btn-sm">Add</button>
+  </form>
+  {% endif %}
   {% else %}
-  <p class="muted text-sm">View-only — outreach actions are hidden.</p>
-  {% endif %}
-  <p class="muted" style="font-size:.78rem;margin-top:.75rem;">
-    Outreach emails reference each contact's company, title, and background from your People directory. Follow-ups target people marked <strong>contacted</strong> who haven't responded.
-  </p>
-</div>
-
-<!-- ── Calendar Summary ── -->
-<div class="card" id="schedule-summary">
-  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
-    <h2 style="margin:0;">Calendar</h2>
-    <div style="display:flex;gap:.4rem;">
-      {% if can_edit %}
-      <form method="post" action="{{ url_for('plan_event_outreach', event_id=event.id) }}" style="margin:0;">
-        <button type="submit" class="btn btn-primary btn-sm">Plan outreach</button>
-      </form>
-      {% endif %}
-      <a href="{{ url_for('event_schedule_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Open calendar</a>
-    </div>
-  </div>
-  <div class="gap-row mt-2">
-    <div class="stat-tile"><div class="stat-num" style="color:var(--m-gold);">{{ sched_metrics.planned }}</div><div class="stat-lbl">Planned</div></div>
-    <div class="stat-tile"><div class="stat-num" style="color:var(--m-emerald);">{{ sched_metrics.approved }}</div><div class="stat-lbl">Approved</div></div>
-    <div class="stat-tile"><div class="stat-num muted">{{ sched_metrics.sent }}</div><div class="stat-lbl">Sent</div></div>
-    <div class="stat-tile"><div class="stat-num">{{ sched_metrics.total }}</div><div class="stat-lbl">Total</div></div>
-  </div>
-  {% if upcoming_actions %}
-  <div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.6rem;">
-    <div style="font-size:.72rem;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem;">Upcoming</div>
-    {% for item in upcoming_actions %}
-    <div style="display:flex;align-items:center;gap:.6rem;padding:.4rem 0;{% if not loop.last %}border-bottom:1px solid var(--border-subtle);{% endif %}">
-      <span aria-hidden="true" style="width:18px;height:18px;flex-shrink:0;color:var(--text-tertiary);display:inline-flex;align-items:center;justify-content:center;">
-        {% if 'email' in item.action_type %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>{% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>{% endif %}
-      </span>
-      <span style="flex:1;min-width:0;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.contact_name }}</span>
-      <span style="font-size:.72rem;color:var(--text-secondary);flex-shrink:0;font-family:var(--font-mono);">{{ item.scheduled_at[5:16]|replace('T', ' ') if item.scheduled_at|length > 16 else item.scheduled_at[:10] }}</span>
-    </div>
-    {% endfor %}
-  </div>
+  <p class="muted text-sm" style="margin:0;">No budget set.{% if can_edit %} <a href="{{ tab_urls.settings }}">Set budget →</a>{% endif %}</p>
   {% endif %}
 </div>
 
-<!-- ── Metrics ── -->
-<div id="metrics" class="mb-3">
-  <div class="section-eyebrow mt-2">Performance</div>
-  <h2 class="mb-2">Event metrics</h2>
-  <div class="metrics-grid">
-    <div class="metric-card mc-1">
-      <div class="metric-value">{{ metrics.total_invited }}</div>
-      <div class="metric-label">Total invited</div>
-    </div>
-    <div class="metric-card mc-2">
-      <div class="metric-value">{{ metrics.rsvp_count }}</div>
-      <div class="metric-label">RSVPs</div>
-    </div>
-    <div class="metric-card mc-3">
-      <div class="metric-value">{{ metrics.confirmed }}</div>
-      <div class="metric-label">Confirmed</div>
-    </div>
-    <div class="metric-card mc-4">
-      <div class="metric-value">{{ metrics.declined }}</div>
-      <div class="metric-label">Declined</div>
-    </div>
-    <div class="metric-card mc-5">
-      <div class="metric-value">{{ metrics.attended }}</div>
-      <div class="metric-label">Attended</div>
-    </div>
-    <div class="metric-card mc-5" style="border-left-color:var(--m-teal);">
-      <div class="metric-value">{{ metrics.walkin_count }}</div>
-      <div class="metric-label">Walk-ins</div>
-    </div>
-    <div class="metric-card mc-big mc-6">
-      <div class="metric-value">{{ metrics.rsvp_rate }}%</div>
-      <div class="metric-label">RSVP rate</div>
-    </div>
-    <div class="metric-card mc-big mc-7">
-      <div class="metric-value">{{ metrics.attendance_rate }}%</div>
-      <div class="metric-label">Attendance rate</div>
+{% if is_past and fb_summary.count > 0 %}
+<div class="card">
+  <div class="section-eyebrow">Feedback</div>
+  <h3 style="margin:0 0 10px;">{{ fb_summary.avg_rating }}★ · {{ fb_summary.count }} response{{ 's' if fb_summary.count != 1 else '' }}</h3>
+  <dl class="kv-list">
+    <dt>Average rating</dt><dd>{{ fb_summary.avg_rating }}/5</dd>
+    <dt>Would return</dt><dd>{{ fb_summary.would_return_pct }}%</dd>
+  </dl>
+</div>
+{% endif %}
+
+<div style="margin-top:var(--space-md);">
+  <a href="{{ url_for('event_logs', event_id=event.id) }}" class="btn btn-ghost">View full outreach log →</a>
+</div>
+
+{# ─────────────────────────────────────────────────────────── #}
+{# Tab: SETTINGS                                              #}
+{# ─────────────────────────────────────────────────────────── #}
+{% elif active_tab == 'settings' and can_edit %}
+
+<div class="alert alert-info">
+  <span class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+  <div class="alert-body">
+    <div class="alert-title">Event settings</div>
+    <div class="alert-msg">Edit name, date, audience, registration, goals, budget, and sender details.
+      <a href="{{ url_for('edit_event_page', event_id=event.id) }}" style="text-decoration:underline;">Open the full edit page →</a>
     </div>
   </div>
 </div>
 
-<!-- ── Quick link ── -->
-<div class="card" style="text-align:center;padding:1rem;">
-  <a href="{{ url_for('event_logs', event_id=event.id) }}" class="btn btn-ghost">View full outreach log &rarr;</a>
+<div class="grid-2">
+  <div class="card">
+    <div class="section-eyebrow">Details</div>
+    <dl class="kv-list">
+      <dt>Name</dt><dd>{{ event.name }}</dd>
+      <dt>Date</dt><dd>{{ event.date or 'TBA' }}</dd>
+      <dt>Audience</dt><dd>{{ event.audience_type }}</dd>
+      <dt>Your role</dt><dd>{{ event_role|title }}</dd>
+    </dl>
+    <a href="{{ url_for('edit_event_page', event_id=event.id) }}" class="btn btn-secondary btn-sm" style="margin-top:12px;">Edit details</a>
+  </div>
+
+  <div class="card">
+    <div class="section-eyebrow">Registration</div>
+    <dl class="kv-list">
+      <dt>PIN</dt><dd>{% if event.registration_pin %}<code>{{ event.registration_pin }}</code>{% else %}<span class="muted">Not set</span>{% endif %}</dd>
+      <dt>Capacity</dt><dd>{{ event.venue_capacity or '—' }}</dd>
+      <dt>Walk-in buffer</dt><dd>{{ metrics.walkin_buffer_pct }}%</dd>
+      <dt>Deadline</dt><dd>{{ (event.registration_deadline[:16]|replace('T', ' ')) if event.registration_deadline else '—' }}</dd>
+      <dt>Late fee</dt><dd>{% if event.late_fee %}${{ '%.2f'|format(event.late_fee) }}{% else %}—{% endif %}</dd>
+    </dl>
+    <a href="{{ url_for('edit_event_page', event_id=event.id) }}" class="btn btn-secondary btn-sm" style="margin-top:12px;">Edit registration</a>
+  </div>
+
+  <div class="card">
+    <div class="section-eyebrow">Sharing</div>
+    <p class="muted text-sm mb-2">Invite teammates as viewers, editors, or owners.</p>
+    <a href="{{ url_for('share_event_page', event_id=event.id) }}" class="btn btn-secondary btn-sm">Manage access</a>
+  </div>
+
+  {% if can_owner %}
+  <div class="card" style="border-color:var(--danger-soft);">
+    <div class="section-eyebrow" style="color:var(--danger-ink);">Danger zone</div>
+    <p class="muted text-sm mb-2">Permanently delete this event and all its contacts and outreach history.</p>
+    <form method="post" action="{{ url_for('delete_event_route', event_id=event.id) }}" onsubmit="return confirm('Delete \'{{ event.name|e }}\' and all its data? This cannot be undone.');" style="margin:0;">
+      <button type="submit" class="btn btn-danger btn-sm">Delete event</button>
+    </form>
+  </div>
+  {% endif %}
 </div>
 
+{% endif %}
+
+<!-- Edit contact modal -->
 {% if can_edit %}
 <div id="editContactModal" class="modal-overlay">
-  <div class="modal-panel">
-    <h3 class="mb-2">Edit contact</h3>
+  <div class="modal-panel narrow">
+    <div class="modal-header">
+      <h3 style="margin:0;">Edit contact</h3>
+      <button type="button" class="modal-close" onclick="closeEditModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
     <form id="editContactForm" method="post">
-      <div class="field"><label>Name</label><input type="text" name="name" id="editName" required></div>
-      <div class="field"><label>Email</label><input type="email" name="email" id="editEmail" required></div>
-      <div class="field"><label>Phone</label><input type="tel" name="phone" id="editPhone" placeholder="5551234567" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d]/g,'')"></div>
-      <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+      <div class="modal-body">
+        <div class="field"><label for="editName">Name</label><input type="text" name="name" id="editName" required></div>
+        <div class="field"><label for="editEmail">Email</label><input type="email" name="email" id="editEmail" required></div>
+        <div class="field"><label for="editPhone">Phone</label><input type="tel" name="phone" id="editPhone" placeholder="5551234567" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d]/g,'')"></div>
+      </div>
+      <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
         <button type="submit" class="btn btn-primary">Save</button>
       </div>
@@ -667,26 +720,32 @@
 <script>
 function openEditModal(cid, name, email, phone) {
   var m = document.getElementById('editContactModal');
-  m.style.display = 'flex';
-  m.style.alignItems = 'center';
-  m.style.justifyContent = 'center';
+  if (!m) return;
+  m.classList.add('open');
   document.getElementById('editName').value = name;
   document.getElementById('editEmail').value = email;
   document.getElementById('editPhone').value = phone || '';
   document.getElementById('editContactForm').action = '/events/{{ event.id }}/contacts/' + cid + '/edit';
 }
 function closeEditModal() {
-  document.getElementById('editContactModal').style.display = 'none';
+  var m = document.getElementById('editContactModal');
+  if (m) m.classList.remove('open');
 }
-document.getElementById('editContactModal')?.addEventListener('click', function(e) {
-  if (e.target === this) closeEditModal();
-});
+var _m = document.getElementById('editContactModal');
+if (_m) _m.addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+function copyPin() {
+  {% if event.registration_pin %}
+  navigator.clipboard.writeText('{{ event.registration_pin }}').then(function(){
+    if (window.somToast) window.somToast('PIN copied', 'success');
+  });
+  {% endif %}
+}
 function copyFeedbackLink() {
   var url = window.location.origin + '{{ url_for("event_feedback", event_id=event.id) }}';
   navigator.clipboard.writeText(url).then(function() {
+    if (window.somToast) window.somToast('Feedback link copied', 'success');
     var btn = document.getElementById('copyFbBtn');
-    btn.textContent = 'Copied!';
-    setTimeout(function(){ btn.textContent = 'Copy feedback link'; }, 2000);
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = 'Copy feedback link'; }, 2000); }
   });
 }
 </script>

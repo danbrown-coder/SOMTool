@@ -9,9 +9,13 @@
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a>  /  <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a>  /  Log</div>
-    <h2 style="margin-top:.15rem;">Outreach log</h2>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('events_list') }}">Events</a><span class="sep">/</span>
+      <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name|truncate(30) }}</a><span class="sep">/</span>Log
+    </div>
+    <h1>Outreach log</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">Full record of every AI-generated email for this event.</p>
   </div>
 </div>
 {% endblock %}

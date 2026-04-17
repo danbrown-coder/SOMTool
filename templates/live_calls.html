@@ -3,11 +3,16 @@
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <h2>Live Call Monitor</h2>
-    <div class="breadcrumb">Real-time AI voice call tracking</div>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>Live calls
+    </div>
+    <h1>Live call monitor</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">Real-time tracking of every AI voice call.</p>
   </div>
-  <a href="{{ url_for('live_calls_page') }}" class="btn btn-secondary btn-sm">Refresh</a>
+  <div class="topbar-actions">
+    <a href="{{ url_for('live_calls_page') }}" class="btn btn-secondary btn-sm">Refresh</a>
+  </div>
 </div>
 {% endblock %}
 

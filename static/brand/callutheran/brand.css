@@ -1,0 +1,12 @@
+/* Cal Lutheran SOM — tenant brand tokens.
+   ONLY --brand-* allowed in this file. See MASTER.md "brand surface contract".
+   Hint-purple (desaturated from #3B2360) so the accent reads as a subtle
+   school signature, not a full palette dominance. */
+:root {
+  --brand-primary:        #4A3A6B;   /* desaturated Cal Lu purple */
+  --brand-primary-hover:  #362956;   /* darker step */
+  --brand-primary-fg:     #FFFFFF;
+  --brand-soft:           #EEEAF3;   /* ~10% lavender tint */
+  --brand-ring:           rgba(74, 58, 107, 0.28);
+  --brand-accent:         #B88D1C;   /* muted Cal Lu yellow for optional chip */
+}

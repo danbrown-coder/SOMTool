@@ -8,9 +8,13 @@
 
 {% block topbar %}
 <div class="topbar">
-  <div>
-    <div class="breadcrumb"><a href="{{ url_for('index') }}">Events</a> / <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a> / Discover</div>
-    <h2 style="margin-top:.15rem;">Web discovery</h2>
+  <div class="topbar-left">
+    <div class="breadcrumb">
+      <a href="{{ url_for('events_list') }}">Events</a><span class="sep">/</span>
+      <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name|truncate(30) }}</a><span class="sep">/</span>Discover
+    </div>
+    <h1>Web discovery</h1>
+    <p class="muted text-sm" style="margin:4px 0 0;">Find new prospects from public web sources.</p>
   </div>
 </div>
 {% endblock %}

@@ -49,6 +49,7 @@ import call_monitor
 import outreach_queue
 import feedback_manager
 import ai_config as aic
+import brand_manager
 
 load_dotenv()
 
@@ -210,6 +211,55 @@ def inject_user():
     return dict(current_user=user)
 
 
+@app.context_processor
+def inject_brand():
+    """Expose the active tenant brand kit to every template."""
+    return dict(brand=brand_manager.load_brand())
+
+
+@app.context_processor
+def inject_cmdk_items():
+    """Provide a light search payload for the Cmd+K command palette.
+
+    Runs on every authenticated request; keep it cheap (caps applied).
+    """
+    uid = auth.current_user_id()
+    if not uid:
+        return dict(cmdk_items=[])
+    user = auth.get_user_by_id(uid)
+    if not user or user.role == "register_only":
+        return dict(cmdk_items=[])
+    try:
+        events = em.list_events_visible_to(user)[:30]
+    except Exception:
+        events = []
+    try:
+        people = pm.load_people()[:30]
+    except Exception:
+        people = []
+    items: list[dict] = []
+    for ev in events:
+        items.append({
+            "section": "Events",
+            "label": ev.name,
+            "url": url_for("event_detail", event_id=ev.id),
+            "icon": "event",
+            "meta": ev.date or "",
+        })
+    for p in people:
+        label = p.name or p.email or ""
+        if not label:
+            continue
+        items.append({
+            "section": "People",
+            "label": label,
+            "url": url_for("people_page") + f"#p-{p.id}",
+            "icon": "person",
+            "meta": (p.company or ""),
+        })
+    return dict(cmdk_items=items)
+
+
 @app.template_filter("mask_email")
 def _mask_email_filter(value: str | None) -> str:
     if not value or "@" not in value:
@@ -347,31 +397,22 @@ def registration_gate():
 # ── Events ───────────────────────────────────────────────────
 
 
-@app.route("/")
-@login_required
-def index():
-    events = em.list_events_visible_to(g.current_user)
-
-    filter_audience = request.args.get("audience", "")
-    filter_status = request.args.get("status", "")
-    search_q = request.args.get("q", "").strip().lower()
-
+def _filter_and_sort_events(all_events, *, filter_audience, filter_status, search_q, sort_by):
+    events = list(all_events)
     if filter_audience:
         events = [e for e in events if e.audience_type == filter_audience]
+    today_iso = date.today().isoformat()
     if filter_status == "upcoming":
-        today = date.today().isoformat()
-        events = [e for e in events if e.date >= today]
+        events = [e for e in events if (e.date or "") >= today_iso]
     elif filter_status == "past":
-        today = date.today().isoformat()
-        events = [e for e in events if e.date < today]
+        events = [e for e in events if e.date and e.date.upper() != "TBA" and e.date < today_iso]
     elif filter_status == "has_contacts":
         events = [e for e in events if e.contacts]
     elif filter_status == "no_contacts":
         events = [e for e in events if not e.contacts]
     if search_q:
-        events = [e for e in events if search_q in e.name.lower() or search_q in e.description.lower()]
-
-    sort_by = request.args.get("sort", "date_desc")
+        q = search_q.lower()
+        events = [e for e in events if q in e.name.lower() or q in (e.description or "").lower()]
     if sort_by == "date_asc":
         events.sort(key=lambda e: e.date)
     elif sort_by == "name_asc":
@@ -384,20 +425,136 @@ def index():
         events.sort(key=lambda e: len(e.contacts))
     else:
         events.sort(key=lambda e: e.date, reverse=True)
+    return events
 
-    all_audiences = sorted({e.audience_type for e in em.list_events_visible_to(g.current_user) if e.audience_type})
+
+def _dashboard_metrics(events, user):
+    """Compute aggregate KPIs for the Today dashboard."""
+    today = date.today()
+    today_iso = today.isoformat()
+    month_prefix = today.strftime("%Y-%m")
+    total_events = len(events)
+    events_this_month = [e for e in events if (e.date or "").startswith(month_prefix)]
+    upcoming = [e for e in events if (e.date or "") >= today_iso and (e.date or "").upper() != "TBA"]
+    confirmed_total = 0
+    attended_total = 0
+    emails_sent = 0
+    capacity_alerts: list[dict] = []
+    for e in events_this_month:
+        for c in e.contacts:
+            if c.status.value if hasattr(c.status, "value") else str(c.status) == "confirmed":
+                confirmed_total += 1
+            if getattr(c, "attended", False):
+                attended_total += 1
+            emails_sent += len(getattr(c, "emails", []) or [])
+    for e in upcoming:
+        cap = getattr(e, "venue_capacity", 0) or 0
+        confirmed = sum(
+            1 for c in e.contacts
+            if (c.status.value if hasattr(c.status, "value") else str(c.status)) == "confirmed"
+        )
+        if cap > 0:
+            pct = round(confirmed / cap * 100)
+            if pct >= 85:
+                capacity_alerts.append({"event": e, "confirmed": confirmed, "capacity": cap, "pct": pct})
+    attendance_rate = round(attended_total / confirmed_total * 100) if confirmed_total else 0
+    today_events = [e for e in events if e.date == today_iso]
+    return {
+        "total_events": total_events,
+        "events_this_month": len(events_this_month),
+        "confirmed_total": confirmed_total,
+        "emails_sent": emails_sent,
+        "attendance_rate": attendance_rate,
+        "capacity_alerts": capacity_alerts,
+        "today_events": today_events,
+    }
+
+
+def _pending_outreach_count() -> int:
+    try:
+        q = outreach_queue.load_queue()
+        return sum(1 for a in q if a.get("status") == "pending")
+    except Exception:
+        return 0
+
+
+@app.route("/")
+@login_required
+def index():
+    all_events = em.list_events_visible_to(g.current_user)
+
+    filter_audience = request.args.get("audience", "")
+    filter_status = request.args.get("status", "")
+    search_q = request.args.get("q", "").strip()
+    sort_by = request.args.get("sort", "date_desc")
+
+    events = _filter_and_sort_events(
+        all_events,
+        filter_audience=filter_audience,
+        filter_status=filter_status,
+        search_q=search_q,
+        sort_by=sort_by,
+    )
+
+    all_audiences = sorted({e.audience_type for e in all_events if e.audience_type})
     roles = {e.id: em.get_event_share_role(g.current_user, e) or "viewer" for e in events}
 
-    today = date.today().isoformat()
-    upcoming_events = [e for e in events if not e.date or e.date.upper() == "TBA" or e.date >= today]
-    past_events = [e for e in events if e.date and e.date.upper() != "TBA" and e.date < today]
-    past_fb = {e.id: feedback_manager.compute_feedback_summary(e.id) for e in past_events}
+    today_iso = date.today().isoformat()
+    upcoming_events = [e for e in events if not e.date or e.date.upper() == "TBA" or e.date >= today_iso]
+    past_events = [e for e in events if e.date and e.date.upper() != "TBA" and e.date < today_iso]
+    past_fb = {e.id: feedback_manager.compute_feedback_summary(e.id) for e in past_events[:5]}
+
+    metrics = _dashboard_metrics(all_events, g.current_user)
+    pending_outreach = _pending_outreach_count()
 
     return render_template(
         "index.html", events=events, event_roles=roles,
+        upcoming_events=upcoming_events[:5],
+        past_events=past_events[:5],
+        past_fb=past_fb,
+        all_events_count=len(all_events),
+        sort_by=sort_by, filter_audience=filter_audience,
+        filter_status=filter_status, search_q=search_q,
+        all_audiences=all_audiences,
+        metrics=metrics,
+        pending_outreach=pending_outreach,
+        today_str=date.today().strftime("%A, %B ") + str(date.today().day),
+    )
+
+
+@app.route("/events")
+@login_required
+def events_list():
+    """Full events list (moved off the home dashboard)."""
+    all_events = em.list_events_visible_to(g.current_user)
+
+    filter_audience = request.args.get("audience", "")
+    filter_status = request.args.get("status", "")
+    search_q = request.args.get("q", "").strip()
+    sort_by = request.args.get("sort", "date_desc")
+
+    events = _filter_and_sort_events(
+        all_events,
+        filter_audience=filter_audience,
+        filter_status=filter_status,
+        search_q=search_q,
+        sort_by=sort_by,
+    )
+
+    all_audiences = sorted({e.audience_type for e in all_events if e.audience_type})
+    roles = {e.id: em.get_event_share_role(g.current_user, e) or "viewer" for e in events}
+
+    today_iso = date.today().isoformat()
+    upcoming_events = [e for e in events if not e.date or e.date.upper() == "TBA" or e.date >= today_iso]
+    past_events = [e for e in events if e.date and e.date.upper() != "TBA" and e.date < today_iso]
+    past_fb = {e.id: feedback_manager.compute_feedback_summary(e.id) for e in past_events}
+
+    return render_template(
+        "events.html",
+        events=events, event_roles=roles,
         upcoming_events=upcoming_events, past_events=past_events, past_fb=past_fb,
         sort_by=sort_by, filter_audience=filter_audience,
-        filter_status=filter_status, search_q=request.args.get("q", ""),
+        filter_status=filter_status, search_q=search_q,
         all_audiences=all_audiences,
     )
 

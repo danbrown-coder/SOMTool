@@ -3,223 +3,367 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registration — {{ event.name }} · SOM Event OS</title>
+  <title>Check-in · {{ event.name }} — {{ brand.short_name }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/som-theme.css') }}">
+  {% if brand.css_url %}<link rel="stylesheet" href="{{ brand.css_url }}">{% endif %}
   <style>
-    body { background: var(--bg); }
-    .desk-shell { max-width: 760px; margin: 0 auto; padding: 1.75rem 1rem 4rem; }
+    html, body { background: var(--surface); color: var(--text); }
+    body { font-family: var(--font-body); }
+
+    /* ── Shell ── */
+    .desk-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 24px 80px;
+    }
+
+    /* ── Desk header ── */
     .desk-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem;
-      padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle);
-    }
-    .desk-brand { display: flex; align-items: center; gap: .65rem; }
-    .desk-brand .brand-mark { width: 36px; height: 36px; font-size: .9rem; }
-    .desk-event-name {
-      font-family: var(--font-display);
-      font-size: 1.5rem; font-weight: 700;
-      letter-spacing: -.02em; line-height: 1.15;
-      margin: 0;
-    }
-    .desk-event-meta {
-      font-size: .82rem; color: var(--text-secondary);
-      font-family: var(--font-mono); letter-spacing: .03em;
-      text-transform: uppercase; margin-top: .2rem;
-    }
-    .desk-counter {
-      text-align: right;
-      padding: .65rem 1.1rem;
-      border-radius: var(--radius);
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-    }
-    .desk-counter-value {
-      font-family: var(--font-display);
-      font-size: 1.85rem; font-weight: 700;
-      letter-spacing: -.03em; line-height: 1;
-      color: var(--text-strong);
-    }
-    .desk-counter-label {
-      font-size: .68rem; color: var(--text-secondary);
-      text-transform: uppercase; letter-spacing: .14em;
-      font-family: var(--font-mono); margin-top: .25rem;
-    }
-    .cap-track {
-      height: 8px; background: var(--surface-subtle);
-      border-radius: var(--radius-pill); overflow: hidden;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
-    }
-    .cap-fill {
-      height: 100%; border-radius: var(--radius-pill);
-      transition: width .4s var(--ease-out);
-    }
-    .cap-meta {
-      font-size: .72rem; color: var(--text-secondary);
-      text-align: right; margin-top: .35rem;
-      font-family: var(--font-mono); letter-spacing: .05em;
-    }
-    .desk-flash {
-      padding: .7rem 1rem;
-      border-radius: var(--radius-sm);
-      background: #ECFDF5; border: 1px solid #A7F3D0;
-      color: #00532F; font-size: .87rem; margin-bottom: .85rem;
-    }
-    .section-eyebrow {
-      font-family: var(--font-mono);
-      font-size: .65rem; font-weight: 600;
-      text-transform: uppercase; letter-spacing: .16em;
-      color: var(--text-secondary); margin-bottom: .35rem;
-    }
-    .desk-card {
-      background: var(--surface-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: var(--surface-raised);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.25rem; margin-bottom: 1rem;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-1);
+      margin-bottom: 20px;
+      position: sticky; top: 12px; z-index: 20;
     }
-    .desk-card h3 {
+    .desk-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .desk-brand .mark {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: var(--brand-soft); color: var(--brand-ink);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .72rem; letter-spacing: .04em;
+      border: 1px solid var(--border);
+    }
+    .desk-brand .mark img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+    .desk-title {
       font-family: var(--font-display);
-      font-size: 1.05rem; font-weight: 700;
-      letter-spacing: -.01em; margin: 0 0 .75rem;
+      font-size: 1.25rem; font-weight: 600;
+      color: var(--text-strong); letter-spacing: -.015em;
+      line-height: 1.2; margin: 0;
+      max-width: 46ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .walkin-grid {
-      display: grid; gap: .55rem;
-      grid-template-columns: 2fr 2fr 1.4fr;
-      margin-bottom: .65rem;
+    .desk-sub {
+      font-size: .78rem; color: var(--text-muted);
+      font-family: var(--font-mono); letter-spacing: .04em;
+      text-transform: uppercase; margin-top: 2px;
     }
-    @media (max-width: 640px) { .walkin-grid { grid-template-columns: 1fr; } }
-    .search-input { margin-bottom: .8rem; }
-    .contact-row {
+    .desk-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* ── KPI strip ── */
+    .desk-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .desk-kpi {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+    }
+    .desk-kpi .kpi-label {
+      font-size: .7rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .12em;
+      font-weight: 600; margin-bottom: 6px;
+    }
+    .desk-kpi .kpi-value {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight: 600;
+      color: var(--text-strong); letter-spacing: -.02em;
+      line-height: 1; font-variant-numeric: tabular-nums;
+    }
+    .desk-kpi .kpi-sub {
+      font-size: .75rem; color: var(--text-muted); margin-top: 6px;
+    }
+    .desk-kpi .cap-bar {
+      height: 6px; background: var(--surface-sunken);
+      border-radius: 999px; overflow: hidden; margin-top: 8px;
+    }
+    .desk-kpi .cap-bar > div { height: 100%; border-radius: inherit; transition: width .3s var(--ease-out); }
+    .cap-ok   { background: var(--success); }
+    .cap-warn { background: var(--warning); }
+    .cap-full { background: var(--danger); }
+    @media (max-width: 960px) { .desk-kpis { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ── Two column layout ── */
+    .desk-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+    @media (max-width: 960px) { .desk-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .panel + .panel { margin-top: 16px; }
+    .panel-header {
+      padding: 14px 18px;
       display: flex; align-items: center; justify-content: space-between;
-      gap: .75rem; padding: .7rem 0;
+      gap: 10px;
       border-bottom: 1px solid var(--border-subtle);
     }
-    .contact-row:last-child { border-bottom: none; }
-    .contact-name {
-      font-weight: 600; font-size: .92rem;
-      color: var(--text-strong); letter-spacing: -.01em;
+    .panel-header .eyebrow {
+      font-size: .7rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .12em;
+      font-weight: 600;
     }
-    .contact-meta {
-      font-size: .78rem; color: var(--text-secondary);
-      font-family: var(--font-mono); margin-top: .15rem;
+    .panel-header h3 {
+      font-size: 1rem; font-weight: 600;
+      color: var(--text-strong); margin: 2px 0 0;
     }
+    .panel-body { padding: 16px 18px; }
+    .panel-body.flush { padding: 0; }
+
+    /* ── Big search ── */
+    .desk-search {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--surface-tinted);
+    }
+    .desk-search svg { color: var(--text-subtle); flex-shrink: 0; }
+    .desk-search input {
+      flex: 1;
+      border: 0; background: transparent;
+      font-size: 1rem; color: var(--text-strong);
+      padding: 8px 0;
+      font-family: var(--font-body);
+    }
+    .desk-search input:focus { outline: none; }
+    .desk-search .hint {
+      font-size: .72rem; color: var(--text-muted);
+      font-family: var(--font-mono); letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    .desk-search kbd {
+      font-family: var(--font-mono); font-size: .7rem;
+      padding: 2px 6px; border-radius: 4px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border); color: var(--text-muted);
+    }
+
+    /* ── Contact rows ── */
+    .roster { display: flex; flex-direction: column; }
+    .roster-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background .12s var(--ease-out);
+    }
+    .roster-row:last-child { border-bottom: 0; }
+    .roster-row:hover { background: var(--surface-sunken); }
+    .roster-row.is-top { background: var(--brand-soft); }
+    .roster-row.is-checked { opacity: .7; }
+
+    .roster-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface-sunken);
+      color: var(--text-strong);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: .82rem;
+      flex-shrink: 0;
+    }
+    .roster-main { flex: 1; min-width: 0; }
+    .roster-name {
+      font-weight: 600; font-size: .95rem;
+      color: var(--text-strong);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .roster-meta {
+      font-size: .78rem; color: var(--text-muted);
+      font-family: var(--font-mono); margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .roster-action { flex-shrink: 0; }
+    .roster-action .btn-xl {
+      min-width: 110px; padding: 10px 14px;
+      font-size: .9rem; font-weight: 600;
+    }
+
     .badge-checked {
-      display: inline-flex; align-items: center; gap: .35rem;
-      background: #CDE7DB; color: #00532F;
-      padding: .25rem .65rem; border-radius: var(--radius-pill);
-      font-size: .7rem; font-weight: 600;
-      font-family: var(--font-mono); letter-spacing: .06em;
-      text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--success-soft); color: var(--success-ink);
+      padding: 5px 10px; border-radius: 999px;
+      font-size: .72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .08em;
     }
     .badge-checked::before {
       content: ''; width: 6px; height: 6px;
-      background: var(--s-confirmed); border-radius: 50%;
+      background: var(--success); border-radius: 50%;
     }
-    .lookup-card {
-      background: linear-gradient(135deg, var(--color-cta-soft) 0%, #FFFFFF 100%);
-      border: 1px solid var(--border-strong);
+
+    /* ── Flash stack ── */
+    .flash-stack { position: fixed; top: 80px; right: 24px; z-index: 50; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .flash-item {
+      min-width: 220px; max-width: 360px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1rem; margin-bottom: 1rem;
-      box-shadow: var(--shadow-sm);
+      box-shadow: var(--shadow-2);
+      padding: 10px 14px;
+      font-size: .88rem;
+      color: var(--text-strong);
+      animation: flashIn .25s var(--ease-out), flashOut .3s var(--ease-out) 3.2s forwards;
+      pointer-events: auto;
     }
+    .flash-item.success { border-left: 3px solid var(--success); }
+    @keyframes flashIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes flashOut { to { opacity: 0; transform: translateY(-8px); } }
+
+    /* ── Lookup results ── */
     .lookup-row {
       display: flex; justify-content: space-between; align-items: center;
-      gap: .6rem; padding: .55rem 0;
+      gap: 10px; padding: 10px 0;
       border-bottom: 1px solid var(--border-subtle);
     }
-    .lookup-row:last-child { border-bottom: none; }
-    .recent-card { padding: .85rem 1.1rem; }
+    .lookup-row:last-child { border-bottom: 0; }
+
+    /* ── Recent feed ── */
     .recent-row {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: .85rem; padding: .35rem 0;
+      padding: 8px 0;
       border-bottom: 1px solid var(--border-subtle);
+      font-size: .85rem;
     }
-    .recent-row:last-child { border-bottom: none; }
-    .recent-name { font-weight: 600; color: var(--text-strong); }
-    .recent-type {
+    .recent-row:last-child { border-bottom: 0; }
+    .recent-name { font-weight: 500; color: var(--text-strong); }
+    .recent-pill {
       font-family: var(--font-mono); font-size: .7rem;
-      color: var(--text-secondary);
+      color: var(--text-muted);
       text-transform: uppercase; letter-spacing: .08em;
+      padding: 2px 8px; border-radius: 999px;
+      background: var(--surface-sunken);
     }
-    .desk-actions {
-      display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
-      justify-content: flex-end;
-    }
+
+    /* ── Gate ── */
     .gate-wrap {
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      min-height: 70vh; gap: 1.25rem; padding: 1rem;
-    }
-    .gate-title {
-      font-family: var(--font-display);
-      font-size: 1.6rem; font-weight: 700;
-      letter-spacing: -.02em; text-align: center;
-      margin: 0;
-    }
-    .gate-sub {
-      color: var(--text-secondary); font-size: .85rem;
-      text-align: center; margin-top: .3rem;
-      font-family: var(--font-mono);
-      text-transform: uppercase; letter-spacing: .1em;
+      min-height: 80vh; gap: 20px; padding: 24px;
     }
     .gate-card {
-      width: 100%; max-width: 24rem; text-align: center;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-2);
+      padding: 32px 28px;
+      width: 100%; max-width: 400px;
+      text-align: center;
+    }
+    .gate-event {
+      font-family: var(--font-display);
+      font-size: 1.4rem; font-weight: 600;
+      color: var(--text-strong); letter-spacing: -.02em;
+      line-height: 1.2;
+      margin: 0 0 6px;
+    }
+    .gate-sub {
+      font-size: .78rem; color: var(--text-muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase; letter-spacing: .1em;
+      margin-bottom: 22px;
+    }
+    .pin-input {
+      display: block;
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      font-weight: 600;
+      letter-spacing: .5em;
+      text-align: center;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface-tinted);
+      color: var(--text-strong);
+      transition: border-color .15s, background .15s;
+    }
+    .pin-input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+      background: var(--surface-raised);
     }
     .pin-error {
-      background: #FBE9E9; border: 1px solid #F2B5B5;
-      color: #7A1D1C; padding: .5rem .9rem;
+      background: var(--danger-soft);
+      border: 1px solid var(--danger-soft);
+      color: var(--danger-ink);
+      padding: 8px 12px;
       border-radius: var(--radius-sm);
-      font-size: .82rem; margin-bottom: .85rem;
-      font-family: var(--font-mono); letter-spacing: .02em;
+      font-size: .82rem;
+      margin-bottom: 14px;
+      font-weight: 500;
     }
+
+    /* Empty state */
+    .empty-roster {
+      padding: 40px 20px; text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-roster svg { width: 32px; height: 32px; color: var(--text-subtle); margin-bottom: 10px; }
+
+    /* Utilities */
+    .muted { color: var(--text-muted); }
+    .text-sm { font-size: .88rem; }
+    .hidden-by-filter { display: none !important; }
   </style>
 </head>
 <body>
-<div class="desk-shell">
-  {% if not authed %}
-  <!-- PIN Gate -->
-  <div class="gate-wrap">
-    <div>
-      <div class="auth-brand" style="justify-content:center;">
-        <span class="brand-mark" aria-hidden="true">S</span>
-        <div style="text-align:left;">
-          <div class="brand-name">{{ event.name }}</div>
-          <div class="brand-sub">{{ event.date or 'Date TBA' }}</div>
-        </div>
+
+{% if not authed %}
+<!-- ══════════════════════════ PIN GATE ══════════════════════════ -->
+<div class="gate-wrap">
+  <div class="gate-card">
+    <div style="margin-bottom:14px;">
+      <div class="mark" style="width:44px;height:44px;border-radius:10px;background:var(--brand-soft);color:var(--brand-ink);display:inline-flex;align-items:center;justify-content:center;font-weight:700;border:1px solid var(--border);font-size:.95rem;letter-spacing:.04em;">
+        {% if brand.mark_url %}<img src="{{ brand.mark_url }}" alt="" style="width:100%;height:100%;object-fit:contain;padding:6px;">{% else %}{{ brand.initials }}{% endif %}
       </div>
     </div>
-    <div class="card gate-card">
-      <div class="section-eyebrow">Staff registration</div>
-      <h2 class="mb-1">Enter event PIN</h2>
-      <p class="muted text-sm mb-2">Provide the event's check-in PIN to open the desk.</p>
-      {% if pin_error %}<div class="pin-error">Incorrect PIN</div>{% endif %}
-      <form method="post" action="{{ url_for('register_pin', event_id=event.id) }}">
-        <input class="pin-input" type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autofocus placeholder="••••" autocomplete="one-time-code">
-        <button type="submit" class="btn btn-primary btn-block btn-hero mt-2">Open desk</button>
-      </form>
-    </div>
-    {% if current_user_present %}
-    <form method="post" action="{{ url_for('logout_route') }}">
-      <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
-    </form>
-    {% endif %}
-  </div>
+    <h1 class="gate-event">{{ event.name }}</h1>
+    <div class="gate-sub">{{ event.date or 'Date TBA' }} · Staff check-in</div>
 
-  {% else %}
-  <!-- Registration Desk -->
-  <div class="desk-header">
+    {% if pin_error %}<div class="pin-error">That PIN didn't match. Try again.</div>{% endif %}
+    <form method="post" action="{{ url_for('register_pin', event_id=event.id) }}">
+      <input class="pin-input" type="password" name="pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autofocus placeholder="••••" autocomplete="one-time-code" aria-label="Registration PIN">
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:16px;">Open check-in desk</button>
+    </form>
+  </div>
+  {% if current_user_present %}
+  <form method="post" action="{{ url_for('logout_route') }}">
+    <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+  </form>
+  {% endif %}
+</div>
+
+{% else %}
+<!-- ══════════════════════════ DESK MODE ══════════════════════════ -->
+<div class="desk-shell">
+
+  <!-- Sticky header -->
+  <header class="desk-header">
     <div class="desk-brand">
-      <span class="brand-mark" aria-hidden="true">S</span>
-      <div>
-        <h1 class="desk-event-name">{{ event.name }}</h1>
-        <div class="desk-event-meta">{{ event.date or 'TBA' }} · Registration desk</div>
+      <span class="mark">
+        {% if brand.mark_url %}<img src="{{ brand.mark_url }}" alt="">{% else %}{{ brand.initials }}{% endif %}
+      </span>
+      <div style="min-width:0;">
+        <h1 class="desk-title">{{ event.name }}</h1>
+        <div class="desk-sub">{{ event.date or 'TBA' }} · Check-in desk</div>
       </div>
     </div>
     <div class="desk-actions">
       {% if show_leave_to_pin %}
       <form method="post" action="{{ url_for('register_leave_pin_session', event_id=event.id) }}" style="margin:0;">
-        <button type="submit" class="btn btn-ghost btn-sm" title="Return to PIN entry">Exit desk</button>
+        <button type="submit" class="btn btn-ghost btn-sm">Exit desk</button>
       </form>
       {% endif %}
       {% if current_user_present %}
@@ -227,135 +371,277 @@
         <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
       </form>
       {% endif %}
-      <div class="desk-counter">
-        <div class="desk-counter-value">{{ metrics.attended }}</div>
-        <div class="desk-counter-label">Checked in{% if metrics.venue_capacity %} / {{ metrics.venue_capacity }}{% endif %}</div>
-      </div>
     </div>
-  </div>
+  </header>
 
-  {% if metrics.venue_capacity > 0 %}
-  {% set pct = (metrics.attended / metrics.venue_capacity * 100)|round|int %}
-  {% set pct_c = [pct, 100]|min %}
-  <div style="margin-bottom:1.25rem;">
-    <div class="cap-track">
-      <div class="cap-fill" style="width:{{ pct_c }}%;background:{% if pct > 100 %}var(--s-declined){% elif pct > 85 %}var(--s-contacted){% else %}var(--s-confirmed){% endif %};"></div>
-    </div>
-    <div class="cap-meta">{{ pct }}% capacity</div>
-  </div>
-  {% endif %}
-
-  {% for msg in get_flashed_messages() %}
-  <div class="desk-flash">{{ msg }}</div>
-  {% endfor %}
-
-  <!-- Walk-in Form -->
-  <div class="desk-card">
-    <div class="section-eyebrow">Walk-in</div>
-    <h3>Register a walk-in</h3>
-    <form method="post" action="{{ url_for('register_walkin', event_id=event.id) }}">
-      <div class="walkin-grid">
-        <input type="text" name="name" placeholder="Full name *" required>
-        <input type="email" name="email" placeholder="Email (optional)">
-        <input type="tel" name="phone" placeholder="Phone (optional)">
-      </div>
-      <button type="submit" class="btn btn-primary btn-block">Register walk-in</button>
-    </form>
-  </div>
-
-  <!-- Web Lookup Results -->
-  {% if lookup_results is defined and lookup_results %}
-  <div class="lookup-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem;">
-      <strong style="font-size:.9rem;color:var(--text-strong);">Possible matches for "{{ lookup_name }}"</strong>
-      <span class="muted text-sm">{{ lookup_results|length }} found</span>
-    </div>
-    {% for r in lookup_results %}
-    <div class="lookup-row">
-      <div style="min-width:0;flex:1;">
-        <div style="font-weight:600;font-size:.88rem;color:var(--text-strong);">{{ r.title }}</div>
-        <div class="muted text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.snippet[:120] }}</div>
-      </div>
-      <form method="post" action="{{ url_for('register_approve_lookup', event_id=event.id) }}" style="margin:0;">
-        <input type="hidden" name="contact_id" value="{{ lookup_contact_id }}">
-        <input type="hidden" name="url" value="{{ r.url }}">
-        <input type="hidden" name="title" value="{{ r.title }}">
-        <input type="hidden" name="snippet" value="{{ r.snippet[:200] }}">
-        <button type="submit" class="btn btn-success btn-sm">This is them</button>
-      </form>
-    </div>
-    {% endfor %}
-    <div style="margin-top:.6rem;text-align:center;">
-      <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-ghost btn-sm">Skip — none match</a>
-    </div>
-  </div>
-  {% endif %}
-
-  <!-- Pre-registered Contacts -->
-  <div class="desk-card">
-    <div class="section-eyebrow">Roster</div>
-    <h3>Pre-registered contacts</h3>
-    <input type="text" class="search-input" id="contactSearch" placeholder="Search by name…" oninput="filterContacts()">
-    <div id="contactList">
-      {% for c in event.contacts|sort(attribute='name') %}
-      <div class="contact-row" data-name="{{ c.name|lower }}">
-        <div style="min-width:0;">
-          <div class="contact-name">{{ c.name }}</div>
-          {% if register_only_user %}
-          {% elif is_admin %}
-          {% if c.email or c.phone %}<div class="contact-meta">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</div>{% endif %}
-          {% else %}
-          {% if c.email or c.phone %}<div class="contact-meta">
-            {% if c.email %}{{ c.email|mask_email }}{% endif %}
-            {% if c.phone %}{% if c.email %} · {% endif %}{{ c.phone|mask_phone }}{% endif %}
-          </div>{% endif %}
-          {% endif %}
-        </div>
-        <div style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;justify-content:flex-end;">
-          {% if c.attended %}
-          <span class="badge-checked">Checked in</span>
-          <form method="post" action="{{ url_for('register_checkout', event_id=event.id) }}" style="margin:0;" onsubmit="return confirm('Remove check-in for ' + {{ c.name|tojson }} + '?');">
-            <input type="hidden" name="contact_id" value="{{ c.id }}">
-            <button type="submit" class="btn btn-danger btn-sm">Check out</button>
-          </form>
-          {% else %}
-          <form method="post" action="{{ url_for('register_checkin', event_id=event.id) }}" style="margin:0;">
-            <input type="hidden" name="contact_id" value="{{ c.id }}">
-            <button type="submit" class="btn btn-success btn-sm">Check in</button>
-          </form>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-      {% if not event.contacts %}
-      <p class="muted text-sm">No pre-registered contacts.</p>
+  <!-- KPI strip -->
+  {% set cap = metrics.venue_capacity or 0 %}
+  {% set pct = ((metrics.attended / cap * 100)|round|int) if cap else 0 %}
+  {% set pct_capped = pct if pct < 100 else 100 %}
+  {% set cap_cls = 'cap-full' if pct >= 100 else ('cap-warn' if pct >= 85 else 'cap-ok') %}
+  <div class="desk-kpis">
+    <div class="desk-kpi">
+      <div class="kpi-label">Checked in</div>
+      <div class="kpi-value">{{ metrics.attended }}</div>
+      {% if cap %}
+      <div class="kpi-sub">of {{ cap }} capacity · {{ pct }}%</div>
+      <div class="cap-bar"><div class="{{ cap_cls }}" style="width:{{ pct_capped }}%;"></div></div>
+      {% else %}
+      <div class="kpi-sub">No capacity set</div>
       {% endif %}
     </div>
-  </div>
-
-  <!-- Recent Check-ins -->
-  {% set recent = event.contacts|selectattr('attended')|sort(attribute='registered_at', reverse=true)|list %}
-  {% if recent %}
-  <div class="section-eyebrow" style="margin-top:1.25rem;">Recent activity</div>
-  <div class="desk-card recent-card">
-    {% for c in recent[:10] %}
-    <div class="recent-row">
-      <span class="recent-name">{{ c.name }}</span>
-      <span class="recent-type">{{ c.registration_type.value|replace('_',' ') }}</span>
+    <div class="desk-kpi">
+      <div class="kpi-label">Confirmed</div>
+      <div class="kpi-value">{{ metrics.confirmed }}</div>
+      <div class="kpi-sub">of {{ metrics.total_invited }} invited</div>
     </div>
-    {% endfor %}
+    <div class="desk-kpi">
+      <div class="kpi-label">Pre-registered</div>
+      <div class="kpi-value">{{ metrics.pre_registered_count }}</div>
+      <div class="kpi-sub">{{ metrics.day_of_count }} day-of · {{ metrics.walkin_count }} walk-in</div>
+    </div>
+    <div class="desk-kpi">
+      <div class="kpi-label">Buffer</div>
+      <div class="kpi-value">{{ metrics.buffer_used }}<span style="font-size:.6em;color:var(--text-muted);">/{{ metrics.buffer_slots }}</span></div>
+      <div class="kpi-sub">{{ metrics.walkin_buffer_pct }}% walk-in buffer</div>
+    </div>
+  </div>
+
+  <!-- Flash stack -->
+  {% set _flashes = get_flashed_messages() %}
+  {% if _flashes %}
+  <div class="flash-stack">
+    {% for msg in _flashes %}<div class="flash-item success">{{ msg }}</div>{% endfor %}
   </div>
   {% endif %}
 
-  {% endif %}
+  <!-- Main two-column layout -->
+  <div class="desk-grid">
+    <!-- LEFT: Roster with search -->
+    <div>
+      {% if lookup_results is defined and lookup_results %}
+      <div class="panel" style="margin-bottom:16px;border-color:var(--brand-primary);">
+        <div class="panel-header" style="background:var(--brand-soft);">
+          <div>
+            <div class="eyebrow">Identity check</div>
+            <h3>Possible matches for "{{ lookup_name }}"</h3>
+          </div>
+          <a href="{{ url_for('event_register', event_id=event.id) }}" class="btn btn-ghost btn-sm">Skip</a>
+        </div>
+        <div class="panel-body">
+          {% for r in lookup_results %}
+          <div class="lookup-row">
+            <div style="min-width:0;flex:1;">
+              <div style="font-weight:600;color:var(--text-strong);">{{ r.title }}</div>
+              <div class="muted text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.snippet[:140] }}</div>
+            </div>
+            <form method="post" action="{{ url_for('register_approve_lookup', event_id=event.id) }}" style="margin:0;">
+              <input type="hidden" name="contact_id" value="{{ lookup_contact_id }}">
+              <input type="hidden" name="url" value="{{ r.url }}">
+              <input type="hidden" name="title" value="{{ r.title }}">
+              <input type="hidden" name="snippet" value="{{ r.snippet[:200] }}">
+              <button type="submit" class="btn btn-primary btn-sm">This is them</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="eyebrow">Roster</div>
+            <h3>{{ event.contacts|length }} pre-registered guest{{ 's' if event.contacts|length != 1 else '' }}</h3>
+          </div>
+        </div>
+        <form id="checkinForm" method="post" action="{{ url_for('register_checkin', event_id=event.id) }}" style="margin:0;">
+          <input type="hidden" name="contact_id" id="topMatchId" value="">
+          <div class="desk-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="contactSearch" placeholder="Search by name, email, or phone…" autofocus autocomplete="off">
+            <span class="hint">Press <kbd>Enter</kbd> to check in top match</span>
+          </div>
+        </form>
+        <div class="panel-body flush">
+          <div class="roster" id="roster">
+            {% for c in event.contacts|sort(attribute='name') %}
+            <div class="roster-row {% if c.attended %}is-checked{% endif %}"
+                 data-name="{{ c.name|lower }}"
+                 data-email="{{ (c.email or '')|lower }}"
+                 data-phone="{{ c.phone|default('', true) }}"
+                 data-attended="{{ '1' if c.attended else '0' }}"
+                 data-id="{{ c.id }}">
+              <div class="roster-avatar">
+                {% set parts = c.name.split() %}
+                {{ (parts[0][0] if parts else '?')|upper }}{{ (parts[-1][0] if parts|length > 1 else '')|upper }}
+              </div>
+              <div class="roster-main">
+                <div class="roster-name">{{ c.name }}</div>
+                {% if register_only_user %}
+                {% elif is_admin %}
+                {% if c.email or c.phone %}<div class="roster-meta">{{ c.email }}{% if c.phone %} · {{ c.phone }}{% endif %}</div>{% endif %}
+                {% else %}
+                {% if c.email or c.phone %}<div class="roster-meta">
+                  {% if c.email %}{{ c.email|mask_email }}{% endif %}
+                  {% if c.phone %}{% if c.email %} · {% endif %}{{ c.phone|mask_phone }}{% endif %}
+                </div>{% endif %}
+                {% endif %}
+              </div>
+              <div class="roster-action">
+                {% if c.attended %}
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                  <span class="badge-checked">Checked in</span>
+                  <form method="post" action="{{ url_for('register_checkout', event_id=event.id) }}" style="margin:0;" onsubmit="return confirm('Remove check-in for ' + {{ c.name|tojson }} + '?');">
+                    <input type="hidden" name="contact_id" value="{{ c.id }}">
+                    <button type="submit" class="btn btn-ghost btn-sm">Undo</button>
+                  </form>
+                </div>
+                {% else %}
+                <form method="post" action="{{ url_for('register_checkin', event_id=event.id) }}" style="margin:0;">
+                  <input type="hidden" name="contact_id" value="{{ c.id }}">
+                  <button type="submit" class="btn btn-primary btn-xl">Check in</button>
+                </form>
+                {% endif %}
+              </div>
+            </div>
+            {% else %}
+            <div class="empty-roster">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <p>No pre-registered guests yet — use the walk-in panel to register someone.</p>
+            </div>
+            {% endfor %}
+          </div>
+          <div id="noResults" style="display:none;" class="empty-roster">
+            <p>No matches. Try the walk-in form on the right.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: walk-in + recent -->
+    <aside>
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="eyebrow">Walk-in</div>
+            <h3>Register on the spot</h3>
+          </div>
+          {% if cap and pct >= 100 %}
+          <span class="badge badge-danger" style="font-size:.7rem;">At capacity</span>
+          {% elif cap and pct >= 85 %}
+          <span class="badge badge-warning" style="font-size:.7rem;">Nearly full</span>
+          {% endif %}
+        </div>
+        <div class="panel-body">
+          <form method="post" action="{{ url_for('register_walkin', event_id=event.id) }}" style="margin:0;">
+            <div class="field">
+              <label for="wiName">Full name <span style="color:var(--danger);">*</span></label>
+              <input type="text" id="wiName" name="name" required placeholder="Jane Doe">
+            </div>
+            <div class="field">
+              <label for="wiEmail">Email</label>
+              <input type="email" id="wiEmail" name="email" placeholder="jane@example.com">
+            </div>
+            <div class="field">
+              <label for="wiPhone">Phone</label>
+              <input type="tel" id="wiPhone" name="phone" placeholder="5551234567" inputmode="numeric" oninput="this.value=this.value.replace(/[^\d]/g,'')">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Register walk-in</button>
+          </form>
+        </div>
+      </div>
+
+      {% set recent = event.contacts|selectattr('attended')|sort(attribute='registered_at', reverse=true)|list %}
+      {% if recent %}
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="eyebrow">Activity</div>
+            <h3>Recent check-ins</h3>
+          </div>
+        </div>
+        <div class="panel-body">
+          {% for c in recent[:8] %}
+          <div class="recent-row">
+            <span class="recent-name">{{ c.name }}</span>
+            <span class="recent-pill">{{ c.registration_type.value|replace('_',' ') }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
 </div>
+
 <script>
-function filterContacts(){
-  var q = document.getElementById('contactSearch').value.toLowerCase();
-  document.querySelectorAll('#contactList .contact-row').forEach(function(r){
-    r.style.display = r.dataset.name.indexOf(q) >= 0 ? '' : 'none';
-  });
-}
+(function() {
+  var input = document.getElementById('contactSearch');
+  var rows  = Array.prototype.slice.call(document.querySelectorAll('#roster .roster-row'));
+  var noResults = document.getElementById('noResults');
+  var topMatchId = document.getElementById('topMatchId');
+  var checkinForm = document.getElementById('checkinForm');
+
+  function normalize(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+  function filter() {
+    var q = input.value.trim().toLowerCase();
+    var qDigits = q.replace(/[^\d]/g, '');
+    var visible = 0;
+    var topRow = null;
+
+    rows.forEach(function(r) {
+      r.classList.remove('is-top');
+      if (!q) {
+        r.classList.remove('hidden-by-filter');
+        visible++;
+        return;
+      }
+      var name  = r.dataset.name || '';
+      var email = r.dataset.email || '';
+      var phone = r.dataset.phone || '';
+      var matches =
+        name.indexOf(q) >= 0 ||
+        email.indexOf(q) >= 0 ||
+        (qDigits && phone.indexOf(qDigits) >= 0);
+      if (matches) {
+        r.classList.remove('hidden-by-filter');
+        if (!topRow && r.dataset.attended === '0') topRow = r;
+        visible++;
+      } else {
+        r.classList.add('hidden-by-filter');
+      }
+    });
+
+    if (topRow) {
+      topRow.classList.add('is-top');
+      topMatchId.value = topRow.dataset.id;
+    } else {
+      topMatchId.value = '';
+    }
+
+    noResults.style.display = (visible === 0 && q) ? 'block' : 'none';
+  }
+
+  if (input) {
+    input.addEventListener('input', filter);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && topMatchId.value) {
+        e.preventDefault();
+        checkinForm.submit();
+      }
+    });
+  }
+
+  setTimeout(function() {
+    document.querySelectorAll('.flash-item').forEach(function(el) {
+      el.style.animationFillMode = 'forwards';
+    });
+  }, 100);
+})();
 </script>
+
+{% endif %}
 </body>
 </html>
