@@ -3,666 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
   <title>{% block title %}SOM Event OS{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    /* ── Reset & tokens ──────────────────────────────────────── */
-    :root {
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
-      --bg: #f8f9fb;
-      --card: #ffffff;
-      --sidebar: #111827;
-      --sidebar-text: #9ca3af;
-      --sidebar-active: #ffffff;
-      --text: #111827;
-      --text-secondary: #6b7280;
-      --accent: #4f46e5;
-      --accent-hover: #4338ca;
-      --accent-light: #eef2ff;
-      --border: #e5e7eb;
-      --input-bg: #f3f4f6;
-      --radius: 12px;
-      --radius-sm: 8px;
-      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-      --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06);
-      --shadow-lg: 0 8px 24px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.06);
-      --transition: all .2s ease;
-      /* metric accent colors */
-      --m-indigo: #4f46e5;
-      --m-emerald: #059669;
-      --m-amber: #d97706;
-      --m-rose: #e11d48;
-      --m-sky: #0284c7;
-      --m-violet: #7c3aed;
-      --m-teal: #0d9488;
-      /* status colors */
-      --s-not-contacted: #9ca3af;
-      --s-contacted: #f59e0b;
-      --s-responded: #3b82f6;
-      --s-confirmed: #10b981;
-      --s-declined: #ef4444;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 15px; }
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.55;
-      min-height: 100vh;
-      display: flex;
-    }
-    a { color: var(--accent); text-decoration: none; transition: var(--transition); }
-    a:hover { color: var(--accent-hover); }
-
-    /* ── Sidebar ─────────────────────────────────────────────── */
-    .sidebar {
-      width: 232px;
-      min-height: 100vh;
-      background: var(--sidebar);
-      color: var(--sidebar-text);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      z-index: 100;
-      padding: 1.6rem 0;
-      overflow-y: auto;
-    }
-    .sidebar-brand {
-      padding: 0 1.4rem 1.6rem;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      margin-bottom: .6rem;
-    }
-    .sidebar-brand h1 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: -.02em;
-      color: #fff;
-      line-height: 1.3;
-    }
-    .sidebar-brand span {
-      display: block;
-      font-size: .78rem;
-      color: var(--sidebar-text);
-      margin-top: .15rem;
-      font-weight: 400;
-    }
-    .sidebar-nav { list-style: none; padding: .5rem 0; flex: 1; }
-    .sidebar-nav li a {
-      display: flex;
-      align-items: center;
-      gap: .65rem;
-      padding: .55rem 1.4rem;
-      font-size: .88rem;
-      font-weight: 500;
-      color: var(--sidebar-text);
-      border-radius: 0;
-      transition: var(--transition);
-      text-decoration: none;
-    }
-    .sidebar-nav li a:hover,
-    .sidebar-nav li a.active {
-      color: #fff;
-      background: rgba(255,255,255,.07);
-    }
-    .sidebar-nav li a .nav-icon {
-      width: 20px;
-      text-align: center;
-      font-size: 1rem;
-      flex-shrink: 0;
-    }
-    .sidebar-section {
-      padding: .3rem 1.4rem;
-      font-size: .7rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: rgba(255,255,255,.3);
-      font-weight: 600;
-      margin-top: .8rem;
-    }
-
-    /* ── Main content ────────────────────────────────────────── */
-    .main-content {
-      margin-left: 232px;
-      flex: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .topbar {
-      padding: 1.2rem 2.5rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--card);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .topbar h2 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      letter-spacing: -.02em;
-    }
-    .topbar .breadcrumb {
-      font-size: .85rem;
-      color: var(--text-secondary);
-    }
-    .topbar .breadcrumb a { color: var(--text-secondary); }
-    .topbar .breadcrumb a:hover { color: var(--accent); }
-    .content-area {
-      padding: 2rem 2.5rem 3rem;
-      max-width: 1140px;
-      width: 100%;
-    }
-
-    /* ── Cards ────────────────────────────────────────────────── */
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow);
-      margin-bottom: 1.25rem;
-      transition: var(--transition);
-    }
-    .card-hoverable:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-    .card h2 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: -.02em;
-      margin-bottom: 1rem;
-    }
-    .card h3 {
-      font-size: .95rem;
-      font-weight: 600;
-      letter-spacing: -.01em;
-    }
-
-    /* ── Form elements ───────────────────────────────────────── */
-    label {
-      display: block;
-      font-size: .72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--text-secondary);
-      margin-bottom: .4rem;
-    }
-    input[type="text"], input[type="email"], input[type="date"],
-    textarea, select {
-      width: 100%;
-      height: 40px;
-      padding: 0 .8rem;
-      background: var(--input-bg);
-      border: 1.5px solid transparent;
-      border-radius: var(--radius-sm);
-      font: inherit;
-      font-size: .9rem;
-      color: var(--text);
-      transition: var(--transition);
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    textarea {
-      height: auto;
-      min-height: 90px;
-      padding: .6rem .8rem;
-      resize: vertical;
-    }
-    select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right .7rem center;
-      padding-right: 2rem;
-    }
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79,70,229,.15);
-      background: #fff;
-    }
-    .field { margin-bottom: 1.1rem; }
-    .form-row { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
-
-    /* ── Buttons ──────────────────────────────────────────────── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: .45rem;
-      padding: .6rem 1.25rem;
-      font: inherit;
-      font-size: .88rem;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: var(--transition);
-      text-decoration: none;
-      line-height: 1.3;
-    }
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-    }
-    .btn-primary:hover {
-      background: var(--accent-hover);
-      transform: scale(1.02);
-      box-shadow: 0 4px 14px rgba(79,70,229,.3);
-      color: #fff;
-    }
-    .btn-secondary {
-      background: transparent;
-      color: var(--accent);
-      border: 1.5px solid var(--accent);
-    }
-    .btn-secondary:hover {
-      background: var(--accent-light);
-      transform: scale(1.02);
-      color: var(--accent);
-    }
-    .btn-ghost {
-      background: transparent;
-      color: var(--text-secondary);
-      padding: .45rem .8rem;
-    }
-    .btn-ghost:hover { background: var(--input-bg); color: var(--text); }
-    .btn-sm { padding: .4rem .8rem; font-size: .82rem; }
-    .btn-hero {
-      padding: .75rem 1.8rem;
-      font-size: .95rem;
-      border-radius: var(--radius);
-    }
-
-    /* ── Tables ───────────────────────────────────────────────── */
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: var(--radius);
-      background: var(--card);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: .88rem;
-    }
-    thead th {
-      text-align: left;
-      padding: .7rem 1rem;
-      font-size: .72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--text-secondary);
-      border-bottom: 1.5px solid var(--border);
-    }
-    tbody td {
-      padding: .7rem 1rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-    }
-    tbody tr { transition: background .15s ease; }
-    tbody tr:nth-child(even) { background: #fafbfc; }
-    tbody tr:hover { background: var(--accent-light); }
-    tbody tr:last-child td { border-bottom: none; }
-
-    /* ── Status badges ───────────────────────────────────────── */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: .3rem;
-      padding: .2rem .65rem;
-      font-size: .76rem;
-      font-weight: 600;
-      border-radius: 100px;
-      white-space: nowrap;
-    }
-    .badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .badge-not_contacted { background: #f3f4f6; color: #6b7280; }
-    .badge-not_contacted::before { background: var(--s-not-contacted); }
-    .badge-contacted { background: #fef3c7; color: #92400e; }
-    .badge-contacted::before { background: var(--s-contacted); }
-    .badge-responded { background: #dbeafe; color: #1e40af; }
-    .badge-responded::before { background: var(--s-responded); }
-    .badge-confirmed { background: #d1fae5; color: #065f46; }
-    .badge-confirmed::before { background: var(--s-confirmed); }
-    .badge-declined { background: #fee2e2; color: #991b1b; }
-    .badge-declined::before { background: var(--s-declined); }
-
-    /* ── Role badges & sections ────────────────────────────── */
-    .role-section-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: .6rem;
-      padding-bottom: .4rem;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .role-badge {
-      display: inline-block;
-      padding: .25rem .7rem;
-      border-radius: 6px;
-      font-size: .78rem;
-      font-weight: 600;
-      letter-spacing: .02em;
-      text-transform: uppercase;
-    }
-    .role-speaker    { background: #fef3c7; color: #92400e; }
-    .role-panelist   { background: #e0e7ff; color: #3730a3; }
-    .role-moderator  { background: #fce7f3; color: #9d174d; }
-    .role-judge      { background: #fde68a; color: #78350f; }
-    .role-sponsor    { background: #d1fae5; color: #065f46; }
-    .role-faculty    { background: #dbeafe; color: #1e40af; }
-    .role-organizer  { background: #e0f2fe; color: #0c4a6e; }
-    .role-staff      { background: #ede9fe; color: #5b21b6; }
-    .role-attendee   { background: #f3f4f6; color: #374151; }
-
-    /* ── Role picker ────────────────────────────────────────── */
-    .role-picker-card {
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-      text-align: center;
-      background: linear-gradient(135deg, #fafbff 0%, var(--card) 100%);
-    }
-    .role-picker-card h2 {
-      font-size: 1.1rem;
-      margin-bottom: .35rem;
-    }
-    .role-picker-card p {
-      color: var(--text-secondary);
-      font-size: .85rem;
-      margin-bottom: 1.25rem;
-    }
-    .role-picker-form {
-      display: inline-flex;
-      gap: .65rem;
-      align-items: center;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .role-picker-form select {
-      width: auto;
-      min-width: 180px;
-      height: 42px;
-      font-size: .9rem;
-      font-weight: 500;
-      border: 1.5px solid var(--border);
-      background: var(--card);
-    }
-    .role-picker-form select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79,70,229,.15);
-    }
-    .role-picker-form .btn { height: 42px; }
-
-    /* ── AI outreach action grid ──────────────────────────── */
-    .outreach-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .65rem;
-      margin: .5rem 0;
-    }
-    .outreach-grid .btn {
-      width: 100%;
-      justify-content: center;
-      padding: .7rem 1rem;
-    }
-    .outreach-grid .btn-hero {
-      grid-column: 1 / -1;
-      padding: .85rem 1.5rem;
-    }
-
-    /* ── Metrics grid ────────────────────────────────────────── */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-      gap: .85rem;
-    }
-    .metric-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 1.1rem 1.2rem;
-      box-shadow: var(--shadow);
-      border-left: 3.5px solid var(--m-indigo);
-      transition: var(--transition);
-    }
-    .metric-card:hover { box-shadow: var(--shadow-md); }
-    .metric-card .metric-value {
-      font-size: 1.65rem;
-      font-weight: 700;
-      letter-spacing: -.03em;
-      line-height: 1.15;
-    }
-    .metric-card .metric-label {
-      font-size: .78rem;
-      color: var(--text-secondary);
-      margin-top: .2rem;
-    }
-    .metric-card.mc-1 { border-left-color: var(--m-indigo); }
-    .metric-card.mc-2 { border-left-color: var(--m-sky); }
-    .metric-card.mc-3 { border-left-color: var(--m-emerald); }
-    .metric-card.mc-4 { border-left-color: var(--m-rose); }
-    .metric-card.mc-5 { border-left-color: var(--m-teal); }
-    .metric-card.mc-6 { border-left-color: var(--m-violet); }
-    .metric-card.mc-7 { border-left-color: var(--m-amber); }
-    .metric-card.mc-big .metric-value { font-size: 2rem; }
-
-    /* ── Flash / toast ───────────────────────────────────────── */
-    .toast {
-      display: inline-flex;
-      align-items: center;
-      gap: .55rem;
-      padding: .65rem 1.2rem;
-      border-radius: 100px;
-      font-size: .85rem;
-      font-weight: 500;
-      margin-bottom: 1.25rem;
-      background: rgba(239,246,255,.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      color: #1e40af;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
-      animation: toastIn .3s ease;
-    }
-    .toast::before { content: '\2139\FE0F'; font-size: .95rem; }
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── Action bar ──────────────────────────────────────────── */
-    .actions { display: flex; flex-wrap: wrap; gap: .65rem; margin: .5rem 0; }
-
-    /* ── Email card ──────────────────────────────────────────── */
-    .email-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .email-card .email-to {
-      font-weight: 600;
-      font-size: .95rem;
-      margin-bottom: .35rem;
-    }
-    .email-card .email-subject {
-      font-size: .82rem;
-      color: var(--text-secondary);
-      margin-bottom: .75rem;
-    }
-    .email-card .email-body {
-      white-space: pre-wrap;
-      font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-      font-size: .84rem;
-      line-height: 1.65;
-      background: var(--input-bg);
-      padding: 1rem 1.15rem;
-      border-radius: var(--radius-sm);
-    }
-    .email-card .copy-btn {
-      margin-top: .75rem;
-      position: relative;
-    }
-    .copy-btn.copied { background: #059669; color: #fff; border-color: #059669; pointer-events: none; }
-
-    /* ── Timeline (logs) ─────────────────────────────────────── */
-    .timeline { position: relative; padding-left: 1.8rem; }
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: .55rem;
-      top: .5rem;
-      bottom: .5rem;
-      width: 2px;
-      background: var(--border);
-      border-radius: 2px;
-    }
-    .timeline-item {
-      position: relative;
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.25rem 1.4rem;
-      margin-bottom: .85rem;
-    }
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      left: -1.25rem;
-      top: 1.35rem;
-      width: 10px; height: 10px;
-      background: var(--accent);
-      border: 2px solid var(--card);
-      border-radius: 50%;
-      box-shadow: 0 0 0 2px var(--accent);
-    }
-    .timeline-meta {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      flex-wrap: wrap;
-      margin-bottom: .45rem;
-    }
-    .timeline-ts {
-      display: inline-block;
-      padding: .15rem .5rem;
-      font-size: .72rem;
-      font-weight: 500;
-      background: var(--input-bg);
-      border-radius: 100px;
-      color: var(--text-secondary);
-    }
-    .badge-type {
-      display: inline-block;
-      padding: .15rem .55rem;
-      font-size: .72rem;
-      font-weight: 600;
-      border-radius: 100px;
-    }
-    .badge-type.initial { background: var(--accent-light); color: var(--accent); }
-    .badge-type.follow_up { background: #fef3c7; color: #92400e; }
-    .timeline-name { font-weight: 600; font-size: .92rem; margin-bottom: .5rem; }
-    .timeline-body {
-      white-space: pre-wrap;
-      font-size: .84rem;
-      line-height: 1.6;
-      background: var(--input-bg);
-      padding: .85rem 1rem;
-      border-radius: var(--radius-sm);
-    }
-
-    /* ── Utility ──────────────────────────────────────────────── */
-    .muted { color: var(--text-secondary); }
-    .text-sm { font-size: .85rem; }
-    .mb-0 { margin-bottom: 0; }
-    .mb-1 { margin-bottom: .5rem; }
-    .mb-2 { margin-bottom: 1rem; }
-    .mt-0 { margin-top: 0; }
-    .mt-2 { margin-top: 1rem; }
-    .gap-row { display: flex; gap: .65rem; flex-wrap: wrap; align-items: center; }
-    .section-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
-    .empty-state { color: var(--text-secondary); font-size: .9rem; padding: 1.5rem 0; }
-
-    /* checkbox toggle */
-    input[type="checkbox"] {
-      width: 18px; height: 18px;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    /* ── Kebab menu ─────────────────────────────────────────── */
-    .kebab-wrapper { position: relative; z-index: 1; }
-    .kebab-btn {
-      background: none; border: none; cursor: pointer;
-      font-size: 1.25rem; line-height: 1; padding: .35rem .45rem;
-      color: var(--text-secondary); border-radius: 6px;
-      transition: background .15s, color .15s;
-    }
-    .kebab-btn:hover { background: var(--bg); color: var(--text); }
-    .kebab-menu {
-      display: none; position: absolute; right: 0; top: 100%;
-      margin-top: 4px; min-width: 140px; z-index: 100;
-      background: var(--card); border-radius: var(--radius);
-      box-shadow: 0 4px 16px rgba(0,0,0,.15); overflow: hidden;
-    }
-    .kebab-menu.open { display: block; }
-    .card.kebab-open { z-index: 60; position: relative; }
-    .kebab-item {
-      display: block; width: 100%; padding: .55rem .85rem;
-      font-size: .84rem; font-weight: 500; text-decoration: none;
-      color: var(--text); background: none; border: none;
-      text-align: left; cursor: pointer; transition: background .12s;
-    }
-    .kebab-item:hover { background: var(--bg); }
-    .kebab-danger { color: #dc2626; }
-    .kebab-danger:hover { background: #fef2f2; }
-
-    .main-content.full-width { margin-left: 0 !important; max-width: 100%; min-height: 100vh; }
-    .auth-center { max-width: 420px; margin: 0 auto; padding-top: 3rem; }
-    .sidebar-user { padding: 1rem 1.4rem; border-top: 1px solid rgba(255,255,255,.08); margin-top: auto; font-size: .78rem; color: var(--sidebar-text); }
-    .sidebar-user strong { color: #fff; display: block; margin-bottom: .35rem; }
-    .sidebar { display: flex; flex-direction: column; }
-
-    {% block extra_css %}{% endblock %}
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/som-theme.css') }}">
+  {% block extra_head %}{% endblock %}
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
 
   {% if not hide_sidebar|default(false) %}
   <!-- ── Sidebar ── -->
-  <aside class="sidebar">
+  <aside class="sidebar" aria-label="Primary navigation">
     <div class="sidebar-brand">
-      <h1><a href="{{ url_for('index') }}" style="color:inherit;text-decoration:none;">SOM Event OS</a></h1>
-      <span>Event Operating System</span>
+      <a href="{{ url_for('index') }}" aria-label="SOM Event OS home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span class="sidebar-brand-text">
+          <h1>SOM Event OS</h1>
+          <span>Event Operating System</span>
+        </span>
+      </a>
     </div>
     <ul class="sidebar-nav">
-      <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}"><span class="nav-icon">📅</span> Events</a></li>
-      <li><a href="{{ url_for('registration_gate') }}" class="{% if request.endpoint == 'registration_gate' %}active{% endif %}"><span class="nav-icon">🎟️</span> Registration</a></li>
-      <li><a href="{{ url_for('people_page') }}" class="{% if request.endpoint == 'people_page' or request.endpoint == 'import_people_page' %}active{% endif %}"><span class="nav-icon">👤</span> People</a></li>
-      <li><a href="{{ url_for('som_events_page') }}" class="{% if request.endpoint == 'som_events_page' %}active{% endif %}"><span class="nav-icon">🎓</span> SOM Events Feed</a></li>
-      <li><a href="{{ url_for('live_calls_page') }}" class="{% if request.endpoint == 'live_calls_page' or request.endpoint == 'call_detail_page' %}active{% endif %}"><span class="nav-icon">📞</span> Live Calls</a></li>
-      <li><a href="{{ url_for('analytics_page') }}" class="{% if request.endpoint == 'analytics_page' %}active{% endif %}"><span class="nav-icon">📊</span> Analytics</a></li>
+      <li>
+        <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          Events
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('registration_gate') }}" class="{% if request.endpoint == 'registration_gate' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 14.8 7.1 17.2 8 11.7 4 7.8 9.5 7z"/></svg></span>
+          Registration
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('people_page') }}" class="{% if request.endpoint == 'people_page' or request.endpoint == 'import_people_page' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          People
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('som_events_page') }}" class="{% if request.endpoint == 'som_events_page' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 3 2 10l10 7 10-7z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg></span>
+          SOM Events Feed
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('live_calls_page') }}" class="{% if request.endpoint == 'live_calls_page' or request.endpoint == 'call_detail_page' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.93.36 1.85.7 2.73a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.35-1.27a2 2 0 0 1 2.11-.45c.88.34 1.8.57 2.73.7A2 2 0 0 1 22 16.92z"/></svg></span>
+          Live Calls
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('analytics_page') }}" class="{% if request.endpoint == 'analytics_page' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg></span>
+          Analytics
+        </a>
+      </li>
       <li class="sidebar-section">Automation</li>
-      <li><a href="{{ url_for('outreach_schedule_page') }}" class="{% if request.endpoint == 'outreach_schedule_page' %}active{% endif %}"><span class="nav-icon">📅</span> Calendar</a></li>
-      <li><a href="{{ url_for('ai_settings_page') }}" class="{% if request.endpoint == 'ai_settings_page' %}active{% endif %}"><span class="nav-icon">🤖</span> AI Settings</a></li>
+      <li>
+        <a href="{{ url_for('outreach_schedule_page') }}" class="{% if request.endpoint == 'outreach_schedule_page' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg></span>
+          Calendar
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('ai_settings_page') }}" class="{% if request.endpoint == 'ai_settings_page' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          AI Settings
+        </a>
+      </li>
 
       {% block sidebar_extra %}{% endblock %}
     </ul>
     {% if current_user %}
     <div class="sidebar-user">
       <strong>{{ current_user.display_name }}</strong>
-      <span class="muted" style="color:#6b7280;">@{{ current_user.username }}{% if current_user.role == 'admin' %} · Admin{% endif %}</span>
-      <form method="post" action="{{ url_for('logout_route') }}" style="margin-top:.5rem;">
-        <button type="submit" class="btn btn-ghost btn-sm" style="color:#9ca3af;padding:0;height:auto;font-size:.75rem;">Log out</button>
+      <span class="sidebar-user-meta">&#64;{{ current_user.username }}</span>
+      {% if current_user.role == 'admin' %}<span class="sidebar-user-role">Admin</span>{% elif current_user.role == 'register_only' %}<span class="sidebar-user-role">Desk</span>{% endif %}
+      <form method="post" action="{{ url_for('logout_route') }}">
+        <button type="submit">Log out</button>
       </form>
     </div>
     {% endif %}
