@@ -1,11 +1,25 @@
 # Render Blueprint: https://render.com/docs/blueprint-spec
 # After connect: add env vars from .env.example in the Render dashboard.
 # Free web services spin down when idle; upgrade the instance in the dashboard for true 24/7.
+databases:
+  - name: somtool-db
+    plan: free
+    databaseName: somtool
+    user: somtool
+
 services:
   - type: web
     name: somtool
     runtime: docker
     dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: somtool-db
+          property: connectionString
+    # The JSON files at /app/data are only needed for the first-boot JSON->Postgres
+    # migration. Once the Postgres instance holds the canonical data, this disk
+    # can be removed.
     disk:
       name: somtool-data
       mountPath: /app/data

@@ -1,57 +1,136 @@
-"""JSON-backed CRUD for events and contacts."""
+"""DB-backed CRUD for events and contacts."""
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
+from db import get_session
+from db_models import Contact as ContactRow
+from db_models import Event as EventRow
+from db_models import EventShare as EventShareRow
 from models import (
     Contact, ContactRole, ContactStatus, Event, RegistrationType,
     new_id, utc_now_iso,
 )
+from org_manager import DEFAULT_ORG_ID, ensure_default_org
 
 if TYPE_CHECKING:
     from models import User
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
-EVENTS_FILE = DATA_DIR / "events.json"
+
+def _contact_row_to_dto(row: ContactRow) -> Contact:
+    return Contact(
+        id=row.id,
+        name=row.name,
+        email=row.email,
+        status=ContactStatus(row.status) if row.status else ContactStatus.NOT_CONTACTED,
+        attended=row.attended,
+        contact_role=ContactRole(row.contact_role) if row.contact_role else ContactRole.ATTENDEE,
+        phone=row.phone,
+        registration_type=RegistrationType(row.registration_type) if row.registration_type else RegistrationType.PRE_REGISTERED,
+        registered_at=row.registered_at,
+    )
 
 
-def _ensure_data_dir() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+def _event_row_to_dto(row: EventRow) -> Event:
+    contacts = [_contact_row_to_dto(c) for c in sorted(row.contacts, key=lambda c: c.registered_at or "")]
+    perms = [{"user_id": p.user_id, "role": p.role} for p in row.permissions]
+    return Event(
+        id=row.id,
+        name=row.name,
+        date=row.date,
+        description=row.description,
+        audience_type=row.audience_type,
+        contacts=contacts,
+        som_event_id=row.som_event_id or "",
+        owner_id=row.owner_id or "",
+        permissions=perms,
+        sender_name=row.sender_name or "",
+        sender_title=row.sender_title or "",
+        sender_email=row.sender_email or "",
+        venue_capacity=row.venue_capacity,
+        walkin_buffer_pct=row.walkin_buffer_pct,
+        registration_deadline=row.registration_deadline or "",
+        late_fee=row.late_fee,
+        late_fee_note=row.late_fee_note or "",
+        goal_registrations=row.goal_registrations,
+        goal_attendance=row.goal_attendance,
+        goal_sponsorship=row.goal_sponsorship,
+        goal_budget=row.goal_budget,
+        custom_goals=list(row.custom_goals or []),
+        planned_budget=row.planned_budget,
+        actual_spend=row.actual_spend,
+        sponsorship_revenue=row.sponsorship_revenue,
+        expenses=list(row.expenses or []),
+        registration_pin=row.registration_pin or "",
+        gcal_event_id=row.gcal_event_id or "",
+        registration_fee_cents=int(row.registration_fee_cents or 0),
+        stripe_price_id=row.stripe_price_id or "",
+    )
+
+
+def _apply_event_dto_to_row(row: EventRow, e: Event) -> None:
+    row.name = e.name
+    row.date = e.date
+    row.description = e.description
+    row.audience_type = e.audience_type
+    row.som_event_id = e.som_event_id or ""
+    row.owner_id = e.owner_id or ""
+    row.sender_name = e.sender_name or ""
+    row.sender_title = e.sender_title or ""
+    row.sender_email = e.sender_email or ""
+    row.venue_capacity = int(e.venue_capacity or 0)
+    row.walkin_buffer_pct = int(e.walkin_buffer_pct or 15)
+    row.registration_deadline = e.registration_deadline or ""
+    row.late_fee = float(e.late_fee or 0.0)
+    row.late_fee_note = e.late_fee_note or ""
+    row.goal_registrations = int(e.goal_registrations or 0)
+    row.goal_attendance = int(e.goal_attendance or 0)
+    row.goal_sponsorship = float(e.goal_sponsorship or 0.0)
+    row.goal_budget = float(e.goal_budget or 0.0)
+    row.custom_goals = list(e.custom_goals or [])
+    row.planned_budget = float(e.planned_budget or 0.0)
+    row.actual_spend = float(e.actual_spend or 0.0)
+    row.sponsorship_revenue = float(e.sponsorship_revenue or 0.0)
+    row.expenses = list(e.expenses or [])
+    row.registration_pin = e.registration_pin or ""
+    if getattr(e, "gcal_event_id", ""):
+        row.gcal_event_id = e.gcal_event_id
+    if getattr(e, "registration_fee_cents", 0):
+        row.registration_fee_cents = int(e.registration_fee_cents)
+    if getattr(e, "stripe_price_id", ""):
+        row.stripe_price_id = e.stripe_price_id
+
+
+def _apply_contact_dto_to_row(row: ContactRow, c: Contact) -> None:
+    row.name = c.name
+    row.email = c.email
+    row.status = c.status.value if hasattr(c.status, "value") else str(c.status)
+    row.attended = bool(c.attended)
+    row.contact_role = c.contact_role.value if hasattr(c.contact_role, "value") else str(c.contact_role)
+    row.phone = c.phone or ""
+    row.registration_type = c.registration_type.value if hasattr(c.registration_type, "value") else str(c.registration_type)
+    row.registered_at = c.registered_at or utc_now_iso()
 
 
 def migrate_legacy_event_ownership(admin_user_id: str) -> None:
     """Assign owner_id to events missing it (one-time migration)."""
-    _ensure_data_dir()
-    if not EVENTS_FILE.exists():
-        return
-    with open(EVENTS_FILE, encoding="utf-8") as f:
-        raw = json.load(f)
-    if not isinstance(raw, list):
-        return
-    changed = False
-    for item in raw:
-        if isinstance(item, dict) and not item.get("owner_id"):
-            item["owner_id"] = admin_user_id
-            if "permissions" not in item:
-                item["permissions"] = []
-            changed = True
-    if changed:
-        with open(EVENTS_FILE, "w", encoding="utf-8") as f:
-            json.dump(raw, f, indent=2, ensure_ascii=False)
+    ensure_default_org()
+    with get_session() as sess:
+        rows = sess.query(EventRow).filter((EventRow.owner_id == "") | (EventRow.owner_id.is_(None))).all()
+        for r in rows:
+            r.owner_id = admin_user_id
 
 
 def load_events() -> list[Event]:
-    _ensure_data_dir()
-    if not EVENTS_FILE.exists():
-        return []
-    with open(EVENTS_FILE, encoding="utf-8") as f:
-        raw = json.load(f)
-    if not isinstance(raw, list):
-        return []
-    return [Event.from_dict(item) for item in raw]
+    ensure_default_org()
+    with get_session() as sess:
+        rows = sess.execute(
+            select(EventRow).where(EventRow.org_id == DEFAULT_ORG_ID).order_by(EventRow.date)
+        ).scalars().all()
+        return [_event_row_to_dto(r) for r in rows]
 
 
 def get_event_share_role(user: "User | None", event: Event) -> str | None:
@@ -76,25 +155,55 @@ def list_events_visible_to(user: "User | None") -> list[Event]:
     events = load_events()
     if user.role == "admin":
         return events
-    visible = []
-    for e in events:
-        if get_event_share_role(user, e) is not None:
-            visible.append(e)
-    return visible
+    return [e for e in events if get_event_share_role(user, e) is not None]
 
 
 def save_events(events: list[Event]) -> None:
-    _ensure_data_dir()
-    payload = [e.to_dict() for e in events]
-    with open(EVENTS_FILE, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
+    """Upsert each event in the list. Does not delete events absent from the list
+    (callers that modify a subset should not lose the rest). For deletes use `delete_event`.
+    """
+    ensure_default_org()
+    with get_session() as sess:
+        for e in events:
+            row = sess.get(EventRow, e.id)
+            if row is None:
+                row = EventRow(id=e.id, org_id=DEFAULT_ORG_ID)
+                sess.add(row)
+            _apply_event_dto_to_row(row, e)
+            # Contacts: upsert keyed by id, delete rows not in the DTO list
+            existing_by_id = {c.id: c for c in row.contacts}
+            incoming_ids = {c.id for c in e.contacts}
+            for c in e.contacts:
+                crow = existing_by_id.get(c.id)
+                if crow is None:
+                    crow = ContactRow(id=c.id, event_id=e.id)
+                    sess.add(crow)
+                _apply_contact_dto_to_row(crow, c)
+            for cid, crow in existing_by_id.items():
+                if cid not in incoming_ids:
+                    sess.delete(crow)
+            # Permissions (event shares): same upsert logic keyed on user_id
+            existing_perms = {p.user_id: p for p in row.permissions}
+            incoming_users = {p.get("user_id") for p in e.permissions if p.get("user_id")}
+            for p in e.permissions:
+                uid = p.get("user_id")
+                if not uid:
+                    continue
+                prow = existing_perms.get(uid)
+                if prow is None:
+                    prow = EventShareRow(event_id=e.id, user_id=uid, role=p.get("role") or "viewer")
+                    sess.add(prow)
+                else:
+                    prow.role = p.get("role") or prow.role
+            for uid, prow in existing_perms.items():
+                if uid not in incoming_users:
+                    sess.delete(prow)
 
 
 def get_event(event_id: str) -> Event | None:
-    for e in load_events():
-        if e.id == event_id:
-            return e
-    return None
+    with get_session() as sess:
+        row = sess.get(EventRow, event_id)
+        return _event_row_to_dto(row) if row else None
 
 
 def create_event(
@@ -113,38 +222,38 @@ def create_event(
     late_fee_note: str = "",
     **kwargs,
 ) -> Event:
-    events = load_events()
-    event = Event(
-        id=new_id(),
-        name=name.strip(),
-        date=date.strip(),
-        description=description.strip(),
-        audience_type=audience_type.strip(),
-        contacts=[],
-        owner_id=owner_id.strip(),
-        permissions=[],
-        sender_name=sender_name.strip(),
-        sender_title=sender_title.strip(),
-        sender_email=sender_email.strip(),
-        venue_capacity=venue_capacity,
-        walkin_buffer_pct=walkin_buffer_pct,
-        registration_deadline=registration_deadline.strip() if registration_deadline else "",
-        late_fee=late_fee,
-        late_fee_note=late_fee_note.strip() if late_fee_note else "",
-        goal_registrations=kwargs.get("goal_registrations", 0),
-        goal_attendance=kwargs.get("goal_attendance", 0),
-        goal_sponsorship=kwargs.get("goal_sponsorship", 0.0),
-        goal_budget=kwargs.get("goal_budget", 0.0),
-        custom_goals=kwargs.get("custom_goals", []),
-        planned_budget=kwargs.get("planned_budget", 0.0),
-        actual_spend=kwargs.get("actual_spend", 0.0),
-        sponsorship_revenue=kwargs.get("sponsorship_revenue", 0.0),
-        expenses=kwargs.get("expenses", []),
-        registration_pin=kwargs.get("registration_pin", ""),
-    )
-    events.append(event)
-    save_events(events)
-    return event
+    ensure_default_org()
+    eid = new_id()
+    with get_session() as sess:
+        row = EventRow(
+            id=eid,
+            org_id=DEFAULT_ORG_ID,
+            name=name.strip(),
+            date=date.strip(),
+            description=description.strip(),
+            audience_type=audience_type.strip(),
+            owner_id=owner_id.strip(),
+            sender_name=sender_name.strip(),
+            sender_title=sender_title.strip(),
+            sender_email=sender_email.strip(),
+            venue_capacity=int(venue_capacity or 0),
+            walkin_buffer_pct=int(walkin_buffer_pct or 15),
+            registration_deadline=(registration_deadline or "").strip(),
+            late_fee=float(late_fee or 0.0),
+            late_fee_note=(late_fee_note or "").strip(),
+            goal_registrations=int(kwargs.get("goal_registrations", 0) or 0),
+            goal_attendance=int(kwargs.get("goal_attendance", 0) or 0),
+            goal_sponsorship=float(kwargs.get("goal_sponsorship", 0.0) or 0.0),
+            goal_budget=float(kwargs.get("goal_budget", 0.0) or 0.0),
+            custom_goals=list(kwargs.get("custom_goals", []) or []),
+            planned_budget=float(kwargs.get("planned_budget", 0.0) or 0.0),
+            actual_spend=float(kwargs.get("actual_spend", 0.0) or 0.0),
+            sponsorship_revenue=float(kwargs.get("sponsorship_revenue", 0.0) or 0.0),
+            expenses=list(kwargs.get("expenses", []) or []),
+            registration_pin=(kwargs.get("registration_pin", "") or ""),
+        )
+        sess.add(row)
+    return get_event(eid)  # type: ignore[return-value]
 
 
 def update_event(
@@ -163,44 +272,76 @@ def update_event(
     late_fee_note: str = "",
     **kwargs,
 ) -> bool:
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id == event_id:
-            e.name = name.strip()
-            e.date = date.strip()
-            e.description = description.strip()
-            e.audience_type = audience_type.strip()
-            e.sender_name = sender_name.strip()
-            e.sender_title = sender_title.strip()
-            e.sender_email = sender_email.strip()
-            e.venue_capacity = venue_capacity
-            e.walkin_buffer_pct = walkin_buffer_pct
-            e.registration_deadline = registration_deadline.strip() if registration_deadline else ""
-            e.late_fee = late_fee
-            e.late_fee_note = late_fee_note.strip() if late_fee_note else ""
-            e.goal_registrations = kwargs.get("goal_registrations", e.goal_registrations)
-            e.goal_attendance = kwargs.get("goal_attendance", e.goal_attendance)
-            e.goal_sponsorship = kwargs.get("goal_sponsorship", e.goal_sponsorship)
-            e.goal_budget = kwargs.get("goal_budget", e.goal_budget)
-            e.custom_goals = kwargs.get("custom_goals", e.custom_goals)
-            e.planned_budget = kwargs.get("planned_budget", e.planned_budget)
-            e.actual_spend = kwargs.get("actual_spend", e.actual_spend)
-            e.sponsorship_revenue = kwargs.get("sponsorship_revenue", e.sponsorship_revenue)
-            e.expenses = kwargs.get("expenses", e.expenses)
-            e.registration_pin = kwargs.get("registration_pin", e.registration_pin)
-            events[i] = e
-            save_events(events)
-            return True
-    return False
+    with get_session() as sess:
+        row = sess.get(EventRow, event_id)
+        if row is None:
+            return False
+        row.name = name.strip()
+        row.date = date.strip()
+        row.description = description.strip()
+        row.audience_type = audience_type.strip()
+        row.sender_name = sender_name.strip()
+        row.sender_title = sender_title.strip()
+        row.sender_email = sender_email.strip()
+        row.venue_capacity = int(venue_capacity or 0)
+        row.walkin_buffer_pct = int(walkin_buffer_pct or 15)
+        row.registration_deadline = (registration_deadline or "").strip()
+        row.late_fee = float(late_fee or 0.0)
+        row.late_fee_note = (late_fee_note or "").strip()
+        if "goal_registrations" in kwargs:
+            row.goal_registrations = int(kwargs["goal_registrations"] or 0)
+        if "goal_attendance" in kwargs:
+            row.goal_attendance = int(kwargs["goal_attendance"] or 0)
+        if "goal_sponsorship" in kwargs:
+            row.goal_sponsorship = float(kwargs["goal_sponsorship"] or 0.0)
+        if "goal_budget" in kwargs:
+            row.goal_budget = float(kwargs["goal_budget"] or 0.0)
+        if "custom_goals" in kwargs:
+            row.custom_goals = list(kwargs["custom_goals"] or [])
+        if "planned_budget" in kwargs:
+            row.planned_budget = float(kwargs["planned_budget"] or 0.0)
+        if "actual_spend" in kwargs:
+            row.actual_spend = float(kwargs["actual_spend"] or 0.0)
+        if "sponsorship_revenue" in kwargs:
+            row.sponsorship_revenue = float(kwargs["sponsorship_revenue"] or 0.0)
+        if "expenses" in kwargs:
+            row.expenses = list(kwargs["expenses"] or [])
+        if "registration_pin" in kwargs:
+            row.registration_pin = kwargs["registration_pin"] or ""
+        if "registration_fee_cents" in kwargs:
+            row.registration_fee_cents = int(kwargs["registration_fee_cents"] or 0)
+        if "stripe_price_id" in kwargs:
+            row.stripe_price_id = kwargs["stripe_price_id"] or ""
+        return True
+
+
+def set_gcal_event_id(event_id: str, gcal_event_id: str) -> bool:
+    with get_session() as sess:
+        row = sess.get(EventRow, event_id)
+        if row is None:
+            return False
+        row.gcal_event_id = gcal_event_id or ""
+        return True
+
+
+def set_event_stripe(event_id: str, price_id: str, product_id: str | None = None) -> bool:
+    with get_session() as sess:
+        row = sess.get(EventRow, event_id)
+        if row is None:
+            return False
+        row.stripe_price_id = price_id or ""
+        if product_id is not None:
+            row.stripe_product_id = product_id or None
+        return True
 
 
 def delete_event(event_id: str) -> bool:
-    events = load_events()
-    filtered = [e for e in events if e.id != event_id]
-    if len(filtered) == len(events):
-        return False
-    save_events(filtered)
-    return True
+    with get_session() as sess:
+        row = sess.get(EventRow, event_id)
+        if row is None:
+            return False
+        sess.delete(row)
+        return True
 
 
 def add_contact(
@@ -213,61 +354,55 @@ def add_contact(
     status: ContactStatus = ContactStatus.NOT_CONTACTED,
     attended: bool = False,
 ) -> Contact | None:
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id == event_id:
-            contact = Contact(
-                id=new_id(),
-                name=name.strip(),
-                email=email.strip(),
-                status=status,
-                attended=attended,
-                contact_role=contact_role,
-                phone=phone.strip(),
-                registration_type=registration_type,
-                registered_at=utc_now_iso(),
-            )
-            e.contacts.append(contact)
-            events[i] = e
-            save_events(events)
-            return contact
-    return None
+    with get_session() as sess:
+        event = sess.get(EventRow, event_id)
+        if event is None:
+            return None
+        crow = ContactRow(
+            id=new_id(),
+            event_id=event_id,
+            name=name.strip(),
+            email=email.strip(),
+            status=status.value if hasattr(status, "value") else str(status),
+            attended=bool(attended),
+            contact_role=contact_role.value if hasattr(contact_role, "value") else str(contact_role),
+            phone=phone.strip(),
+            registration_type=registration_type.value if hasattr(registration_type, "value") else str(registration_type),
+            registered_at=utc_now_iso(),
+        )
+        sess.add(crow)
+        sess.flush()
+        return _contact_row_to_dto(crow)
 
 
 def delete_contact(event_id: str, contact_id: str) -> bool:
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        before = len(e.contacts)
-        e.contacts = [c for c in e.contacts if c.id != contact_id]
-        if len(e.contacts) < before:
-            events[i] = e
-            save_events(events)
-            return True
-    return False
+    with get_session() as sess:
+        row = sess.query(ContactRow).filter(
+            ContactRow.event_id == event_id, ContactRow.id == contact_id
+        ).first()
+        if row is None:
+            return False
+        sess.delete(row)
+        return True
 
 
 def update_contact_details(
     event_id: str, contact_id: str,
     name: str = "", email: str = "", phone: str = "",
 ) -> bool:
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        for j, c in enumerate(e.contacts):
-            if c.id == contact_id:
-                if name:
-                    c.name = name.strip()
-                if email:
-                    c.email = email.strip()
-                c.phone = phone.strip() if phone is not None else c.phone
-                e.contacts[j] = c
-                events[i] = e
-                save_events(events)
-                return True
-    return False
+    with get_session() as sess:
+        row = sess.query(ContactRow).filter(
+            ContactRow.event_id == event_id, ContactRow.id == contact_id
+        ).first()
+        if row is None:
+            return False
+        if name:
+            row.name = name.strip()
+        if email:
+            row.email = email.strip()
+        if phone is not None:
+            row.phone = phone.strip()
+        return True
 
 
 def update_contact_status(event_id: str, contact_id: str, status: str) -> bool:
@@ -275,18 +410,14 @@ def update_contact_status(event_id: str, contact_id: str, status: str) -> bool:
         new_status = ContactStatus(status)
     except ValueError:
         return False
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        for j, c in enumerate(e.contacts):
-            if c.id == contact_id:
-                c.status = new_status
-                e.contacts[j] = c
-                events[i] = e
-                save_events(events)
-                return True
-    return False
+    with get_session() as sess:
+        row = sess.query(ContactRow).filter(
+            ContactRow.event_id == event_id, ContactRow.id == contact_id
+        ).first()
+        if row is None:
+            return False
+        row.status = new_status.value
+        return True
 
 
 def update_contact_role(event_id: str, contact_id: str, role: str) -> bool:
@@ -294,33 +425,25 @@ def update_contact_role(event_id: str, contact_id: str, role: str) -> bool:
         new_role = ContactRole(role)
     except ValueError:
         return False
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        for j, c in enumerate(e.contacts):
-            if c.id == contact_id:
-                c.contact_role = new_role
-                e.contacts[j] = c
-                events[i] = e
-                save_events(events)
-                return True
-    return False
+    with get_session() as sess:
+        row = sess.query(ContactRow).filter(
+            ContactRow.event_id == event_id, ContactRow.id == contact_id
+        ).first()
+        if row is None:
+            return False
+        row.contact_role = new_role.value
+        return True
 
 
 def set_contact_attended(event_id: str, contact_id: str, attended: bool) -> bool:
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        for j, c in enumerate(e.contacts):
-            if c.id == contact_id:
-                c.attended = attended
-                e.contacts[j] = c
-                events[i] = e
-                save_events(events)
-                return True
-    return False
+    with get_session() as sess:
+        row = sess.query(ContactRow).filter(
+            ContactRow.event_id == event_id, ContactRow.id == contact_id
+        ).first()
+        if row is None:
+            return False
+        row.attended = bool(attended)
+        return True
 
 
 def update_contacts_status_batch(
@@ -329,67 +452,61 @@ def update_contacts_status_batch(
     status: ContactStatus,
 ) -> int:
     """Set status for multiple contacts. Returns count updated."""
-    events = load_events()
-    updated = 0
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        for j, c in enumerate(e.contacts):
-            if c.id in contact_ids:
-                c.status = status
-                e.contacts[j] = c
-                updated += 1
-        events[i] = e
-        break
-    if updated:
-        save_events(events)
-    return updated
+    if not contact_ids:
+        return 0
+    with get_session() as sess:
+        rows = sess.query(ContactRow).filter(
+            ContactRow.event_id == event_id, ContactRow.id.in_(contact_ids)
+        ).all()
+        for r in rows:
+            r.status = status.value
+        return len(rows)
 
 
 def set_event_permissions(event_id: str, permissions: list[dict[str, str]]) -> bool:
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id == event_id:
-            e.permissions = [
-                {"user_id": p["user_id"], "role": p["role"].lower()}
-                for p in permissions
-                if p.get("role", "").lower() in ("editor", "viewer")
-            ]
-            events[i] = e
-            save_events(events)
-            return True
-    return False
+    cleaned = [
+        {"user_id": p["user_id"], "role": p["role"].lower()}
+        for p in permissions
+        if p.get("role", "").lower() in ("editor", "viewer") and p.get("user_id")
+    ]
+    with get_session() as sess:
+        event = sess.get(EventRow, event_id)
+        if event is None:
+            return False
+        sess.query(EventShareRow).filter(EventShareRow.event_id == event_id).delete()
+        for p in cleaned:
+            sess.add(EventShareRow(event_id=event_id, user_id=p["user_id"], role=p["role"]))
+        return True
 
 
 def add_event_share(event_id: str, user_id: str, role: str) -> bool:
     role = role.lower()
     if role not in ("editor", "viewer"):
         return False
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        if e.owner_id == user_id:
+    with get_session() as sess:
+        event = sess.get(EventRow, event_id)
+        if event is None:
             return False
-        perms = [p for p in e.permissions if p.get("user_id") != user_id]
-        perms.append({"user_id": user_id, "role": role})
-        e.permissions = perms
-        events[i] = e
-        save_events(events)
+        if event.owner_id == user_id:
+            return False
+        existing = sess.query(EventShareRow).filter(
+            EventShareRow.event_id == event_id, EventShareRow.user_id == user_id
+        ).first()
+        if existing is not None:
+            existing.role = role
+        else:
+            sess.add(EventShareRow(event_id=event_id, user_id=user_id, role=role))
         return True
-    return False
 
 
 def remove_event_share(event_id: str, user_id: str) -> bool:
-    events = load_events()
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        e.permissions = [p for p in e.permissions if p.get("user_id") != user_id]
-        events[i] = e
-        save_events(events)
+    with get_session() as sess:
+        rows = sess.query(EventShareRow).filter(
+            EventShareRow.event_id == event_id, EventShareRow.user_id == user_id
+        ).all()
+        for r in rows:
+            sess.delete(r)
         return True
-    return False
 
 
 def add_contacts_bulk(
@@ -400,35 +517,32 @@ def add_contacts_bulk(
 ) -> int:
     """Add contacts (name, email) skipping duplicates by email. Returns count added."""
     now = utc_now_iso()
-    events = load_events()
-    added = 0
-    for i, e in enumerate(events):
-        if e.id != event_id:
-            continue
-        existing_emails = {c.email.lower() for c in e.contacts}
+    with get_session() as sess:
+        event = sess.get(EventRow, event_id)
+        if event is None:
+            return 0
+        existing_emails = {c.email.lower() for c in event.contacts if c.email}
+        added = 0
         for name, email in rows:
-            em = email.strip().lower()
+            em = (email or "").strip().lower()
             if not em or em in existing_emails:
                 continue
-            e.contacts.append(
-                Contact(
+            sess.add(
+                ContactRow(
                     id=new_id(),
-                    name=name.strip(),
+                    event_id=event_id,
+                    name=(name or "").strip(),
                     email=email.strip(),
-                    status=ContactStatus.NOT_CONTACTED,
+                    status=ContactStatus.NOT_CONTACTED.value,
                     attended=False,
-                    contact_role=contact_role,
-                    registration_type=registration_type,
+                    contact_role=contact_role.value if hasattr(contact_role, "value") else str(contact_role),
+                    registration_type=registration_type.value if hasattr(registration_type, "value") else str(registration_type),
                     registered_at=now,
                 )
             )
             existing_emails.add(em)
             added += 1
-        events[i] = e
-        break
-    if added:
-        save_events(events)
-    return added
+        return added
 
 
 def compute_metrics(event: Event) -> dict:
@@ -507,7 +621,6 @@ def compute_priority(event: Event) -> dict:
     """Compute priority score, urgency, size tier, and door status for an event."""
     now = datetime.now(timezone.utc)
 
-    # --- Days until event ---
     days_until = None
     is_tba = True
     is_past = False
@@ -521,7 +634,6 @@ def compute_priority(event: Event) -> dict:
     except (ValueError, AttributeError):
         pass
 
-    # --- Size tier ---
     size_ref = event.venue_capacity if event.venue_capacity > 0 else len(event.contacts)
     if size_ref >= 100:
         size_tier = "large"
@@ -530,7 +642,6 @@ def compute_priority(event: Event) -> dict:
     else:
         size_tier = "small"
 
-    # --- Urgency ---
     if is_tba:
         urgency = "tba"
     elif is_past:
@@ -544,7 +655,6 @@ def compute_priority(event: Event) -> dict:
     else:
         urgency = "low"
 
-    # --- Priority score (0-100, higher = more urgent) ---
     if is_tba:
         time_score = 5
     elif is_past:
@@ -561,7 +671,6 @@ def compute_priority(event: Event) -> dict:
     size_bonus = {"large": 15, "medium": 8, "small": 0}[size_tier]
     priority_score = min(time_score + size_bonus, 100)
 
-    # --- Deadline status ---
     deadline_passed = False
     registration_open = True
     if event.registration_deadline:
@@ -574,7 +683,6 @@ def compute_priority(event: Event) -> dict:
             pass
     registration_open = not deadline_passed
 
-    # --- Door status ---
     cap = event.venue_capacity
     confirmed = sum(1 for c in event.contacts if c.status == ContactStatus.CONFIRMED)
     buf_pct = event.walkin_buffer_pct

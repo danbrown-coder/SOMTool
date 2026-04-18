@@ -1,50 +1,87 @@
-"""Central People directory (JSON-backed)."""
+"""Central People directory (DB-backed)."""
 from __future__ import annotations
 
-import json
 import re
-from pathlib import Path
+from datetime import datetime, timezone
 
+from sqlalchemy import select
+
+from db import get_session
+from db_models import Person as PersonRow
 from models import Person, new_id, utc_now_iso
-
-DATA_DIR = Path(__file__).resolve().parent / "data"
-PEOPLE_FILE = DATA_DIR / "people.json"
+from org_manager import DEFAULT_ORG_ID, ensure_default_org
 
 
-def _ensure_data_dir() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+def _row_to_dto(row: PersonRow) -> Person:
+    return Person(
+        id=row.id,
+        name=row.name,
+        email=row.email,
+        company=row.company or "",
+        role=row.role or "",
+        linkedin_url=row.linkedin_url or "",
+        phone=row.phone or "",
+        tags=list(row.tags or []),
+        source=row.source or "",
+        referred_by=row.referred_by or "",
+        notes=row.notes or "",
+        added_at=row.added_at or "",
+        events_participated=list(row.events_participated or []),
+    )
+
+
+def _apply_dto_to_row(row: PersonRow, p: Person) -> None:
+    row.name = p.name
+    row.email = p.email
+    row.company = p.company or ""
+    row.role = p.role or ""
+    row.linkedin_url = p.linkedin_url or ""
+    row.phone = p.phone or ""
+    row.tags = list(p.tags or [])
+    row.source = p.source or ""
+    row.referred_by = p.referred_by or ""
+    row.notes = p.notes or ""
+    row.added_at = p.added_at or ""
+    row.events_participated = list(p.events_participated or [])
 
 
 def load_people() -> list[Person]:
-    _ensure_data_dir()
-    if not PEOPLE_FILE.exists():
-        return []
-    with open(PEOPLE_FILE, encoding="utf-8") as f:
-        raw = json.load(f)
-    if not isinstance(raw, list):
-        return []
-    return [Person.from_dict(p) for p in raw]
+    ensure_default_org()
+    with get_session() as sess:
+        rows = sess.execute(
+            select(PersonRow).where(PersonRow.org_id == DEFAULT_ORG_ID).order_by(PersonRow.name)
+        ).scalars().all()
+        return [_row_to_dto(r) for r in rows]
 
 
 def save_people(people: list[Person]) -> None:
-    _ensure_data_dir()
-    with open(PEOPLE_FILE, "w", encoding="utf-8") as f:
-        json.dump([p.to_dict() for p in people], f, indent=2, ensure_ascii=False)
+    """Upsert each provided Person (does not delete missing ones; use delete_person)."""
+    ensure_default_org()
+    with get_session() as sess:
+        for p in people:
+            row = sess.get(PersonRow, p.id)
+            if row is None:
+                row = PersonRow(id=p.id, org_id=DEFAULT_ORG_ID)
+                sess.add(row)
+            _apply_dto_to_row(row, p)
 
 
 def get_person(person_id: str) -> Person | None:
-    for p in load_people():
-        if p.id == person_id:
-            return p
-    return None
+    with get_session() as sess:
+        row = sess.get(PersonRow, person_id)
+        return _row_to_dto(row) if row else None
 
 
 def find_by_email(email: str) -> Person | None:
-    em = email.strip().lower()
-    for p in load_people():
-        if p.email.lower() == em:
-            return p
-    return None
+    em = (email or "").strip().lower()
+    if not em:
+        return None
+    with get_session() as sess:
+        row = sess.query(PersonRow).filter(
+            PersonRow.org_id == DEFAULT_ORG_ID,
+            PersonRow.email.ilike(em),
+        ).first()
+        return _row_to_dto(row) if row else None
 
 
 def add_person(
@@ -58,62 +95,65 @@ def add_person(
     referred_by: str = "",
     notes: str = "",
 ) -> Person | None:
-    if not email.strip():
+    if not (email or "").strip():
         return None
     if find_by_email(email):
         return None
-    person = Person(
-        id=new_id(),
-        name=name.strip(),
-        email=email.strip(),
-        company=company.strip(),
-        role=role.strip(),
-        linkedin_url=linkedin_url.strip(),
-        tags=list(tags or []),
-        source=source,
-        referred_by=referred_by,
-        notes=notes.strip(),
-        added_at=utc_now_iso(),
-        events_participated=[],
-    )
-    people = load_people()
-    people.append(person)
-    save_people(people)
-    return person
+    ensure_default_org()
+    pid = new_id()
+    with get_session() as sess:
+        sess.add(PersonRow(
+            id=pid,
+            org_id=DEFAULT_ORG_ID,
+            name=name.strip(),
+            email=email.strip(),
+            company=company.strip(),
+            role=role.strip(),
+            linkedin_url=linkedin_url.strip(),
+            tags=list(tags or []),
+            source=source,
+            referred_by=referred_by,
+            notes=notes.strip(),
+            added_at=utc_now_iso(),
+            events_participated=[],
+        ))
+    return get_person(pid)
 
 
 def update_person(person_id: str, **kwargs) -> bool:
-    people = load_people()
-    for i, p in enumerate(people):
-        if p.id != person_id:
-            continue
+    # Accept: name, email, company, role, linkedin_url, phone, tags, source,
+    # referred_by, notes, events_participated, enriched_at, enrichment_source
+    with get_session() as sess:
+        row = sess.get(PersonRow, person_id)
+        if row is None:
+            return False
         for k, v in kwargs.items():
-            if hasattr(p, k) and v is not None:
-                setattr(p, k, v)
-        people[i] = p
-        save_people(people)
+            if v is None:
+                continue
+            if not hasattr(row, k):
+                continue
+            setattr(row, k, v)
         return True
-    return False
 
 
 def delete_person(person_id: str) -> bool:
-    people = load_people()
-    filtered = [p for p in people if p.id != person_id]
-    if len(filtered) == len(people):
-        return False
-    save_people(filtered)
-    return True
+    with get_session() as sess:
+        row = sess.get(PersonRow, person_id)
+        if row is None:
+            return False
+        sess.delete(row)
+        return True
 
 
 def append_event_to_person(person_id: str, event_id: str) -> None:
-    people = load_people()
-    for i, p in enumerate(people):
-        if p.id == person_id:
-            if event_id not in p.events_participated:
-                p.events_participated.append(event_id)
-            people[i] = p
-            save_people(people)
+    with get_session() as sess:
+        row = sess.get(PersonRow, person_id)
+        if row is None:
             return
+        events = list(row.events_participated or [])
+        if event_id not in events:
+            events.append(event_id)
+            row.events_participated = events
 
 
 def search_people(q: str, tag: str | None = None) -> list[Person]:

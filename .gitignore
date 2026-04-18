@@ -2,5 +2,7 @@
 __pycache__/
 *.pyc
 /data/
-/scripts/
+/scripts/*
+!/scripts/__init__.py
+!/scripts/migrate_json_to_db.py
 *.tmp

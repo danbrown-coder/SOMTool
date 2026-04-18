@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Integrations — SOM Event OS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Integrations</h1>
+    <p class="muted">Connect the tools you already use. Tokens are encrypted at rest and only used on your behalf.</p>
+  </div>
+</div>
+
+{% if not encryption_key_set %}
+<div class="notice notice-warn">
+  <strong>INTEGRATIONS_ENCRYPTION_KEY is not set.</strong>
+  Until this is configured, connecting a provider will fail.
+  Generate a key with <code>python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"</code>
+  and add it to your environment.
+</div>
+{% endif %}
+
+<div class="grid-cards">
+  {% for tile in providers %}
+  <div class="card integration-card">
+    <div class="integration-header">
+      <div class="integration-icon">{{ tile.icon_emoji or tile.slug[0]|upper }}</div>
+      <div class="integration-title">
+        <div class="integration-name">{{ tile.display_name }}</div>
+        {% if tile.connection %}
+          <div class="integration-status text-sm text-ok">Connected as {{ tile.connection.account_email or "—" }}</div>
+        {% else %}
+          <div class="integration-status text-sm muted">Not connected</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if tile.description %}
+      <p class="text-sm muted">{{ tile.description }}</p>
+    {% endif %}
+
+    {% if tile.connection and tile.connection.scopes %}
+      <details class="text-sm muted" style="margin-top:.5rem;">
+        <summary>Scopes granted ({{ tile.connection.scopes|length }})</summary>
+        <ul class="mt-1" style="padding-left:1.2rem;">
+          {% for s in tile.connection.scopes %}
+            <li class="text-mono text-sm">{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </details>
+    {% endif %}
+
+    <div class="integration-actions" style="margin-top:.75rem;display:flex;gap:.5rem;">
+      {% if tile.connection %}
+        <form method="post" action="{{ url_for('integration_disconnect', provider=tile.slug) }}">
+          <button class="btn btn-secondary" type="submit">Disconnect</button>
+        </form>
+        <a class="btn" href="{{ url_for('integration_connect', provider=tile.slug) }}">Reauthorize</a>
+      {% elif tile.configured %}
+        <a class="btn btn-primary" href="{{ url_for('integration_connect', provider=tile.slug) }}">Connect</a>
+      {% else %}
+        <button class="btn btn-secondary" disabled title="Missing server-side OAuth credentials">Not configured</button>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+  .grid-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:1rem; margin-top:1rem; }
+  .integration-card { padding:1.25rem; }
+  .integration-header { display:flex; gap:.85rem; align-items:center; margin-bottom:.75rem; }
+  .integration-icon { width:44px; height:44px; border-radius:12px;
+    background: var(--brand-accent, #4f46e5); color:white;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:1.25rem; flex-shrink:0;
+  }
+  .integration-name { font-weight:600; font-size:1.05rem; }
+  .text-ok { color:#16a34a; }
+  .notice { padding:.85rem 1rem; border-radius:10px; margin-bottom:1rem; }
+  .notice-warn { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
+</style>
+{% endblock %}

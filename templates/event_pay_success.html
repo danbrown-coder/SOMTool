@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Registration confirmed — {{ event.name }}{% endblock %}
+{% block topbar %}{% endblock %}
+{% block content %}
+<div class="auth-hero">
+  <div class="auth-card" style="max-width:520px;text-align:center;">
+    <div class="auth-brand" style="justify-content:center;">
+      <span class="brand-mark" aria-hidden="true">{{ brand.initials }}</span>
+      <div>
+        <div class="brand-name">{{ brand.short_name }}</div>
+        <div class="brand-sub">You're in</div>
+      </div>
+    </div>
+
+    <div style="font-size:3rem;margin:1rem 0;color:#16a34a;">check</div>
+
+    <h1>Registration confirmed</h1>
+    <p class="muted">Thanks for registering for <strong>{{ event.name }}</strong> on {{ event.date }}. A confirmation receipt from Stripe is on its way to your inbox.</p>
+
+    <p class="text-sm muted" style="margin-top:1.5rem;">
+      You'll hear from us with event details shortly.
+    </p>
+  </div>
+</div>
+{% endblock %}

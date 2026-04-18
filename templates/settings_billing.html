@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Billing — SOM Event OS{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Billing</h1>
+    <p class="muted">Manage your SOMTool subscription.</p>
+  </div>
+</div>
+
+{% if request.args.get('upgraded') %}
+  <div class="notice" style="background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:.85rem 1rem;border-radius:10px;margin-bottom:1rem;">
+    Thanks — your plan has been upgraded. Premium features are now unlocked.
+  </div>
+{% endif %}
+
+<div class="card" style="padding:1.25rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <div>
+      <div class="muted text-sm">Current plan</div>
+      <div style="font-size:1.6rem;font-weight:700;text-transform:capitalize;">{{ current_plan }}</div>
+      {% if subscription %}
+        <div class="muted text-sm">Status: {{ subscription.status }}{% if subscription.current_period_end %} · Renews {{ subscription.current_period_end.strftime('%Y-%m-%d') }}{% endif %}</div>
+      {% endif %}
+    </div>
+    {% if portal_available %}
+    <form method="post" action="{{ url_for('billing_portal_redirect') }}">
+      <button class="btn btn-secondary" type="submit">Manage billing (Stripe portal)</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1rem;">
+  {% for plan in plans %}
+  <div class="card" style="padding:1.25rem;{% if plan.key == current_plan %}outline:2px solid var(--brand-accent,#4f46e5);{% endif %}">
+    <div style="font-size:1.1rem;font-weight:700;text-transform:capitalize;">{{ plan.key }}</div>
+    <div class="muted" style="margin:.25rem 0 .75rem;">{{ plan.blurb }}</div>
+    <ul style="padding-left:1.1rem;margin:.5rem 0 1rem;">
+      {% for f in plan.features %}<li>{{ f }}</li>{% endfor %}
+    </ul>
+    {% if plan.key == current_plan %}
+      <button class="btn btn-secondary btn-block" disabled>Current plan</button>
+    {% elif plan.key == "free" %}
+      <p class="text-sm muted">Cancel in the portal to downgrade to free.</p>
+    {% elif not plan.configured %}
+      <button class="btn btn-secondary btn-block" disabled>Not configured</button>
+    {% else %}
+      <form method="post" action="{{ url_for('billing_upgrade', plan=plan.key) }}">
+        <button class="btn btn-primary btn-block" type="submit">Upgrade to {{ plan.key }}</button>
+      </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

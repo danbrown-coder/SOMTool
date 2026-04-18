@@ -1,128 +1,163 @@
-"""User accounts and session helpers (JSON-backed)."""
+"""User accounts and session helpers (DB-backed)."""
 from __future__ import annotations
-
-import json
-from pathlib import Path
 
 from flask import session
 
+from db import get_session
+from db_models import User as UserRow
 from models import User, new_id, utc_now_iso
-
-DATA_DIR = Path(__file__).resolve().parent / "data"
-USERS_FILE = DATA_DIR / "users.json"
+from org_manager import DEFAULT_ORG_ID, ensure_default_org
 
 
-def _ensure_data_dir() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+def _row_to_user(row: UserRow) -> User:
+    return User(
+        id=row.id,
+        username=row.username,
+        display_name=row.display_name or row.username,
+        email=row.email or "",
+        password_hash=row.password_hash or "",
+        role=row.role or "user",
+        created_at=row.created_at.isoformat() if row.created_at else "",
+    )
+
+
+def _user_to_row_kwargs(u: User) -> dict:
+    return {
+        "id": u.id,
+        "username": u.username,
+        "display_name": u.display_name,
+        "email": u.email,
+        "password_hash": u.password_hash,
+        "role": u.role,
+    }
 
 
 def load_users() -> list[User]:
-    _ensure_data_dir()
-    if not USERS_FILE.exists():
-        _seed_default_users()
-    with open(USERS_FILE, encoding="utf-8") as f:
-        raw = json.load(f)
-    if not isinstance(raw, list):
-        return []
-    return [User.from_dict(item) for item in raw]
+    ensure_default_org()
+    with get_session() as sess:
+        if sess.query(UserRow).count() == 0:
+            _seed_default_users_in(sess)
+        rows = sess.query(UserRow).order_by(UserRow.username).all()
+        return [_row_to_user(r) for r in rows]
 
 
 def save_users(users: list[User]) -> None:
-    _ensure_data_dir()
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump([u.to_dict() for u in users], f, indent=2, ensure_ascii=False)
+    """Replace the users table with the given list. Used by admin tooling only."""
+    ensure_default_org()
+    with get_session() as sess:
+        sess.query(UserRow).delete()
+        for u in users:
+            sess.add(UserRow(org_id=DEFAULT_ORG_ID, **_user_to_row_kwargs(u)))
 
 
-def _seed_default_users() -> None:
+def _seed_default_users_in(sess) -> None:
     from werkzeug.security import generate_password_hash
 
-    _ensure_data_dir()
-    users = [
-        User(
+    defaults = [
+        UserRow(
             id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
+            org_id=DEFAULT_ORG_ID,
             username="admin",
             display_name="Dean (Admin)",
             email="dean@callutheran.edu",
             password_hash=generate_password_hash("admin123"),
             role="admin",
-            created_at=utc_now_iso(),
         ),
-        User(
+        UserRow(
             id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2",
+            org_id=DEFAULT_ORG_ID,
             username="viewer",
             display_name="Demo Viewer",
             email="viewer@example.com",
             password_hash=generate_password_hash("viewer123"),
             role="user",
-            created_at=utc_now_iso(),
         ),
-        User(
+        UserRow(
             id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+            org_id=DEFAULT_ORG_ID,
             username="register",
             display_name="Registration Desk",
             email="register@local",
             password_hash=generate_password_hash("register123"),
             role="register_only",
-            created_at=utc_now_iso(),
         ),
     ]
-    save_users(users)
+    for row in defaults:
+        sess.add(row)
 
 
 def ensure_register_desk_user() -> None:
     """Add the registration-desk account on existing installs that predate it."""
     from werkzeug.security import generate_password_hash
 
-    users = load_users()
-    if any(u.username.strip().lower() == "register" for u in users):
-        return
-    users.append(
-        User(
-            id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
-            username="register",
-            display_name="Registration Desk",
-            email="register@local",
-            password_hash=generate_password_hash("register123"),
-            role="register_only",
-            created_at=utc_now_iso(),
+    ensure_default_org()
+    with get_session() as sess:
+        existing = sess.query(UserRow).filter(
+            UserRow.username.ilike("register")
+        ).first()
+        if existing is not None:
+            return
+        sess.add(
+            UserRow(
+                id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3",
+                org_id=DEFAULT_ORG_ID,
+                username="register",
+                display_name="Registration Desk",
+                email="register@local",
+                password_hash=generate_password_hash("register123"),
+                role="register_only",
+            )
         )
-    )
-    save_users(users)
 
 
 def get_user_by_id(user_id: str) -> User | None:
-    for u in load_users():
-        if u.id == user_id:
-            return u
-    return None
+    with get_session() as sess:
+        row = sess.get(UserRow, user_id)
+        return _row_to_user(row) if row else None
 
 
 def get_user_by_username(username: str) -> User | None:
-    u = username.strip().lower()
-    for user in load_users():
-        if user.username.lower() == u:
-            return user
-    return None
+    u = (username or "").strip().lower()
+    if not u:
+        return None
+    with get_session() as sess:
+        row = sess.query(UserRow).filter(UserRow.username.ilike(u)).first()
+        return _row_to_user(row) if row else None
+
+
+def get_user_by_google_sub(google_sub: str) -> User | None:
+    if not google_sub:
+        return None
+    with get_session() as sess:
+        row = sess.query(UserRow).filter(UserRow.google_sub == google_sub).first()
+        return _row_to_user(row) if row else None
+
+
+def link_google_sub(user_id: str, google_sub: str) -> None:
+    with get_session() as sess:
+        row = sess.get(UserRow, user_id)
+        if row is not None:
+            row.google_sub = google_sub
 
 
 def register_user(username: str, display_name: str, email: str, password: str) -> User | None:
     from werkzeug.security import generate_password_hash
 
+    ensure_default_org()
     if get_user_by_username(username):
         return None
-    user = User(
+    row = UserRow(
         id=new_id(),
+        org_id=DEFAULT_ORG_ID,
         username=username.strip(),
         display_name=display_name.strip(),
         email=email.strip(),
         password_hash=generate_password_hash(password),
         role="user",
-        created_at=utc_now_iso(),
     )
-    users = load_users()
-    users.append(user)
-    save_users(users)
-    return user
+    with get_session() as sess:
+        sess.add(row)
+    return get_user_by_id(row.id)
 
 
 def verify_login(username: str, password: str) -> User | None:
@@ -150,7 +185,6 @@ def current_user_id() -> str | None:
 
 
 def get_first_admin_id() -> str | None:
-    for u in load_users():
-        if u.role == "admin":
-            return u.id
-    return None
+    with get_session() as sess:
+        row = sess.query(UserRow).filter(UserRow.role == "admin").order_by(UserRow.created_at).first()
+        return row.id if row else None

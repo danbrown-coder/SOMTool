@@ -68,6 +68,15 @@ def load_brand() -> dict:
     result["logo_url"] = f"/static/brand/{slug}/logo.svg"
     result["mark_url"] = f"/static/brand/{slug}/mark.svg"
     result["css_url"] = f"/static/brand/{slug}/brand.css"
+
+    try:
+        from storage import logo_for_org
+        uploaded = logo_for_org()
+        if uploaded is not None and uploaded.public_url:
+            result["logo_url"] = uploaded.public_url
+            result["uploaded_logo_id"] = uploaded.id
+    except Exception:
+        pass
     return result
 
 

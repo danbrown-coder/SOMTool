@@ -218,6 +218,11 @@ class Event:
     sponsorship_revenue: float = 0.0
     expenses: list[dict] = field(default_factory=list)
     registration_pin: str = ""
+    # Phase 5: Google Calendar sync
+    gcal_event_id: str = ""
+    # Phase 6: Stripe event-fee billing
+    registration_fee_cents: int = 0
+    stripe_price_id: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -303,6 +308,9 @@ class Event:
             sponsorship_revenue=_float("sponsorship_revenue"),
             expenses=d.get("expenses") or [],
             registration_pin=d.get("registration_pin", ""),
+            gcal_event_id=d.get("gcal_event_id", ""),
+            registration_fee_cents=_int("registration_fee_cents"),
+            stripe_price_id=d.get("stripe_price_id", ""),
         )
 
 

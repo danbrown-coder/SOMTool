@@ -11,8 +11,16 @@
     <p class="muted text-sm" style="margin:4px 0 0;">{{ people|length if people is defined else '' }} university-wide contacts{% if can_edit_people %} · admin can import &amp; edit{% endif %}</p>
   </div>
   {% if can_edit_people %}
-  <div class="topbar-actions">
+  <div class="topbar-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;">
     <a href="{{ url_for('import_people_page') }}" class="btn btn-secondary btn-sm">Import CSV / Excel</a>
+    {% if enrichment_enabled %}
+      <form method="post" action="{{ url_for('people_enrich_bulk_route') }}" onsubmit="return confirm('Run Apollo enrichment on up to 50 people with missing company/role/LinkedIn?');" style="margin:0;">
+        <input type="hidden" name="limit" value="50">
+        <button type="submit" class="btn btn-primary btn-sm" title="Fill missing company, role, LinkedIn, phone via Apollo.io">Enrich missing (50)</button>
+      </form>
+    {% elif not enrichment_plan_ok %}
+      <a href="{{ url_for('billing_settings') }}" class="btn btn-secondary btn-sm" title="Enrichment requires Pro">Unlock enrichment (Pro)</a>
+    {% endif %}
   </div>
   {% endif %}
 </div>
@@ -93,8 +101,13 @@
             {% else %}—{% endif %}
           </td>
           {% if can_edit_people %}
-          <td>
-            <form method="post" action="{{ url_for('people_delete_route', person_id=p.id) }}" onsubmit="return confirm('Delete this person?');">
+          <td style="white-space:nowrap;">
+            {% if enrichment_enabled %}
+              <form method="post" action="{{ url_for('people_enrich_route', person_id=p.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Fill missing fields via Apollo.io">Enrich</button>
+              </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('people_delete_route', person_id=p.id) }}" onsubmit="return confirm('Delete this person?');" style="display:inline;">
               <button type="submit" class="btn btn-ghost btn-sm" style="color:#dc2626;">Delete</button>
             </form>
           </td>

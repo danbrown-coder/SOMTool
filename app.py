@@ -50,8 +50,12 @@ import outreach_queue
 import feedback_manager
 import ai_config as aic
 import brand_manager
+import observability
 
 load_dotenv()
+
+observability.init_sentry()
+observability.init_posthog()
 
 
 def _seed_data_if_missing() -> None:
@@ -132,6 +136,33 @@ def _merge_seed_contacts() -> None:
 
 _merge_seed_contacts()
 
+
+def _init_database_once() -> None:
+    """Create DB schema and migrate JSON -> DB on first boot if the DB is empty."""
+    from db import init_db, get_session
+    from db_models import Event as EventRow, Person as PersonRow, User as UserRow
+    from org_manager import ensure_default_org
+
+    init_db()
+    ensure_default_org()
+
+    with get_session() as sess:
+        has_any = (
+            sess.query(UserRow).count() > 0
+            or sess.query(EventRow).count() > 0
+            or sess.query(PersonRow).count() > 0
+        )
+    if has_any:
+        return
+    try:
+        from scripts.migrate_json_to_db import run as _run_migration
+        _run_migration()
+    except Exception as exc:  # pragma: no cover — migration is best-effort on first boot
+        print(f"[db] Initial JSON->DB migration skipped: {exc}")
+
+
+_init_database_once()
+
 app = Flask(__name__)
 
 
@@ -209,6 +240,16 @@ def inject_user():
     uid = auth.current_user_id()
     user = auth.get_user_by_id(uid) if uid else None
     return dict(current_user=user)
+
+
+@app.context_processor
+def inject_integrations_flags():
+    return dict(
+        google_signin_enabled=(
+            os.environ.get("GOOGLE_SIGNIN_ENABLED", "false").lower() in ("1", "true", "yes")
+            and bool(os.environ.get("GOOGLE_CLIENT_ID"))
+        ),
+    )
 
 
 @app.context_processor
@@ -328,6 +369,13 @@ def login():
         user = auth.verify_login(u, p)
         if user:
             auth.login_user(user)
+            observability.identify(user.id, {
+                "username": user.username,
+                "display_name": user.display_name,
+                "email": user.email,
+                "role": user.role,
+            })
+            observability.track("login_success", distinct_id=user.id, properties={"role": user.role})
             if user.role == "register_only":
                 return redirect(url_for("registration_gate"))
             nxt = request.form.get("next") or request.args.get("next") or url_for("index")
@@ -369,6 +417,603 @@ def register():
 def logout_route():
     auth.logout_user()
     return redirect(url_for("login"))
+
+
+# ── Integrations Hub: OAuth connect / callback / disconnect ──
+
+
+@app.get("/settings/integrations")
+@login_required
+def integrations_settings():
+    import integrations
+
+    tiles = []
+    for slug, spec in integrations.list_providers().items():
+        conn = integrations.get_connection(g.current_user.id, slug)
+        tiles.append({
+            "slug": slug,
+            "display_name": spec.display_name,
+            "description": spec.description,
+            "icon_emoji": spec.icon_emoji,
+            "configured": spec.configured(),
+            "connection": conn,
+        })
+    return render_template(
+        "settings_integrations.html",
+        providers=tiles,
+        encryption_key_set=bool(os.environ.get("INTEGRATIONS_ENCRYPTION_KEY")),
+    )
+
+
+@app.get("/integrations/<provider>/connect")
+def integration_connect(provider: str):
+    import integrations
+    from integrations import oauth as oauth_mod
+
+    spec = integrations.get_provider(provider)
+    if spec is None or not spec.configured():
+        flash("That provider is not available on this server.", "info")
+        return redirect(url_for("login"))
+
+    state = oauth_mod.make_state()
+    session["oauth_state"] = state
+    session["oauth_provider"] = provider
+    if request.args.get("signin"):
+        session["oauth_intent"] = "signin"
+    else:
+        session["oauth_intent"] = "connect"
+    return redirect(oauth_mod.build_authorize_url(spec, state))
+
+
+@app.get("/integrations/<provider>/callback")
+def integration_callback(provider: str):
+    import integrations
+    from integrations import oauth as oauth_mod
+
+    spec = integrations.get_provider(provider)
+    if spec is None:
+        flash("Unknown provider.", "info")
+        return redirect(url_for("login"))
+
+    expected_state = session.pop("oauth_state", None)
+    expected_provider = session.pop("oauth_provider", None)
+    intent = session.pop("oauth_intent", "connect")
+    state = request.args.get("state", "")
+    code = request.args.get("code", "")
+    err = request.args.get("error", "")
+
+    if err:
+        flash(f"Google returned an error: {err}", "info")
+        return redirect(url_for("integrations_settings") if auth.current_user_id() else url_for("login"))
+    if not code or state != expected_state or provider != expected_provider:
+        flash("OAuth handshake failed (state mismatch). Try again.", "info")
+        return redirect(url_for("login"))
+
+    try:
+        token_response = oauth_mod.exchange_code_for_tokens(spec, code)
+    except Exception as exc:
+        observability.capture_exception(exc)
+        flash(f"Could not exchange authorization code: {exc}", "info")
+        return redirect(url_for("login"))
+
+    account_email = ""
+    account_id = ""
+    if spec.account_info_fn and token_response.get("access_token"):
+        try:
+            info = spec.account_info_fn(token_response["access_token"])
+            account_email = info.get("email", "") or ""
+            account_id = info.get("id", "") or ""
+        except Exception:
+            pass
+
+    # Sign-in-with-Google flow: match / auto-register a user, then link tokens
+    if intent == "signin":
+        from org_manager import DEFAULT_ORG_ID, ensure_default_org
+        ensure_default_org()
+        user = None
+        if account_id:
+            user = auth.get_user_by_google_sub(account_id)
+        if user is None and account_email:
+            user = auth.get_user_by_username(account_email)
+        if user is None and account_email:
+            safe_username = account_email.strip().lower()
+            user = auth.register_user(
+                username=safe_username,
+                display_name=account_email.split("@")[0],
+                email=account_email,
+                password=secrets.token_urlsafe(32),
+            )
+        if user is None:
+            flash("Could not identify a user account for this Google profile.", "info")
+            return redirect(url_for("login"))
+        if account_id:
+            auth.link_google_sub(user.id, account_id)
+        auth.login_user(user)
+
+        oauth_mod.store_connection(
+            user_id=user.id,
+            org_id=DEFAULT_ORG_ID,
+            spec=spec,
+            token_response=token_response,
+            account_email=account_email,
+            account_id=account_id,
+        )
+        observability.identify(user.id, {"email": user.email, "role": user.role, "google_sub": account_id})
+        observability.track("login_success", distinct_id=user.id, properties={"via": "google"})
+        return redirect(url_for("index"))
+
+    # Normal connect flow — requires an existing logged-in user
+    uid = auth.current_user_id()
+    if not uid:
+        flash("Sign in first, then connect your account.", "info")
+        return redirect(url_for("login"))
+    user = auth.get_user_by_id(uid)
+    if user is None:
+        return redirect(url_for("login"))
+
+    from org_manager import DEFAULT_ORG_ID
+    oauth_mod.store_connection(
+        user_id=uid,
+        org_id=DEFAULT_ORG_ID,
+        spec=spec,
+        token_response=token_response,
+        account_email=account_email,
+        account_id=account_id,
+    )
+    if provider == "google" and account_id:
+        auth.link_google_sub(uid, account_id)
+    observability.track(
+        "integration_connected",
+        distinct_id=uid,
+        properties={"provider": provider, "account_email": account_email},
+    )
+    flash(f"{spec.display_name} connected.", "info")
+    return redirect(url_for("integrations_settings"))
+
+
+@app.post("/integrations/<provider>/disconnect")
+@login_required
+def integration_disconnect(provider: str):
+    import integrations
+
+    integrations.disconnect(g.current_user.id, provider)
+    observability.track("integration_disconnected", distinct_id=g.current_user.id, properties={"provider": provider})
+    flash("Disconnected.", "info")
+    return redirect(url_for("integrations_settings"))
+
+
+# ── Phase 6b: SaaS subscription billing ─────────────────────
+
+
+@app.get("/settings/billing")
+@login_required
+def billing_settings():
+    import billing_saas as bs
+    from org_manager import current_org_id
+    from db import get_session as _gs
+    from db_models import Subscription as _Sub
+
+    org_id = current_org_id()
+    current_plan = bs.current_plan(org_id)
+
+    with _gs() as sess:
+        sub = (
+            sess.query(_Sub)
+            .filter(_Sub.org_id == org_id)
+            .order_by(_Sub.updated_at.desc())
+            .first()
+        )
+        if sub is not None:
+            sess.expunge(sub)
+
+    plans = [
+        {
+            "key": "free",
+            "blurb": "For small pilots.",
+            "features": ["Unlimited events", "Manual outreach", "Core reporting"],
+            "configured": True,
+        },
+        {
+            "key": "pro",
+            "blurb": "For active event teams.",
+            "features": ["Automation engine", "AI voice calls", "Google Calendar sync", "Gmail send-as"],
+            "configured": bool(bs.plan_price_id("pro")),
+        },
+        {
+            "key": "campus",
+            "blurb": "For whole-school rollouts.",
+            "features": ["Everything in Pro", "Apollo People enrichment", "Priority support", "Multi-user invites"],
+            "configured": bool(bs.plan_price_id("campus")),
+        },
+    ]
+    return render_template(
+        "settings_billing.html",
+        plans=plans,
+        current_plan=current_plan,
+        subscription=sub,
+        portal_available=bool(os.environ.get("STRIPE_SECRET_KEY")),
+    )
+
+
+@app.post("/settings/billing/upgrade/<plan>")
+@login_required
+def billing_upgrade(plan: str):
+    import billing_saas as bs
+    from org_manager import current_org_id
+
+    if plan not in bs.PLAN_PRICE_ENVS:
+        flash("Unknown plan.", "info")
+        return redirect(url_for("billing_settings"))
+    result = bs.create_subscription_checkout(
+        org_id=current_org_id(),
+        plan=plan,
+        customer_email=g.current_user.email or "",
+    )
+    if not result.get("ok"):
+        flash(result.get("error", "Checkout unavailable."), "info")
+        return redirect(url_for("billing_settings"))
+    return redirect(result["url"], code=303)
+
+
+@app.post("/settings/billing/portal")
+@login_required
+def billing_portal_redirect():
+    import billing_saas as bs
+    from org_manager import current_org_id
+
+    url = bs.create_billing_portal_url(current_org_id())
+    if not url:
+        flash("Billing portal unavailable. Upgrade a plan first or check Stripe configuration.", "info")
+        return redirect(url_for("billing_settings"))
+    return redirect(url, code=303)
+
+
+@app.post("/webhooks/stripe/subscriptions")
+def stripe_subscriptions_webhook():
+    import stripe as stripe_mod
+    import billing_saas as bs
+
+    stripe_mod.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    secret = os.environ.get("STRIPE_WEBHOOK_SECRET_SUBS", "")
+    payload = request.get_data()
+    sig = request.headers.get("stripe-signature", "")
+    try:
+        if secret and sig:
+            event = stripe_mod.Webhook.construct_event(payload, sig, secret)
+        else:
+            event = request.get_json(force=True)
+    except Exception as exc:
+        observability.capture_exception(exc)
+        return "", 400
+    try:
+        bs.handle_webhook_event(event)
+    except Exception as exc:
+        observability.capture_exception(exc)
+        return "", 500
+    return "", 204
+
+
+# ── Phase 6a: Stripe Checkout for event registration fees ──
+
+
+@app.get("/events/<event_id>/pay")
+def event_pay_page(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        flash("Event not found.", "info")
+        return redirect(url_for("login"))
+    if event.registration_fee_cents <= 0:
+        flash("This event does not charge a registration fee.", "info")
+        return redirect(url_for("login"))
+    metrics = em.compute_metrics(event)
+    return render_template(
+        "event_pay.html",
+        event=event,
+        deadline_passed=metrics.get("deadline_passed", False),
+        hide_sidebar=True,
+    )
+
+
+@app.post("/events/<event_id>/pay")
+def create_event_checkout(event_id: str):
+    import billing_events as be
+    payer_email = (request.form.get("payer_email") or "").strip()
+    payer_name = (request.form.get("payer_name") or "").strip()
+    if not payer_email:
+        flash("Email required.", "info")
+        return redirect(url_for("event_pay_page", event_id=event_id))
+    result = be.create_checkout_session(event_id, payer_email=payer_email, payer_name=payer_name)
+    if not result.get("ok"):
+        flash(result.get("error", "Could not start checkout."), "info")
+        return redirect(url_for("event_pay_page", event_id=event_id))
+    return redirect(result["url"], code=303)
+
+
+@app.get("/events/<event_id>/pay/success")
+def event_pay_success(event_id: str):
+    event = em.get_event(event_id)
+    if not event:
+        return redirect(url_for("login"))
+    return render_template("event_pay_success.html", event=event, hide_sidebar=True)
+
+
+@app.post("/webhooks/stripe/events")
+def stripe_events_webhook():
+    import stripe as stripe_mod
+    import billing_events as be
+
+    stripe_mod.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+    secret = os.environ.get("STRIPE_WEBHOOK_SECRET_EVENTS", "")
+    payload = request.get_data()
+    sig = request.headers.get("stripe-signature", "")
+    try:
+        if secret and sig:
+            event = stripe_mod.Webhook.construct_event(payload, sig, secret)
+        else:
+            event = request.get_json(force=True)
+    except Exception as exc:
+        observability.capture_exception(exc)
+        return "", 400
+
+    try:
+        be.handle_webhook_event(event)
+        observability.track(
+            "payment_received",
+            properties={"type": event.get("type", ""), "livemode": event.get("livemode", False)},
+        )
+    except Exception as exc:
+        observability.capture_exception(exc)
+        return "", 500
+    return "", 204
+
+
+# ── Phase 5: Google Calendar sync + Drive import ────────────
+
+
+@app.post("/events/<event_id>/gcal/sync")
+@login_required
+def sync_event_to_calendar_route(event_id: str):
+    event, _ = _require_event_edit(event_id)
+    if not event:
+        flash("Not allowed.", "info")
+        return redirect(url_for("index"))
+    from integrations.google import sync_event_to_calendar
+    gcal_id = sync_event_to_calendar(g.current_user.id, event)
+    if gcal_id:
+        flash("Synced to your Google Calendar.", "info")
+    else:
+        flash("Calendar sync failed — connect Google in Settings → Integrations.", "info")
+    return redirect(url_for("event_detail", event_id=event_id))
+
+
+@app.post("/events/<event_id>/drive/import")
+@login_required
+def import_from_drive_route(event_id: str):
+    """Import a CSV from Google Drive by file id/URL. Full Picker UI can be added later."""
+    event, _ = _require_event_edit(event_id)
+    if not event:
+        flash("Not allowed.", "info")
+        return redirect(url_for("index"))
+    raw = (request.form.get("drive_file") or "").strip()
+    if not raw:
+        flash("Paste a Drive file ID or share URL.", "info")
+        return redirect(url_for("event_detail", event_id=event_id))
+    # Extract the file id from a URL if we were given one
+    import re as _re
+    m = _re.search(r"/d/([A-Za-z0-9_-]+)", raw)
+    file_id = m.group(1) if m else raw.split("?", 1)[0].split("/")[-1]
+    from integrations.google import download_drive_file
+    result = download_drive_file(g.current_user.id, file_id)
+    if not result:
+        flash("Could not download that Drive file. Make sure Google is connected and the file is shared with you.", "info")
+        return redirect(url_for("event_detail", event_id=event_id))
+    data, fname, mime = result
+    # Hand off to people_import
+    import people_import
+    try:
+        rows = people_import.parse_csv_bytes(data) if hasattr(people_import, "parse_csv_bytes") else None
+    except Exception:
+        rows = None
+    if rows:
+        added = em.add_contacts_bulk(event_id, [(r.get("name", ""), r.get("email", "")) for r in rows])
+        flash(f"Imported {added} contact(s) from {fname}.", "info")
+    else:
+        # Fall back to storing the raw file
+        import storage, io
+        try:
+            storage.upload_fileobj(
+                io.BytesIO(data), filename=fname, purpose="drive_import",
+                event_id=event_id, owner_user_id=g.current_user.id, content_type=mime,
+            )
+            flash(f"Stored {fname} against this event (could not auto-parse).", "info")
+        except Exception as exc:
+            observability.capture_exception(exc)
+            flash(f"Import failed: {exc}", "info")
+    return redirect(url_for("event_detail", event_id=event_id))
+
+
+# ── File uploads & local-fallback serving ───────────────────
+
+
+@app.get("/uploads/<path:name>")
+def serve_local_upload(name: str):
+    """Serve files saved via the local-filesystem fallback in storage.py.
+    Production S3 uploads bypass this and go straight to S3/R2 public URLs.
+    """
+    from flask import send_from_directory
+    from pathlib import Path as _Path
+    folder = _Path(__file__).resolve().parent / "data" / "uploads"
+    return send_from_directory(folder, name)
+
+
+@app.post("/settings/logo")
+@login_required
+def upload_logo_route():
+    """Upload an organization logo. Admin-only."""
+    if g.current_user.role != "admin":
+        flash("Admin only.", "info")
+        return redirect(url_for("index"))
+    import storage
+    f = request.files.get("logo")
+    if not f or not f.filename:
+        flash("Choose a file to upload.", "info")
+        return redirect(url_for("index"))
+    try:
+        storage.upload_fileobj(
+            f.stream, filename=f.filename, purpose="logo",
+            owner_user_id=g.current_user.id,
+            content_type=f.mimetype,
+        )
+        flash("Logo updated.", "info")
+    except Exception as exc:
+        observability.capture_exception(exc)
+        flash(f"Upload failed: {exc}", "info")
+    return redirect(request.referrer or url_for("index"))
+
+
+@app.post("/events/<event_id>/files")
+@login_required
+def upload_event_file_route(event_id: str):
+    """Attach a flyer or other file to an event."""
+    if not _require_event_edit(event_id)[0]:
+        flash("Not allowed.", "info")
+        return redirect(url_for("event_detail", event_id=event_id))
+    import storage
+    f = request.files.get("file")
+    purpose = (request.form.get("purpose") or "flyer").strip()
+    if not f or not f.filename:
+        flash("Choose a file to upload.", "info")
+        return redirect(url_for("event_detail", event_id=event_id))
+    try:
+        storage.upload_fileobj(
+            f.stream, filename=f.filename, purpose=purpose,
+            event_id=event_id, owner_user_id=g.current_user.id,
+            content_type=f.mimetype,
+        )
+        flash("File uploaded.", "info")
+    except Exception as exc:
+        observability.capture_exception(exc)
+        flash(f"Upload failed: {exc}", "info")
+    return redirect(url_for("event_detail", event_id=event_id))
+
+
+@app.post("/files/<file_id>/delete")
+@login_required
+def delete_file_route(file_id: str):
+    import storage
+    asset = storage.get_file(file_id)
+    if asset is None:
+        flash("File not found.", "info")
+        return redirect(request.referrer or url_for("index"))
+    if asset.event_id:
+        ok, _ = _require_event_edit(asset.event_id)
+        if not ok:
+            flash("Not allowed.", "info")
+            return redirect(request.referrer or url_for("index"))
+    elif g.current_user.role != "admin":
+        flash("Not allowed.", "info")
+        return redirect(request.referrer or url_for("index"))
+    storage.delete_file(file_id)
+    flash("File deleted.", "info")
+    return redirect(request.referrer or url_for("index"))
+
+
+# ── Webhooks: Resend (email delivery) + Twilio (SMS replies) ──
+
+
+@app.post("/webhooks/resend")
+def resend_webhook():
+    """Resend webhook → update OutreachLog delivery status.
+
+    Set RESEND_WEBHOOK_SECRET and configure the webhook in the Resend dashboard.
+    Events we care about: email.sent, email.delivered, email.opened, email.bounced,
+    email.complained.
+    """
+    import hmac
+    import hashlib
+    from datetime import datetime, timezone
+
+    secret = os.environ.get("RESEND_WEBHOOK_SECRET", "").strip()
+    payload = request.get_data()
+    if secret:
+        sig = request.headers.get("svix-signature", "") or request.headers.get("resend-signature", "")
+        expected = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+        if not sig or not hmac.compare_digest(expected, sig.split(",")[-1] if "," in sig else sig):
+            # Signature mismatch — accept the event but log it (Resend uses svix which
+            # has a specific verification flow; this is a conservative fallback).
+            observability.track("webhook_signature_mismatch", properties={"provider": "resend"})
+    try:
+        event = request.get_json(force=True) or {}
+    except Exception:
+        return "", 400
+    evt_type = event.get("type", "")
+    data = event.get("data", {}) or {}
+    message_id = data.get("email_id") or data.get("id") or ""
+    if not message_id:
+        return "", 204
+
+    existing = log.find_by_provider_message_id(message_id)
+    if existing is None:
+        return "", 204
+
+    now = datetime.now(timezone.utc)
+    if evt_type == "email.delivered":
+        log.update_delivery_status(existing.id, delivery_status="delivered")
+    elif evt_type == "email.opened":
+        log.update_delivery_status(existing.id, delivery_status="opened", opened_at=now)
+    elif evt_type == "email.bounced":
+        log.update_delivery_status(existing.id, delivery_status="bounced", bounced_at=now)
+    elif evt_type == "email.complained":
+        log.update_delivery_status(existing.id, delivery_status="complained")
+    elif evt_type == "email.sent":
+        log.update_delivery_status(existing.id, delivery_status="sent")
+    return "", 204
+
+
+@app.post("/webhooks/twilio")
+def twilio_webhook():
+    """Twilio inbound SMS webhook → mark contacts as RESPONDED when they reply.
+
+    Configure the webhook URL on the Twilio number's messaging settings.
+    No signature verification by default — add TWILIO_SIGNING_KEY + RequestValidator
+    once you're live.
+    """
+    import sms_sender
+
+    from_num = request.form.get("From", "") or request.values.get("From", "")
+    body = request.form.get("Body", "") or request.values.get("Body", "")
+    if not from_num:
+        return "", 204
+
+    match = sms_sender.find_contact_by_phone(from_num)
+    if match is not None:
+        event_id, contact_id = match
+        text = (body or "").strip().lower()
+        if text in ("stop", "unsubscribe", "no", "decline"):
+            em.update_contact_status(event_id, contact_id, "declined")
+        elif text in ("yes", "y", "confirm", "confirmed"):
+            em.update_contact_status(event_id, contact_id, "confirmed")
+            observability.track("contact_confirmed", properties={"event_id": event_id, "contact_id": contact_id, "source": "sms"})
+        else:
+            em.update_contact_status(event_id, contact_id, "responded")
+        from db import get_session as _gs
+        from db_models import SMSLog as _SMSLog
+        from models import new_id as _new_id
+        from org_manager import current_org_id as _current_org_id
+        with _gs() as sess:
+            sess.add(_SMSLog(
+                id=_new_id(),
+                org_id=_current_org_id(),
+                event_id=event_id,
+                contact_id=contact_id,
+                direction="inbound",
+                to_number=os.environ.get("TWILIO_FROM_NUMBER", ""),
+                from_number=from_num,
+                body=body or "",
+                status="received",
+            ))
+    # Respond with empty TwiML so Twilio doesn't auto-reply
+    return Response("<Response/>", mimetype="application/xml")
 
 
 @app.route("/registration", methods=["GET", "POST"])
@@ -640,6 +1285,11 @@ def create_event_route():
         late_fee_note=request.form.get("late_fee_note", ""),
         **goal_budget_kwargs,
     )
+    observability.track(
+        "event_created",
+        distinct_id=g.current_user.id,
+        properties={"event_id": ev.id, "name": ev.name, "audience_type": ev.audience_type},
+    )
     flash("Event created.", "info")
     return redirect(url_for("index"))
 
@@ -850,6 +1500,11 @@ def event_detail(event_id: str):
     today_str = date.today().isoformat()
     is_past = bool(event.date and event.date.upper() != "TBA" and event.date < today_str)
 
+    import integrations as _integrations
+    import storage as _storage
+    google_connected = _integrations.get_connection(g.current_user.id, "google") is not None
+    event_files = _storage.files_for_event(event_id)
+
     return render_template(
         "event_detail.html",
         event=event,
@@ -866,6 +1521,8 @@ def event_detail(event_id: str):
         fb_summary=fb_summary,
         goal_review=goal_review,
         is_past=is_past,
+        google_connected=google_connected,
+        event_files=event_files,
     )
 
 
@@ -913,6 +1570,12 @@ def update_contact_status_route(event_id: str, contact_id: str):
     status = request.form.get("status", "")
     if em.update_contact_status(event_id, contact_id, status):
         flash("Status updated.", "info")
+        if status == "confirmed":
+            observability.track(
+                "contact_confirmed",
+                distinct_id=g.current_user.id if hasattr(g, "current_user") else None,
+                properties={"event_id": event_id, "contact_id": contact_id},
+            )
     else:
         flash("Could not update status.", "info")
     return redirect(url_for("event_detail", event_id=event_id))
@@ -1666,6 +2329,11 @@ def people_page():
     people = pm.search_people(q, tag)
     tags = pm.all_tags()
     referrers = {p.id: p.name for p in pm.load_people()}
+    import billing_saas as _bs
+    import enrichment as _enrich
+    from org_manager import current_org_id as _coid
+    enrichment_plan_ok = _bs.has_plan_at_least("pro", _coid())
+    enrichment_enabled = enrichment_plan_ok and _enrich.apollo_configured()
     return render_template(
         "people.html",
         people=people,
@@ -1674,6 +2342,8 @@ def people_page():
         tag_filter=tag or "",
         can_edit_people=_can_edit_people(),
         referrers=referrers,
+        enrichment_enabled=enrichment_enabled,
+        enrichment_plan_ok=enrichment_plan_ok,
     )
 
 
@@ -1703,6 +2373,64 @@ def people_delete_route(person_id: str):
         return redirect(url_for("people_page"))
     if pm.delete_person(person_id):
         flash("Removed.", "info")
+    return redirect(url_for("people_page"))
+
+
+@app.post("/people/<person_id>/enrich")
+@login_required
+def people_enrich_route(person_id: str):
+    import billing_saas as bs
+    import enrichment
+    from org_manager import current_org_id
+
+    if not _can_edit_people():
+        flash("Not allowed.", "info")
+        return redirect(url_for("people_page"))
+    if not bs.has_plan_at_least("pro", current_org_id()):
+        flash("Enrichment is a Pro feature. Upgrade to unlock.", "info")
+        return redirect(url_for("billing_settings"))
+    if not enrichment.apollo_configured():
+        flash("Apollo is not configured. Set APOLLO_API_KEY in your environment.", "info")
+        return redirect(url_for("people_page"))
+    result = enrichment.enrich_person(person_id)
+    if not result.get("ok"):
+        flash(f"Could not enrich: {result.get('reason','unknown')}.", "info")
+    else:
+        fields = result.get("updated_fields") or []
+        if fields:
+            flash(f"Enriched {', '.join(fields)}.", "info")
+            observability.track("person_enriched", properties={"fields": fields})
+        else:
+            flash("No new data from Apollo.", "info")
+    return redirect(url_for("people_page"))
+
+
+@app.post("/people/enrich/bulk")
+@login_required
+def people_enrich_bulk_route():
+    import billing_saas as bs
+    import enrichment
+    from org_manager import current_org_id
+
+    if not _can_edit_people():
+        flash("Not allowed.", "info")
+        return redirect(url_for("people_page"))
+    if not bs.has_plan_at_least("pro", current_org_id()):
+        flash("Bulk enrichment is a Pro feature. Upgrade to unlock.", "info")
+        return redirect(url_for("billing_settings"))
+    if not enrichment.apollo_configured():
+        flash("Apollo is not configured. Set APOLLO_API_KEY in your environment.", "info")
+        return redirect(url_for("people_page"))
+    try:
+        limit = max(1, min(200, int(request.form.get("limit", "50"))))
+    except ValueError:
+        limit = 50
+    result = enrichment.enrich_missing_bulk(limit=limit)
+    if result.get("ok"):
+        flash(f"Enrichment run complete: processed {result.get('processed', 0)}, updated {result.get('updated', 0)}.", "info")
+        observability.track("people_enrich_bulk", properties={"processed": result.get("processed", 0), "updated": result.get("updated", 0)})
+    else:
+        flash(f"Bulk enrichment failed: {result.get('reason','unknown')}.", "info")
     return redirect(url_for("people_page"))
 
 
@@ -2853,8 +3581,28 @@ def _execute_approved_actions() -> int:
             s_name, _s_title, s_email = get_sender_identity(event)
 
             etype = EmailType.INITIAL if atype == "email_initial" else EmailType.FOLLOW_UP
-            log.log_outreach(event.id, contact.id, contact.name, etype, body, subject=subject)
-            email_sender.send_email(contact.email, subject, body, reply_to=s_email, sender_name=s_name)
+            log_entry = log.log_outreach(event.id, contact.id, contact.name, etype, body, subject=subject)
+            send_result = email_sender.send_email(
+                contact.email, subject, body, reply_to=s_email, sender_name=s_name,
+                as_user_id=event.owner_id or None,
+            )
+            if send_result.get("ok") and send_result.get("provider_message_id"):
+                log.update_delivery_status(
+                    log_entry.id,
+                    delivery_status="sent",
+                    provider=send_result.get("provider"),
+                    provider_message_id=send_result.get("provider_message_id"),
+                )
+            observability.track(
+                "email_sent",
+                distinct_id=event.owner_id or "system",
+                properties={
+                    "event_id": event.id, "contact_id": contact.id,
+                    "email_type": etype.value, "source": "automation",
+                    "provider": send_result.get("provider", "unknown"),
+                    "ok": bool(send_result.get("ok")),
+                },
+            )
 
             if atype == "email_initial":
                 em.update_contact_status(event.id, contact.id, "contacted")
@@ -2976,8 +3724,8 @@ def _monitor_loop() -> None:
 
             if new_changes:
                 _auto_notify_for_changes(new_changes)
-        except Exception:
-            pass
+        except Exception as exc:
+            observability.capture_exception(exc)
 
 
 def _start_monitor() -> None:

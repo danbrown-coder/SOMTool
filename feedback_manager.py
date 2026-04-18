@@ -1,32 +1,29 @@
-"""JSON-backed feedback store for event attendee surveys."""
+"""DB-backed feedback store for event attendee surveys."""
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
+from db import get_session
+from db_models import FeedbackEntry as FeedbackRow
 from models import new_id, utc_now_iso
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
-FEEDBACK_FILE = DATA_DIR / "feedback.json"
 
-
-def _ensure() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    if not FEEDBACK_FILE.exists():
-        FEEDBACK_FILE.write_text("[]", encoding="utf-8")
+def _row_to_dict(row: FeedbackRow) -> dict:
+    return {
+        "id": row.id,
+        "event_id": row.event_id,
+        "respondent_name": row.respondent_name,
+        "respondent_email": row.respondent_email,
+        "rating": row.rating,
+        "liked": row.liked,
+        "improve": row.improve,
+        "would_attend_again": row.would_attend_again,
+        "submitted_at": row.submitted_at,
+    }
 
 
 def load_feedback() -> list[dict]:
-    _ensure()
-    with open(FEEDBACK_FILE, encoding="utf-8") as f:
-        data = json.load(f)
-    return data if isinstance(data, list) else []
-
-
-def _save(items: list[dict]) -> None:
-    _ensure()
-    with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
-        json.dump(items, f, indent=2, ensure_ascii=False)
+    with get_session() as sess:
+        rows = sess.query(FeedbackRow).order_by(FeedbackRow.submitted_at.desc()).all()
+        return [_row_to_dict(r) for r in rows]
 
 
 def save_feedback(
@@ -38,25 +35,29 @@ def save_feedback(
     improve: str,
     would_attend_again: bool,
 ) -> dict:
-    items = load_feedback()
-    entry = {
-        "id": new_id(),
-        "event_id": event_id,
-        "respondent_name": respondent_name,
-        "respondent_email": respondent_email,
-        "rating": max(1, min(5, rating)),
-        "liked": liked.strip(),
-        "improve": improve.strip(),
-        "would_attend_again": would_attend_again,
-        "submitted_at": utc_now_iso(),
-    }
-    items.append(entry)
-    _save(items)
-    return entry
+    entry = FeedbackRow(
+        id=new_id(),
+        event_id=event_id,
+        respondent_name=respondent_name,
+        respondent_email=respondent_email,
+        rating=max(1, min(5, int(rating or 0))),
+        liked=(liked or "").strip(),
+        improve=(improve or "").strip(),
+        would_attend_again=bool(would_attend_again),
+        submitted_at=utc_now_iso(),
+    )
+    with get_session() as sess:
+        sess.add(entry)
+        sess.flush()
+        return _row_to_dict(entry)
 
 
 def get_feedback(event_id: str) -> list[dict]:
-    return [f for f in load_feedback() if f["event_id"] == event_id]
+    with get_session() as sess:
+        rows = sess.query(FeedbackRow).filter(
+            FeedbackRow.event_id == event_id
+        ).order_by(FeedbackRow.submitted_at.desc()).all()
+        return [_row_to_dict(r) for r in rows]
 
 
 def get_all_feedback() -> list[dict]:
