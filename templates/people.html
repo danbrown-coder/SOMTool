@@ -13,6 +13,12 @@
   {% if can_edit_people %}
   <div class="topbar-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;">
     <a href="{{ url_for('import_people_page') }}" class="btn btn-secondary btn-sm">Import CSV / Excel</a>
+    {% if google_connected %}
+      <button type="button" class="btn btn-secondary btn-sm" onclick="somSheetSync('import')" title="Import people from a Google Sheet">Sync from Google Sheet</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="somSheetSync('export')" title="Overwrite a Google Sheet with the directory">Push to Google Sheet</button>
+    {% else %}
+      <a href="{{ url_for('integration_connect', provider='google') }}" class="btn btn-ghost btn-sm" title="Connect Google to sync with a Sheet">Sync with Google Sheet…</a>
+    {% endif %}
     {% if enrichment_enabled %}
       <form method="post" action="{{ url_for('people_enrich_bulk_route') }}" onsubmit="return confirm('Run Apollo enrichment on up to 50 people with missing company/role/LinkedIn?');" style="margin:0;">
         <input type="hidden" name="limit" value="50">
@@ -22,6 +28,37 @@
       <a href="{{ url_for('billing_settings') }}" class="btn btn-secondary btn-sm" title="Enrichment requires Pro">Unlock enrichment (Pro)</a>
     {% endif %}
   </div>
+  {% endif %}
+  <script>
+    window.somSheetSync = function(mode) {
+      var id = prompt(mode === 'import'
+        ? 'Paste the Google Sheet ID or URL to import from (first row must be headers: name,email,company,role,...):'
+        : 'Paste the Google Sheet ID or URL to push the directory to:'
+      );
+      if (!id) return;
+      var m = id.match(/[-\w]{25,}/); if (m) id = m[0];
+      var url = mode === 'import'
+        ? {{ url_for('google_import_people_from_sheet')|tojson }}
+        : {{ url_for('google_export_people_to_sheet')|tojson }};
+      fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({spreadsheet_id: id})
+      }).then(function(r){ return r.json(); }).then(function(j){
+        if (j.ok) {
+          window.somToast && window.somToast(
+            mode === 'import'
+              ? ('Imported ' + (j.added||0) + ' of ' + (j.seen||0) + ' rows')
+              : ('Wrote ' + (j.rows||0) + ' rows to Sheet'),
+            'info'
+          );
+          if (mode === 'import') setTimeout(function(){ window.location.reload(); }, 900);
+        } else {
+          window.somToast && window.somToast('Error: ' + (j.error||'unknown'), 'danger');
+        }
+      }).catch(function(e){ window.somToast && window.somToast('Error: ' + e, 'danger'); });
+    };
+  </script>
   {% endif %}
 </div>
 {% endblock %}

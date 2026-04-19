@@ -59,6 +59,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), default="", nullable=False)
     role: Mapped[str] = mapped_column(String(32), default="user", nullable=False)
     google_sub: Mapped[Optional[str]] = mapped_column(String(128), unique=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    scim_external_id: Mapped[Optional[str]] = mapped_column(String(128), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
 
@@ -277,3 +279,74 @@ class SMSLog(Base):
     status: Mapped[str] = mapped_column(String(32), default="queued", nullable=False)
     error: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+# ── Integrations Hub shared groundwork ──────────────────────
+
+
+class ProviderSyncState(Base):
+    """Per-(connection, resource) sync cursors — Calendar watch channels,
+    Sheets revision IDs, HubSpot paging tokens, etc.
+    """
+    __tablename__ = "provider_sync_state"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    connection_id: Mapped[str] = mapped_column(String(64), ForeignKey("connections.id", ondelete="CASCADE"), nullable=False, index=True)
+    resource_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    resource_id: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    cursor: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    last_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    meta: Mapped[dict] = mapped_column(_jsontype(), default=dict, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("connection_id", "resource_type", "resource_id", name="uq_provider_sync_resource"),
+    )
+
+
+class ExternalObject(Base):
+    """Mapping table so a SOMTool entity (event/person/contact) can reference
+    one-or-many external IDs across providers without bloating each entity's row.
+    """
+    __tablename__ = "external_objects"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    org_id: Mapped[str] = mapped_column(String(64), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True)
+    entity_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)  # event | person | contact
+    entity_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    external_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    meta: Mapped[dict] = mapped_column(_jsontype(), default=dict, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("entity_type", "entity_id", "provider", name="uq_external_object_entity_provider"),
+    )
+
+
+class WebhookEventRow(Base):
+    """Raw inbound webhook payloads for audit / replay."""
+    __tablename__ = "webhook_events"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    event_type: Mapped[str] = mapped_column(String(128), default="", nullable=False)
+    signature_ok: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    processed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    processing_error: Mapped[Optional[str]] = mapped_column(Text)
+    retries: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    payload: Mapped[dict] = mapped_column(_jsontype(), default=dict, nullable=False)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False, index=True)
+
+
+class IntegrationSyncLog(Base):
+    """Per-connection sync history shown in the Hub Configure sheet."""
+    __tablename__ = "integration_sync_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    connection_id: Mapped[str] = mapped_column(String(64), ForeignKey("connections.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    action: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), default="ok", nullable=False)  # ok | error | partial
+    rows_affected: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    detail: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, nullable=False, index=True)

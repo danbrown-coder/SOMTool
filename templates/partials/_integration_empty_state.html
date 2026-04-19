@@ -1,0 +1,28 @@
+{#
+  Reusable empty-state block for an in-app feature that requires an integration.
+
+  Required vars in context:
+    provider  — provider slug (e.g. 'qualtrics')
+    name      — display name (e.g. 'Qualtrics')
+    message   — short explanation of what the integration unlocks
+
+  Optional:
+    icon      — single letter/emoji icon (defaults to first letter of `name`)
+    fallback_html — HTML snippet for the "or use the built-in" link
+#}
+<div style="border:1px dashed var(--border, #e5e7eb); border-radius:12px; padding:1.1rem 1.25rem;
+            background:#fafafa; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+  <div style="width:42px; height:42px; border-radius:10px; background:#fff; border:1px solid #e5e7eb;
+              display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem;
+              color:#4f46e5; flex-shrink:0;">
+    {{ icon or (name or provider)[0]|upper }}
+  </div>
+  <div style="flex:1; min-width:220px;">
+    <div style="font-weight:600; margin-bottom:.1rem;">Connect {{ name or provider|capitalize }} to enable this</div>
+    <div style="font-size:.88rem; color:#4b5563;">{{ message }}</div>
+  </div>
+  <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+    <a class="btn btn-primary" href="{{ url_for('integration_connect', provider=provider) }}">Connect {{ name or provider|capitalize }}</a>
+    {% if fallback_html %}{{ fallback_html|safe }}{% endif %}
+  </div>
+</div>

@@ -1,80 +1,229 @@
 {% extends "base.html" %}
 {% block title %}Integrations — SOM Event OS{% endblock %}
+{% block extra_css %}
+<style>
+  .hub-header { display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-start; justify-content:space-between; }
+  .hub-header h1 { margin:0 0 .25rem 0; }
+  .hub-search { position:relative; flex:1 1 320px; max-width:420px; }
+  .hub-search input { width:100%; padding:.65rem .85rem .65rem 2.4rem; border-radius:10px;
+    border:1px solid var(--border, #e5e7eb); background:var(--surface, #fff); font-size:.95rem; }
+  .hub-search svg { position:absolute; left:.8rem; top:50%; transform:translateY(-50%);
+    width:18px; height:18px; color:var(--muted, #6b7280); }
+  .hub-tabs { display:flex; gap:.25rem; flex-wrap:wrap; margin:1rem 0 1.25rem; border-bottom:1px solid var(--border, #e5e7eb); }
+  .hub-tab { padding:.6rem 1rem; border:0; background:transparent; font-size:.92rem; font-weight:500;
+    color:var(--muted, #6b7280); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; }
+  .hub-tab:hover { color:var(--text, #111827); }
+  .hub-tab.active { color:var(--brand-accent, #4f46e5); border-bottom-color:var(--brand-accent, #4f46e5); }
+  .hub-tab .count { display:inline-block; margin-left:.35rem; padding:0 .45rem; border-radius:999px;
+    background:var(--surface-muted, #f3f4f6); font-size:.75rem; font-weight:600; color:var(--muted, #6b7280); }
+  .hub-tab.active .count { background:var(--brand-accent, #4f46e5); color:#fff; }
+
+  .hub-default { display:flex; gap:1rem; align-items:center; padding:1rem 1.25rem;
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+    border:1px solid #c7d2fe; border-radius:14px; margin-bottom:1.25rem; }
+  .hub-default-icon { flex-shrink:0; width:48px; height:48px; border-radius:12px;
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:1.3rem; color:#4f46e5; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .hub-default-body { flex:1; }
+  .hub-default-body h3 { margin:0 0 .15rem; font-size:1.02rem; }
+  .hub-default-body p { margin:0; font-size:.88rem; color:#4b5563; }
+  .hub-default-scopes { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.5rem; }
+  .scope-chip { display:inline-flex; align-items:center; gap:.3rem; padding:.18rem .55rem;
+    font-size:.78rem; border-radius:999px; background:#fff; border:1px solid #e5e7eb; color:#4b5563; }
+  .scope-chip.on { color:#047857; border-color:#a7f3d0; background:#ecfdf5; }
+  .scope-chip.off { color:#b45309; border-color:#fde68a; background:#fffbeb; }
+  .scope-chip .dot { width:.5rem; height:.5rem; border-radius:999px; background:currentColor; }
+
+  .tile-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:1rem; }
+  .tile { padding:1.15rem; border:1px solid var(--border, #e5e7eb); border-radius:14px;
+    background:var(--surface, #fff); transition:border-color .15s, box-shadow .15s; position:relative; }
+  .tile.connected { border-color:#a7f3d0; }
+  .tile:hover { box-shadow:0 2px 8px rgba(0,0,0,.04); border-color:var(--brand-accent, #4f46e5); }
+  .tile-head { display:flex; gap:.8rem; align-items:center; margin-bottom:.65rem; }
+  .tile-icon { width:40px; height:40px; border-radius:10px; background:var(--brand-accent, #4f46e5);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem; flex-shrink:0; }
+  .tile-name { font-weight:600; font-size:1rem; }
+  .tile-status { font-size:.78rem; margin-top:.1rem; }
+  .tile-status.ok { color:#047857; }
+  .tile-status.off { color:#6b7280; }
+  .tile-status.warn { color:#b45309; }
+  .tile-unlocks { list-style:none; padding:0; margin:.5rem 0; font-size:.85rem; color:#4b5563; }
+  .tile-unlocks li { padding-left:1.1rem; position:relative; margin:.2rem 0; line-height:1.35; }
+  .tile-unlocks li::before { content:""; position:absolute; left:.1rem; top:.55rem;
+    width:.45rem; height:.45rem; border-radius:999px; background:var(--brand-accent, #4f46e5); opacity:.5; }
+  .tile-actions { display:flex; gap:.45rem; margin-top:.75rem; flex-wrap:wrap; }
+  .tile-green-dot { position:absolute; top:.9rem; right:.9rem; width:.55rem; height:.55rem;
+    border-radius:999px; background:#10b981; box-shadow:0 0 0 3px rgba(16,185,129,.18); }
+  .tile-recommended { position:absolute; top:.75rem; right:.85rem; font-size:.68rem;
+    background:#fef3c7; color:#92400e; padding:.12rem .5rem; border-radius:999px; font-weight:600; letter-spacing:.02em; }
+
+  .empty-match { padding:2rem; text-align:center; color:var(--muted, #6b7280); }
+</style>
+{% endblock %}
 {% block content %}
-<div class="page-header">
+<div class="hub-header">
   <div>
     <h1>Integrations</h1>
     <p class="muted">Connect the tools you already use. Tokens are encrypted at rest and only used on your behalf.</p>
   </div>
+  <div class="hub-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="hub-search-input" type="search" placeholder="Search integrations…" aria-label="Search integrations">
+  </div>
 </div>
 
 {% if not encryption_key_set %}
-<div class="notice notice-warn">
-  <strong>INTEGRATIONS_ENCRYPTION_KEY is not set.</strong>
-  Until this is configured, connecting a provider will fail.
-  Generate a key with <code>python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"</code>
-  and add it to your environment.
+<div class="alert alert-warning" role="status">
+  <div class="alert-body">
+    <strong>INTEGRATIONS_ENCRYPTION_KEY is not set.</strong>
+    Until this is configured, connecting a provider will fail.
+    Generate a key with <code>python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"</code>
+    and add it to your environment.
+  </div>
 </div>
 {% endif %}
 
-<div class="grid-cards">
-  {% for tile in providers %}
-  <div class="card integration-card">
-    <div class="integration-header">
-      <div class="integration-icon">{{ tile.icon_emoji or tile.slug[0]|upper }}</div>
-      <div class="integration-title">
-        <div class="integration-name">{{ tile.display_name }}</div>
-        {% if tile.connection %}
-          <div class="integration-status text-sm text-ok">Connected as {{ tile.connection.account_email or "—" }}</div>
-        {% else %}
-          <div class="integration-status text-sm muted">Not connected</div>
-        {% endif %}
-      </div>
-    </div>
-
-    {% if tile.description %}
-      <p class="text-sm muted">{{ tile.description }}</p>
-    {% endif %}
-
-    {% if tile.connection and tile.connection.scopes %}
-      <details class="text-sm muted" style="margin-top:.5rem;">
-        <summary>Scopes granted ({{ tile.connection.scopes|length }})</summary>
-        <ul class="mt-1" style="padding-left:1.2rem;">
-          {% for s in tile.connection.scopes %}
-            <li class="text-mono text-sm">{{ s }}</li>
-          {% endfor %}
-        </ul>
-      </details>
-    {% endif %}
-
-    <div class="integration-actions" style="margin-top:.75rem;display:flex;gap:.5rem;">
-      {% if tile.connection %}
-        <form method="post" action="{{ url_for('integration_disconnect', provider=tile.slug) }}">
-          <button class="btn btn-secondary" type="submit">Disconnect</button>
-        </form>
-        <a class="btn" href="{{ url_for('integration_connect', provider=tile.slug) }}">Reauthorize</a>
-      {% elif tile.configured %}
-        <a class="btn btn-primary" href="{{ url_for('integration_connect', provider=tile.slug) }}">Connect</a>
+{# ── Always-on default: Google (Phase A) ── #}
+{% if google_spec %}
+<div class="hub-default">
+  <div class="hub-default-icon">G</div>
+  <div class="hub-default-body">
+    <h3>{{ google_spec.display_name }} — the default layer</h3>
+    <p>
+      {% if google_connection %}
+        Connected as <strong>{{ google_connection.account_email or "—" }}</strong>. Click any disconnected scope to grant just that one.
       {% else %}
-        <button class="btn btn-secondary" disabled title="Missing server-side OAuth credentials">Not configured</button>
+        One click connects Calendar, Gmail, Drive, Sheets, Forms, Contacts, and Sign-in. You can grant fewer scopes at any time.
       {% endif %}
+    </p>
+    <div class="hub-default-scopes">
+      {% for group, granted in google_scope_groups.items() %}
+        {% if granted %}
+          <span class="scope-chip on"><span class="dot"></span>{{ group|capitalize }}</span>
+        {% else %}
+          <a class="scope-chip off" href="{{ url_for('integration_connect', provider='google') }}?scope_group={{ group }}" title="Grant {{ group }} access">
+            <span class="dot"></span>{{ group|capitalize }}<span style="opacity:.6">· grant</span>
+          </a>
+        {% endif %}
+      {% endfor %}
     </div>
   </div>
+  <div style="display:flex; gap:.4rem; flex-shrink:0;">
+    {% if google_connection %}
+      <a class="btn btn-secondary" href="{{ url_for('integration_connect', provider='google') }}">Reauthorize</a>
+      <form method="post" action="{{ url_for('integration_disconnect', provider='google') }}" style="display:inline;">
+        <button class="btn btn-ghost" type="submit">Disconnect</button>
+      </form>
+    {% elif google_spec.configured() %}
+      <a class="btn btn-primary" href="{{ url_for('integration_connect', provider='google') }}">Connect Google</a>
+    {% else %}
+      <button class="btn btn-ghost" disabled title="GOOGLE_CLIENT_ID / SECRET not configured">Not configured</button>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{# ── Category tabs ── #}
+<div class="hub-tabs" role="tablist">
+  {% for cat_slug, cat_label in category_order %}
+    {% set tiles = tiles_by_category.get(cat_slug, []) %}
+    {% if tiles %}
+      <button type="button" class="hub-tab {% if loop.first %}active{% endif %}" data-cat="{{ cat_slug }}" role="tab">
+        {{ cat_label }}<span class="count">{{ tiles|length }}</span>
+      </button>
+    {% endif %}
   {% endfor %}
 </div>
 
-<style>
-  .grid-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:1rem; margin-top:1rem; }
-  .integration-card { padding:1.25rem; }
-  .integration-header { display:flex; gap:.85rem; align-items:center; margin-bottom:.75rem; }
-  .integration-icon { width:44px; height:44px; border-radius:12px;
-    background: var(--brand-accent, #4f46e5); color:white;
-    display:flex; align-items:center; justify-content:center;
-    font-weight:700; font-size:1.25rem; flex-shrink:0;
-  }
-  .integration-name { font-weight:600; font-size:1.05rem; }
-  .text-ok { color:#16a34a; }
-  .notice { padding:.85rem 1rem; border-radius:10px; margin-bottom:1rem; }
-  .notice-warn { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
-</style>
+<div id="tile-root">
+  {% for cat_slug, cat_label in category_order %}
+    {% set tiles = tiles_by_category.get(cat_slug, []) %}
+    {% if tiles %}
+    <div class="hub-panel" data-cat="{{ cat_slug }}" {% if not loop.first %}style="display:none;"{% endif %}>
+      <div class="tile-grid">
+        {% for tile in tiles %}
+        <div class="tile {% if tile.connection %}connected{% endif %}" data-name="{{ tile.display_name|lower }}" data-desc="{{ tile.description|lower }} {{ tile.unlocks|join(' ')|lower }}">
+          {% if tile.connection %}<span class="tile-green-dot" title="Connected"></span>{% endif %}
+          {% if tile.recommended %}<span class="tile-recommended">Recommended</span>{% endif %}
+          <div class="tile-head">
+            <div class="tile-icon">{{ tile.icon_emoji or tile.display_name[0]|upper }}</div>
+            <div>
+              <div class="tile-name">{{ tile.display_name }}</div>
+              {% if tile.connection %}
+                <div class="tile-status ok">Connected{% if tile.connection.account_email %} as {{ tile.connection.account_email }}{% endif %}</div>
+              {% elif tile.configured %}
+                <div class="tile-status off">Not connected</div>
+              {% else %}
+                <div class="tile-status warn">Server keys missing</div>
+              {% endif %}
+            </div>
+          </div>
+          {% if tile.unlocks %}
+          <ul class="tile-unlocks">
+            {% for u in tile.unlocks[:3] %}<li>{{ u }}</li>{% endfor %}
+          </ul>
+          {% elif tile.description %}
+          <p class="text-sm muted" style="margin:.35rem 0;">{{ tile.description }}</p>
+          {% endif %}
+          <div class="tile-actions">
+            {% if tile.connection %}
+              <form method="post" action="{{ url_for('integration_disconnect', provider=tile.slug) }}">
+                <button class="btn btn-ghost" type="submit">Disconnect</button>
+              </form>
+              <a class="btn btn-secondary" href="{{ url_for('integration_connect', provider=tile.slug) }}">Reauthorize</a>
+            {% elif tile.configured %}
+              <a class="btn btn-primary" href="{{ url_for('integration_connect', provider=tile.slug) }}">Connect</a>
+            {% else %}
+              <button class="btn btn-ghost" disabled title="Server-side OAuth credentials missing in env">Not configured</button>
+            {% endif %}
+            {% if tile.docs_url %}
+              <a class="btn btn-ghost" href="{{ tile.docs_url }}" target="_blank" rel="noopener">Docs</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+  <div id="hub-empty" class="empty-match" style="display:none;">No integrations match your search.</div>
+</div>
+
+<script>
+  (function() {
+    var tabs = document.querySelectorAll('.hub-tab');
+    var panels = document.querySelectorAll('.hub-panel');
+    tabs.forEach(function(t) {
+      t.addEventListener('click', function() {
+        tabs.forEach(function(x){ x.classList.remove('active'); });
+        t.classList.add('active');
+        var cat = t.getAttribute('data-cat');
+        panels.forEach(function(p) {
+          p.style.display = p.getAttribute('data-cat') === cat ? '' : 'none';
+        });
+        document.getElementById('hub-empty').style.display = 'none';
+        var input = document.getElementById('hub-search-input');
+        if (input) input.value = '';
+        document.querySelectorAll('.tile').forEach(function(el){ el.style.display = ''; });
+      });
+    });
+    var search = document.getElementById('hub-search-input');
+    if (search) {
+      search.addEventListener('input', function() {
+        var q = (search.value || '').trim().toLowerCase();
+        panels.forEach(function(p){ p.style.display = ''; });
+        tabs.forEach(function(t){ t.classList.remove('active'); });
+        var matches = 0;
+        document.querySelectorAll('.tile').forEach(function(el) {
+          var name = el.getAttribute('data-name') || '';
+          var desc = el.getAttribute('data-desc') || '';
+          var hit = !q || name.indexOf(q) !== -1 || desc.indexOf(q) !== -1;
+          el.style.display = hit ? '' : 'none';
+          if (hit) matches++;
+        });
+        document.getElementById('hub-empty').style.display = matches === 0 ? '' : 'none';
+      });
+    }
+  })();
+</script>
 {% endblock %}

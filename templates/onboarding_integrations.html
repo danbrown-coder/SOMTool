@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Welcome — pick your tools{% endblock %}
+{% block extra_css %}
+<style>
+  .wizard { max-width: 720px; margin: 1rem auto; }
+  .wizard h1 { margin-bottom:.25rem; }
+  .wizard .step-card { border:1px solid var(--border, #e5e7eb); border-radius:14px;
+    padding:1.25rem 1.5rem; background:var(--surface, #fff); margin-bottom:1rem; }
+  .wizard h3 { margin:0 0 .25rem; }
+  .wizard p.muted { margin:0 0 .85rem; font-size:.9rem; }
+  .opt-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:.6rem; }
+  .opt-grid label { display:flex; gap:.65rem; align-items:center; padding:.7rem .9rem;
+    border:1px solid var(--border, #e5e7eb); border-radius:10px; cursor:pointer;
+    transition: border-color .15s, background .15s; }
+  .opt-grid label:hover { border-color:var(--brand-accent, #4f46e5); }
+  .opt-grid input:checked + span { font-weight:600; color:var(--brand-accent, #4f46e5); }
+  .opt-grid label:has(input:checked) { background:#eef2ff; border-color:#c7d2fe; }
+  .wizard-actions { display:flex; gap:.75rem; justify-content:flex-end; margin-top:1rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="wizard">
+  <h1>Welcome! Let's tailor your integrations.</h1>
+  <p class="muted">Three quick questions. We'll surface the right integrations at the top of your Hub.</p>
+
+  <form method="post" action="{{ url_for('onboarding_integrations_submit') }}">
+    <div class="step-card">
+      <h3>1. What calendar do you already use?</h3>
+      <p class="muted">Used to suggest the right sync defaults.</p>
+      <div class="opt-grid">
+        {% for val, label in [
+          ('google','Google Calendar'),
+          ('apple','Apple Calendar'),
+          ('other','Other / none')
+        ] %}
+          <label><input type="radio" name="calendar" value="{{ val }}" {% if loop.first %}checked{% endif %}><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="step-card">
+      <h3>2. Do you run ticketed or public events?</h3>
+      <p class="muted">Unlocks Eventbrite, Luma, and Wallet-pass check-in.</p>
+      <div class="opt-grid">
+        {% for val, label in [
+          ('yes','Yes — ticketed / public'),
+          ('sometimes','Sometimes / mixed'),
+          ('no','No, all internal')
+        ] %}
+          <label><input type="radio" name="ticketed" value="{{ val }}" {% if loop.first %}checked{% endif %}><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="step-card">
+      <h3>3. What other tools does your team use? (optional, pick any)</h3>
+      <p class="muted">We'll highlight these tiles in your Hub.</p>
+      <div class="opt-grid">
+        {% for val, label in [
+          ('canvas','Canvas LMS'),
+          ('25live','25Live / EMS rooms'),
+          ('hubspot','HubSpot CRM'),
+          ('salesforce','Salesforce CRM'),
+          ('mailchimp','Mailchimp / Constant Contact'),
+          ('notion','Notion'),
+          ('airtable','Airtable'),
+          ('linear','Linear / Asana / Trello / ClickUp'),
+          ('quickbooks','QuickBooks / Xero'),
+          ('canva','Canva'),
+          ('meta','Instagram / FB Pages'),
+          ('discord','Discord'),
+          ('whatsapp','WhatsApp Business'),
+          ('qualtrics','Qualtrics'),
+          ('handshake','Handshake'),
+          ('okta','Okta SSO')
+        ] %}
+          <label><input type="checkbox" name="tools" value="{{ val }}"><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="wizard-actions">
+      <a class="btn btn-ghost" href="{{ url_for('integrations_settings') }}">Skip</a>
+      <button class="btn btn-primary" type="submit">Show me my tailored Hub</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

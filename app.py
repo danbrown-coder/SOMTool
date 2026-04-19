@@ -244,11 +244,30 @@ def inject_user():
 
 @app.context_processor
 def inject_integrations_flags():
+    """Flags for templates:
+      - google_signin_enabled: show "Sign in with Google" on /login (default on
+        whenever GOOGLE_CLIENT_ID is set; explicit opt-out via
+        GOOGLE_SIGNIN_ENABLED=false).
+      - google_banner_show: show the first-run "Connect Google" banner at the
+        top of the app to users who haven't connected and haven't dismissed it.
+    """
+    signin_opt = os.environ.get("GOOGLE_SIGNIN_ENABLED", "").strip().lower()
+    signin_enabled = bool(os.environ.get("GOOGLE_CLIENT_ID")) and signin_opt not in ("0", "false", "no", "off")
+
+    banner_show = False
+    try:
+        if signin_enabled:
+            uid = auth.current_user_id()
+            if uid and not session.get("google_banner_dismissed"):
+                import integrations
+                if integrations.get_connection(uid, "google") is None:
+                    banner_show = True
+    except Exception:
+        banner_show = False
+
     return dict(
-        google_signin_enabled=(
-            os.environ.get("GOOGLE_SIGNIN_ENABLED", "false").lower() in ("1", "true", "yes")
-            and bool(os.environ.get("GOOGLE_CLIENT_ID"))
-        ),
+        google_signin_enabled=signin_enabled,
+        google_banner_show=banner_show,
     )
 
 
@@ -352,6 +371,17 @@ def _role_ok(role: str | None, need: str) -> bool:
     return order.get(role, -1) >= order.get(need, 99)
 
 
+def _sync_event_to_google(event, user_id: str) -> None:
+    """Best-effort push of a SOMTool event to the user's Google Calendar
+    (with auto Meet link). No-ops if the user hasn't granted Calendar scope.
+    """
+    try:
+        from integrations.google import sync_event_to_calendar
+        sync_event_to_calendar(user_id, event)
+    except Exception as exc:  # pragma: no cover
+        observability.capture_exception(exc)
+
+
 # ── Auth (public) ───────────────────────────────────────────
 
 
@@ -426,23 +456,104 @@ def logout_route():
 @login_required
 def integrations_settings():
     import integrations
+    from integrations.google import (
+        SPEC as GOOGLE_SPEC,
+        scope_group_granted_map,
+    )
 
-    tiles = []
-    for slug, spec in integrations.list_providers().items():
-        conn = integrations.get_connection(g.current_user.id, slug)
-        tiles.append({
-            "slug": slug,
+    uid = g.current_user.id
+    highlights = set(session.get("onboarding_highlights") or [])
+
+    def _to_tile(spec):
+        conn = integrations.get_connection(uid, spec.slug)
+        return {
+            "slug": spec.slug,
             "display_name": spec.display_name,
             "description": spec.description,
             "icon_emoji": spec.icon_emoji,
             "configured": spec.configured(),
             "connection": conn,
-        })
+            "unlocks": getattr(spec, "unlocks", []) or [],
+            "docs_url": getattr(spec, "docs_url", ""),
+            "recommended": spec.slug in highlights,
+        }
+
+    buckets = integrations.providers_by_category()
+    tiles_by_category: dict[str, list] = {}
+    for cat, specs in buckets.items():
+        tiles_by_category[cat] = [_to_tile(s) for s in specs]
+        # Recommended tiles float to the top
+        tiles_by_category[cat].sort(key=lambda t: (0 if t["recommended"] else 1, 0 if t["connection"] else 1, t["display_name"].lower()))
+
+    google_conn = integrations.get_connection(uid, "google")
+
     return render_template(
         "settings_integrations.html",
-        providers=tiles,
+        google_spec=GOOGLE_SPEC,
+        google_connection=google_conn,
+        google_scope_groups=scope_group_granted_map(uid),
+        category_order=integrations.CATEGORIES,
+        tiles_by_category=tiles_by_category,
         encryption_key_set=bool(os.environ.get("INTEGRATIONS_ENCRYPTION_KEY")),
     )
+
+
+# ── First-run onboarding wizard ──
+
+
+@app.get("/onboarding/integrations")
+@login_required
+def onboarding_integrations():
+    return render_template("onboarding_integrations.html", hide_sidebar=False)
+
+
+@app.post("/onboarding/integrations")
+@login_required
+def onboarding_integrations_submit():
+    calendar = request.form.get("calendar", "")
+    ticketed = request.form.get("ticketed", "")
+    tools = request.form.getlist("tools")
+    highlights: list[str] = []
+    if calendar == "google":
+        # Already the default layer — no tile to highlight, but flag it.
+        pass
+    if ticketed in ("yes", "sometimes"):
+        highlights += ["eventbrite", "luma", "wallet"]
+    tool_map = {
+        "canvas": ["canvas"],
+        "25live": ["twentyfivelive"],
+        "hubspot": ["hubspot"],
+        "salesforce": ["salesforce"],
+        "mailchimp": ["mailchimp"],
+        "notion": ["notion"],
+        "airtable": ["airtable"],
+        "linear": ["linear", "asana", "trello", "clickup"],
+        "quickbooks": ["quickbooks", "xero"],
+        "canva": ["canva"],
+        "meta": ["meta", "linkedin_pages"],
+        "discord": ["discord"],
+        "whatsapp": ["whatsapp"],
+        "qualtrics": ["qualtrics"],
+        "handshake": ["handshake"],
+        "okta": ["okta"],
+    }
+    for t in tools:
+        highlights += tool_map.get(t, [])
+    session["onboarding_highlights"] = list(dict.fromkeys(highlights))[:8]
+    observability.track(
+        "onboarding_integrations_completed",
+        distinct_id=g.current_user.id,
+        properties={"calendar": calendar, "ticketed": ticketed, "tools": tools},
+    )
+    flash("Your Hub is tailored to the tools you picked.", "info")
+    return redirect(url_for("integrations_settings"))
+
+
+@app.post("/onboarding/google/dismiss")
+@login_required
+def dismiss_google_banner():
+    session["google_banner_dismissed"] = True
+    return redirect(request.referrer or url_for("index"))
 
 
 @app.get("/integrations/<provider>/connect")
@@ -1290,6 +1401,7 @@ def create_event_route():
         distinct_id=g.current_user.id,
         properties={"event_id": ev.id, "name": ev.name, "audience_type": ev.audience_type},
     )
+    _sync_event_to_google(ev, g.current_user.id)
     flash("Event created.", "info")
     return redirect(url_for("index"))
 
@@ -1348,6 +1460,9 @@ def edit_event_route(event_id: str):
         late_fee_note=request.form.get("late_fee_note", ""),
         **goal_budget_kwargs,
     )
+    updated = em.get_event(event_id)
+    if updated:
+        _sync_event_to_google(updated, g.current_user.id)
     flash("Event updated.", "info")
     return redirect(url_for("index"))
 
@@ -1360,7 +1475,14 @@ def delete_event_route(event_id: str):
     if not event or role != "owner":
         flash("Only the owner can delete this event.", "info")
         return redirect(url_for("index"))
+    gcal_id = getattr(event, "gcal_event_id", None)
     if em.delete_event(event_id):
+        if gcal_id:
+            try:
+                from integrations.google import delete_event_from_calendar
+                delete_event_from_calendar(g.current_user.id, gcal_id)
+            except Exception:
+                pass
         flash("Event deleted.", "info")
     else:
         flash("Event not found.", "info")
@@ -2334,6 +2456,11 @@ def people_page():
     from org_manager import current_org_id as _coid
     enrichment_plan_ok = _bs.has_plan_at_least("pro", _coid())
     enrichment_enabled = enrichment_plan_ok and _enrich.apollo_configured()
+    try:
+        import integrations as _ints
+        google_connected = _ints.get_connection(g.current_user.id, "google") is not None
+    except Exception:
+        google_connected = False
     return render_template(
         "people.html",
         people=people,
@@ -2344,6 +2471,7 @@ def people_page():
         referrers=referrers,
         enrichment_enabled=enrichment_enabled,
         enrichment_plan_ok=enrichment_plan_ok,
+        google_connected=google_connected,
     )
 
 
@@ -3740,6 +3868,370 @@ def _start_monitor() -> None:
 
 
 _start_monitor()
+
+
+# ── Integrations Hub: Google feature routes (Phase A) ──────
+
+
+@app.post("/integrations/google/drive-import")
+@login_required
+def google_drive_import():
+    """Import a Drive file (CSV) into the people database via the Drive Picker.
+    Expects JSON: { "file_id": "...", "purpose": "attendee_csv|flyer" }.
+    """
+    if not request.is_json:
+        return jsonify({"ok": False, "error": "JSON body required"}), 400
+    payload = request.get_json(silent=True) or {}
+    file_id = (payload.get("file_id") or "").strip()
+    purpose = (payload.get("purpose") or "attendee_csv").strip()
+    if not file_id:
+        return jsonify({"ok": False, "error": "file_id required"}), 400
+    try:
+        from integrations.google import download_drive_file
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Google client unavailable: {exc}"}), 500
+    result = download_drive_file(g.current_user.id, file_id)
+    if result is None:
+        return jsonify({"ok": False, "error": "Drive access unavailable. Grant Drive scope."}), 403
+    data, name, mime = result
+    if purpose == "attendee_csv":
+        try:
+            rows = people_import.parse_upload(name, data)
+            added = 0
+            for r in rows:
+                if not r.get("email") or not r.get("name"):
+                    continue
+                if pm.find_by_email(r["email"]):
+                    continue
+                pm.add_person(
+                    name=r["name"],
+                    email=r["email"],
+                    company=r.get("company", ""),
+                    role=r.get("role", ""),
+                    tags=[t.strip() for t in (r.get("tags", "") or "").split(",") if t.strip()],
+                    source="google_drive",
+                )
+                added += 1
+            observability.track(
+                "google_drive_imported", distinct_id=g.current_user.id,
+                properties={"file": name, "mime": mime, "added": added},
+            )
+            return jsonify({"ok": True, "filename": name, "added": added, "seen": len(rows)})
+        except Exception as exc:
+            return jsonify({"ok": False, "error": str(exc)[:400]}), 500
+    # flyer or other — persist via storage.py and link to the event
+    try:
+        import io as _io
+        import storage
+        event_id = (payload.get("event_id") or "").strip() or None
+        fa = storage.upload_fileobj(
+            _io.BytesIO(data),
+            filename=name,
+            purpose=purpose,
+            owner_user_id=g.current_user.id,
+            event_id=event_id,
+            content_type=mime,
+        )
+        return jsonify({"ok": True, "file_id": fa.id, "filename": name, "public_url": fa.public_url or ""})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)[:400]}), 500
+
+
+def _payload_val(key: str, default: str = "") -> str:
+    body = request.get_json(silent=True) if request.is_json else None
+    if isinstance(body, dict) and body.get(key):
+        return str(body.get(key) or default).strip()
+    return (request.form.get(key, default) or default).strip()
+
+
+@app.post("/integrations/google/sheets/export-people")
+@login_required
+def google_export_people_to_sheet():
+    """Overwrite a Google Sheet with the org's people list."""
+    spreadsheet_id = _payload_val("spreadsheet_id")
+    if not spreadsheet_id:
+        return jsonify({"ok": False, "error": "spreadsheet_id required"}), 400
+    try:
+        from integrations.google import export_people_to_sheet
+        from integrations.sync import log_sync
+        import integrations as _ints
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+    people = pm.load_people()
+    ok = export_people_to_sheet(g.current_user.id, spreadsheet_id, people)
+    conn = _ints.get_connection(g.current_user.id, "google")
+    if conn:
+        log_sync(conn.id, "google", "sheets.export_people",
+                 status="ok" if ok else "error", rows_affected=len(people) if ok else 0)
+    return jsonify({"ok": bool(ok), "rows": len(people) if ok else 0})
+
+
+@app.post("/integrations/google/sheets/import-people")
+@login_required
+def google_import_people_from_sheet():
+    spreadsheet_id = _payload_val("spreadsheet_id")
+    if not spreadsheet_id:
+        return jsonify({"ok": False, "error": "spreadsheet_id required"}), 400
+    try:
+        from integrations.google import import_people_from_sheet
+        from integrations.sync import log_sync
+        import integrations as _ints
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+    rows = import_people_from_sheet(g.current_user.id, spreadsheet_id)
+    added = 0
+    for r in rows:
+        try:
+            email = (r.get("email") or "").strip()
+            if not email or "@" not in email:
+                continue
+            if pm.find_by_email(email):
+                continue
+            pm.add_person(
+                name=r.get("name", "") or email,
+                email=email,
+                company=r.get("company", ""),
+                role=r.get("role", ""),
+                linkedin_url=r.get("linkedin_url", ""),
+                tags=[t.strip() for t in (r.get("tags", "") or "").split(",") if t.strip()],
+                source="google_sheets",
+                notes=r.get("notes", ""),
+            )
+            added += 1
+        except Exception:
+            continue
+    conn = _ints.get_connection(g.current_user.id, "google")
+    if conn:
+        log_sync(conn.id, "google", "sheets.import_people", rows_affected=added)
+    return jsonify({"ok": True, "added": added, "seen": len(rows)})
+
+
+@app.post("/integrations/google/forms/import-feedback")
+@login_required
+def google_import_form_feedback():
+    form_id = _payload_val("form_id")
+    event_id = _payload_val("event_id")
+    if not form_id or not event_id:
+        return jsonify({"ok": False, "error": "form_id and event_id required"}), 400
+    try:
+        from integrations.google import list_form_responses
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+    responses = list_form_responses(g.current_user.id, form_id)
+    added = 0
+    for r in responses:
+        email = r.get("_respondent_email") or r.get("Email") or r.get("email") or ""
+        try:
+            feedback_manager.save_feedback(
+                event_id=event_id,
+                respondent_email=email,
+                respondent_name=r.get("Name") or r.get("name") or "",
+                rating=int(r.get("Rating") or r.get("rating") or 5),
+                liked=r.get("Liked") or r.get("liked") or "",
+                improve=r.get("Improve") or r.get("improve") or "",
+                would_attend_again=True,
+            )
+            added += 1
+        except Exception:
+            continue
+    return jsonify({"ok": True, "added": added, "seen": len(responses)})
+
+
+@app.post("/integrations/google/contacts/sync-people")
+@login_required
+def google_sync_people_to_contacts():
+    try:
+        from integrations.google import upsert_person_to_google_contacts
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+    people = pm.load_people()
+    pushed = 0
+    for p in people:
+        if not p.email:
+            continue
+        if upsert_person_to_google_contacts(g.current_user.id, p):
+            pushed += 1
+    return jsonify({"ok": True, "pushed": pushed, "total": len(people)})
+
+
+@app.get("/api/calendar/google-overlay")
+@login_required
+def google_calendar_overlay():
+    """Return the user's Google Calendar events in a JSON shape the Outreach
+    Calendar view can overlay as a muted second color.
+    """
+    from integrations.google import list_user_calendar_events, has_scope_group
+    if not has_scope_group(g.current_user.id, "calendar"):
+        return jsonify({"ok": False, "connected": False, "events": []})
+    t_min = request.args.get("time_min") or (datetime.now(timezone.utc).isoformat())
+    t_max = request.args.get("time_max") or ""
+    if not t_max:
+        from datetime import timedelta as _td
+        t_max = (datetime.now(timezone.utc) + _td(days=60)).isoformat()
+    items = list_user_calendar_events(g.current_user.id, t_min, t_max)
+    shaped = []
+    for ev in items:
+        start = ev.get("start", {}) or {}
+        end = ev.get("end", {}) or {}
+        shaped.append({
+            "id": ev.get("id"),
+            "title": ev.get("summary", "(no title)"),
+            "start": start.get("dateTime") or start.get("date"),
+            "end": end.get("dateTime") or end.get("date"),
+            "html_link": ev.get("htmlLink"),
+            "meet_url": next(
+                (ep.get("uri") for ep in (ev.get("conferenceData", {}) or {}).get("entryPoints", []) or []
+                 if ep.get("entryPointType") == "video"),
+                "",
+            ),
+            "source": "google",
+        })
+    return jsonify({"ok": True, "connected": True, "events": shaped})
+
+
+# ── Okta SCIM receive endpoints ────────────────────────────
+
+
+def _scim_authorized() -> bool:
+    expected = os.environ.get("OKTA_SCIM_TOKEN", "").strip()
+    if not expected:
+        return False
+    got = request.headers.get("Authorization", "")
+    if not got.lower().startswith("bearer "):
+        return False
+    return got.split(None, 1)[1].strip() == expected
+
+
+def _scim_user_shape(row) -> dict:
+    display = getattr(row, "display_name", "") or ""
+    parts = display.split(" ", 1)
+    given = parts[0] if parts else ""
+    family = parts[1] if len(parts) > 1 else ""
+    return {
+        "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+        "id": str(getattr(row, "id", "") or ""),
+        "userName": getattr(row, "username", "") or getattr(row, "email", "") or "",
+        "name": {"givenName": given, "familyName": family},
+        "emails": [{"primary": True, "value": getattr(row, "email", "") or "", "type": "work"}],
+        "active": bool(getattr(row, "is_active", True)),
+        "externalId": getattr(row, "scim_external_id", None) or None,
+    }
+
+
+@app.get("/scim/v2/Users")
+def scim_list_users():
+    if not _scim_authorized():
+        return jsonify({"detail": "unauthorized"}), 401
+    from db_models import get_session, User
+    with get_session() as s:
+        rows = s.query(User).limit(200).all()
+        return jsonify({
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+            "totalResults": len(rows),
+            "Resources": [_scim_user_shape(u) for u in rows],
+        })
+
+
+@app.post("/scim/v2/Users")
+def scim_create_user():
+    if not _scim_authorized():
+        return jsonify({"detail": "unauthorized"}), 401
+    body = request.get_json(silent=True) or {}
+    email = (body.get("userName") or "").strip().lower()
+    if not email:
+        return jsonify({"detail": "userName required"}), 400
+    given = ((body.get("name") or {}).get("givenName") or "").strip()
+    family = ((body.get("name") or {}).get("familyName") or "").strip()
+    display = f"{given} {family}".strip() or email
+    active = bool(body.get("active", True))
+    external_id = (body.get("externalId") or "").strip() or None
+    org_id = os.environ.get("OKTA_SCIM_DEFAULT_ORG_ID", "").strip() or "default"
+    from db_models import get_session, User
+    from sqlalchemy.exc import IntegrityError
+    from uuid import uuid4
+    with get_session() as s:
+        existing = s.query(User).filter(User.username == email).one_or_none()
+        if existing:
+            existing.is_active = active
+            existing.display_name = display
+            existing.email = email
+            if external_id:
+                existing.scim_external_id = external_id
+            s.commit()
+            return jsonify(_scim_user_shape(existing)), 200
+        u = User(
+            id=str(uuid4()),
+            org_id=org_id,
+            username=email,
+            email=email,
+            display_name=display,
+            is_active=active,
+            scim_external_id=external_id,
+            password_hash="",
+        )
+        s.add(u)
+        try:
+            s.commit()
+        except IntegrityError:
+            s.rollback()
+            return jsonify({"detail": "conflict"}), 409
+        return jsonify(_scim_user_shape(u)), 201
+
+
+@app.patch("/scim/v2/Users/<uid>")
+def scim_patch_user(uid: str):
+    if not _scim_authorized():
+        return jsonify({"detail": "unauthorized"}), 401
+    body = request.get_json(silent=True) or {}
+    ops = body.get("Operations") or []
+    from db_models import get_session, User
+    with get_session() as s:
+        u = s.query(User).filter(User.id == uid).one_or_none()
+        if not u:
+            return jsonify({"detail": "not found"}), 404
+        for op in ops:
+            path = (op.get("path") or "").lower()
+            val = op.get("value")
+            if path == "active":
+                u.is_active = bool(val)
+        s.commit()
+        return jsonify(_scim_user_shape(u))
+
+
+@app.delete("/scim/v2/Users/<uid>")
+def scim_delete_user(uid: str):
+    if not _scim_authorized():
+        return jsonify({"detail": "unauthorized"}), 401
+    from db_models import get_session, User
+    with get_session() as s:
+        u = s.query(User).filter(User.id == uid).one_or_none()
+        if not u:
+            return jsonify({"detail": "not found"}), 404
+        u.is_active = False
+        s.commit()
+        return ("", 204)
+
+
+# ── Unified webhook dispatcher ─────────────────────────────
+
+
+@app.post("/webhooks/<provider>")
+def integration_webhook(provider: str):
+    """Single dispatcher for every provider's webhooks.
+
+    Each provider adapter calls `integrations.webhooks.register_webhook(...)`
+    during module load with its own signature verifier and handler. Raw
+    payloads are persisted to `webhook_events` for audit.
+    """
+    from integrations.webhooks import dispatch
+    raw = request.get_data() or b""
+    try:
+        parsed = request.get_json(silent=True) or {}
+    except Exception:
+        parsed = {}
+    headers = {k: v for k, v in request.headers.items()}
+    status, body = dispatch(provider, headers, parsed, raw)
+    return jsonify(body), status
 
 
 if __name__ == "__main__":

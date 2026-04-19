@@ -67,14 +67,71 @@ def get_session() -> Iterator[Session]:
         sess.close()
 
 
+def _scalar_default_sql(col) -> str | None:
+    """Render a column's Python-side scalar default as a dialect-safe SQL literal.
+
+    Returns None for callable/sentinel defaults we don't know how to serialize;
+    the caller simply omits DEFAULT in that case.
+    """
+    default = col.default
+    if default is None or not getattr(default, "is_scalar", False):
+        return None
+    val = default.arg
+    if isinstance(val, bool):
+        if _is_sqlite:
+            return "1" if val else "0"
+        return "TRUE" if val else "FALSE"
+    if isinstance(val, (int, float)):
+        return str(val)
+    if isinstance(val, str):
+        return "'" + val.replace("'", "''") + "'"
+    return None
+
+
+def _backfill_missing_columns() -> None:
+    """Add columns that exist in the ORM models but not in the live DB.
+
+    SQLAlchemy's create_all() only creates missing tables; it never ALTERs
+    existing ones. This helper closes that gap for additive migrations so
+    feature branches that add new columns (e.g. users.is_active for SCIM)
+    don't require hand-written migration scripts to deploy.
+
+    Only handles ADD COLUMN. Type/constraint changes still need real migrations.
+    """
+    from sqlalchemy import inspect as sa_inspect
+    import db_models  # noqa: F401
+
+    insp = sa_inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if not insp.has_table(table.name):
+                continue
+            existing = {c["name"] for c in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in existing:
+                    continue
+                col_type_sql = col.type.compile(dialect=engine.dialect)
+                parts = [f'"{col.name}"', col_type_sql]
+                default_sql = _scalar_default_sql(col)
+                if default_sql is not None:
+                    parts.append(f"DEFAULT {default_sql}")
+                if not col.nullable:
+                    if default_sql is None:
+                        parts.append("DEFAULT ''" if "CHAR" in col_type_sql.upper() or "TEXT" in col_type_sql.upper() else "DEFAULT 0")
+                    parts.append("NOT NULL")
+                ddl = f'ALTER TABLE "{table.name}" ADD COLUMN ' + " ".join(parts)
+                conn.exec_driver_sql(ddl)
+
+
 def init_db() -> None:
-    """Create tables if absent. Safe to call multiple times.
+    """Create tables if absent, then backfill any new columns on existing tables.
 
     Imports db_models inside to avoid circular import at module load.
     """
     import db_models  # noqa: F401  (registers mappers on Base)
 
     Base.metadata.create_all(bind=engine)
+    _backfill_missing_columns()
 
 
 def is_sqlite() -> bool:

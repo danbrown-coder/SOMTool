@@ -72,6 +72,16 @@ class ProviderSpec:
     icon_emoji: str = ""
     description: str = ""
 
+    # ── Hub metadata (Phase B) ──
+    category: str = "other"          # popular | campus | crm | ops | social | messaging | identity | other
+    unlocks: list[str] = field(default_factory=list)    # 2-3 bullets of "what this unlocks"
+    is_default: bool = False         # always-on, embedded rather than opt-in tile
+    is_popular: bool = False         # float to the Popular tab
+    auth_style: str = "oauth2"       # oauth2 | api_key | basic | bot_token | custom
+    api_key_env: str = ""            # for api_key-style providers
+    docs_url: str = ""
+    webhook_secret_env: str = ""
+
     def client_id(self) -> str:
         return os.environ.get(self.client_id_env, "").strip()
 
@@ -81,8 +91,16 @@ class ProviderSpec:
     def redirect_uri(self) -> str:
         return os.environ.get(self.redirect_uri_env, "").strip()
 
+    def api_key(self) -> str:
+        return os.environ.get(self.api_key_env, "").strip() if self.api_key_env else ""
+
     def configured(self) -> bool:
-        return bool(self.client_id() and self.client_secret() and self.redirect_uri())
+        if self.auth_style == "api_key":
+            return bool(self.api_key())
+        if self.auth_style == "oauth2":
+            return bool(self.client_id() and self.client_secret() and self.redirect_uri())
+        # custom / bot_token / basic styles: provider decides via client_id_env presence
+        return bool(os.environ.get(self.client_id_env, "").strip()) if self.client_id_env else False
 
 
 # ── Flow ───────────────────────────────────────────────────

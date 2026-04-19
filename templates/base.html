@@ -147,6 +147,22 @@
           {% endfor %}
         {% endif %}
       {% endwith %}
+      {% if current_user and google_banner_show %}
+        <div class="alert" style="background:linear-gradient(135deg,#eef2ff,#f5f3ff);
+            border:1px solid #c7d2fe; color:#312e81; margin-bottom:1rem;
+            display:flex; gap:.9rem; align-items:center; padding:.9rem 1.1rem; border-radius:12px;" role="status">
+          <span style="flex-shrink:0; width:38px; height:38px; border-radius:10px; background:#fff;
+              display:flex; align-items:center; justify-content:center; font-weight:700; color:#4f46e5;">G</span>
+          <div style="flex:1;">
+            <div style="font-weight:600;">Connect your Google account to unlock SOMTool's full calendar, email, and files.</div>
+            <div style="font-size:.88rem; opacity:.85;">One click — Calendar + Meet on the Outreach Calendar, Gmail send-as, Drive Picker, Sheets, Forms, and Contacts.</div>
+          </div>
+          <a class="btn btn-primary" href="{{ url_for('integration_connect', provider='google') }}">Connect Google</a>
+          <form method="post" action="{{ url_for('dismiss_google_banner') }}" style="display:inline;">
+            <button type="submit" class="btn btn-ghost" aria-label="Dismiss">Later</button>
+          </form>
+        </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
   </div>
