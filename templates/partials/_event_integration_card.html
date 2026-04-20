@@ -1,0 +1,63 @@
+{#
+  Per-event integration action card. Consumed by templates/event_detail.html
+  via the `event_integration_cards` list built by
+  integrations.event_actions.event_integrations().
+
+  Expected context:
+    card.slug, card.title, card.icon_char, card.category, card.unlocks
+    card.state ("connected" | "not_connected" | "server_not_configured")
+    card.summary
+    card.connect_url
+    card.docs_url
+    card.actions : list of {"label", "url", "method" ("GET"|"POST"), "primary", "external"}
+    card.external_url (optional)
+    event : the event object (used for the return path)
+#}
+<div class="event-integration-card event-integration-card--{{ card.state }}" data-provider="{{ card.slug }}">
+  <div class="event-integration-card__head">
+    <div class="event-integration-card__logo" aria-hidden="true">{{ card.icon_char }}</div>
+    <div class="event-integration-card__title-wrap">
+      <div class="event-integration-card__title">{{ card.title }}</div>
+      <div class="event-integration-card__cat">{{ card.category }}</div>
+    </div>
+    {% if card.state == 'connected' %}
+      <span class="event-integration-card__pill ok" title="You have this connected">Connected</span>
+    {% elif card.state == 'server_not_configured' %}
+      <span class="event-integration-card__pill miss" title="Server-side keys missing">Not set up</span>
+    {% else %}
+      <span class="event-integration-card__pill neutral">Not connected</span>
+    {% endif %}
+  </div>
+  <div class="event-integration-card__body">{{ card.summary }}</div>
+
+  {% if card.state == 'connected' %}
+    <div class="event-integration-card__actions">
+      {% for a in card.actions %}
+        {% if a.method == 'POST' %}
+          <form method="post" action="{{ a.url }}" style="display:inline;">
+            <button type="submit" class="btn {% if a.primary %}btn-primary{% else %}btn-ghost{% endif %} btn-sm">{{ a.label }}</button>
+          </form>
+        {% else %}
+          <a class="btn {% if a.primary %}btn-primary{% else %}btn-ghost{% endif %} btn-sm" href="{{ a.url }}" {% if a.external %}target="_blank" rel="noopener"{% endif %}>{{ a.label }}{% if a.external %} ↗{% endif %}</a>
+        {% endif %}
+      {% endfor %}
+      {% if card.external_id %}
+        <span class="muted text-xs" style="align-self:center;">ID: <span class="text-mono">{{ card.external_id[:10] }}…</span></span>
+      {% endif %}
+    </div>
+  {% elif card.state == 'not_connected' %}
+    <div class="event-integration-card__actions">
+      <a class="btn btn-primary btn-sm" href="{{ card.connect_url }}">Connect {{ card.title.split(' ')[0] }}</a>
+      {% if card.docs_url %}
+        <a class="btn btn-ghost btn-sm" href="{{ card.docs_url }}" target="_blank" rel="noopener">Docs ↗</a>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="event-integration-card__actions">
+      <button type="button" class="btn btn-ghost btn-sm" disabled title="Server-side OAuth credentials missing">Server setup needed</button>
+      {% if is_admin %}
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('integrations_admin_setup') }}">Finish setup →</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>

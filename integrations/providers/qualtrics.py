@@ -42,6 +42,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="QUALTRICS_API_TOKEN",
     docs_url="https://api.qualtrics.com/",
+    extra_env=["QUALTRICS_DATA_CENTER"],
 )
 register_provider(SPEC)
 

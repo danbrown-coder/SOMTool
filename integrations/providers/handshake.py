@@ -42,6 +42,7 @@ SPEC = ProviderSpec(
     ],
     auth_style="oauth2",
     docs_url="https://joinhandshake-support.com/hc/en-us/articles/218693318-Handshake-API-Documentation",
+    extra_env=["HANDSHAKE_BASE_URL", "HANDSHAKE_INSTITUTION_ID"],
 )
 register_provider(SPEC)
 

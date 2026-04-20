@@ -81,6 +81,7 @@ class ProviderSpec:
     api_key_env: str = ""            # for api_key-style providers
     docs_url: str = ""
     webhook_secret_env: str = ""
+    extra_env: list[str] = field(default_factory=list)  # extra env vars required by this provider (e.g. base URLs, tenant IDs)
 
     def client_id(self) -> str:
         return os.environ.get(self.client_id_env, "").strip()

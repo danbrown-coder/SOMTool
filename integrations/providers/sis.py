@@ -52,6 +52,14 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="CAMPUS_SIS",
     docs_url="https://resources.ellucian.com/ethos",
+    extra_env=[
+        "CAMPUS_SIS_BASE_URL",
+        "CAMPUS_SIS_USERNAME",
+        "CAMPUS_SIS_PASSWORD",
+        "CAMPUS_SIS_TENANT",
+        "CAMPUS_SIS_CLIENT_ID",
+        "CAMPUS_SIS_CLIENT_SECRET",
+    ],
 )
 register_provider(SPEC)
 

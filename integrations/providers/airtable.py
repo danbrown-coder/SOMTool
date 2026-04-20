@@ -41,6 +41,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="AIRTABLE_PAT",
     docs_url="https://airtable.com/developers/web/api/introduction",
+    extra_env=["AIRTABLE_BASE_ID"],
 )
 register_provider(SPEC)
 

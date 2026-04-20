@@ -38,6 +38,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="CLICKUP_API_TOKEN",
     docs_url="https://clickup.com/api",
+    extra_env=["CLICKUP_LIST_ID"],
 )
 register_provider(SPEC)
 

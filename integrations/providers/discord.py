@@ -40,6 +40,7 @@ SPEC = ProviderSpec(
     is_popular=True,
     auth_style="oauth2",
     docs_url="https://discord.com/developers/docs/intro",
+    extra_env=["DISCORD_BOT_TOKEN"],
 )
 register_provider(SPEC)
 

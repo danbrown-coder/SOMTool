@@ -116,6 +116,81 @@ def missing_scopes(user_id: str, provider: str, required: list[str]) -> list[str
     return [s for s in required if s not in granted]
 
 
+CATEGORY_LABELS = dict(CATEGORIES)
+
+
+def setup_status() -> list[dict]:
+    """Return a per-provider setup checklist.
+
+    Each row has::
+        {
+          "slug": str,
+          "display_name": str,
+          "category": str,
+          "category_label": str,
+          "auth_style": str,
+          "configured": bool,
+          "docs_url": str,
+          "env_vars": [{"name": str, "set": bool, "required": bool}, ...],
+        }
+
+    Never returns env-var *values* — only whether each key is present. Admins
+    see this via `GET /admin/setup`.
+    """
+    import os
+
+    rows: list[dict] = []
+    for spec in PROVIDERS.values():
+        env_specs: list[tuple[str, bool]] = []  # (name, required)
+        if spec.auth_style == "oauth2":
+            for attr in ("client_id_env", "client_secret_env", "redirect_uri_env"):
+                v = getattr(spec, attr, "") or ""
+                if v:
+                    env_specs.append((v, True))
+        elif spec.auth_style == "api_key":
+            if getattr(spec, "api_key_env", ""):
+                env_specs.append((spec.api_key_env, True))
+        else:
+            # custom / bot_token / basic: client_id_env (if set) drives
+            # configured(). Treat it as required; everything else optional.
+            cid = getattr(spec, "client_id_env", "") or ""
+            if cid:
+                env_specs.append((cid, True))
+        for extra in getattr(spec, "extra_env", []) or []:
+            if extra and not any(e == extra for e, _ in env_specs):
+                env_specs.append((extra, False))
+        # Webhook secret, if any, is always optional (webhooks just won't verify).
+        wh = getattr(spec, "webhook_secret_env", "") or ""
+        if wh and not any(e == wh for e, _ in env_specs):
+            env_specs.append((wh, False))
+
+        env_vars = [
+            {"name": name, "set": bool(os.environ.get(name, "").strip()), "required": required}
+            for name, required in env_specs
+        ]
+
+        rows.append({
+            "slug": spec.slug,
+            "display_name": spec.display_name,
+            "category": spec.category,
+            "category_label": CATEGORY_LABELS.get(spec.category, spec.category.title()),
+            "auth_style": spec.auth_style,
+            "configured": spec.configured(),
+            "docs_url": getattr(spec, "docs_url", ""),
+            "env_vars": env_vars,
+            "is_default": bool(getattr(spec, "is_default", False)),
+        })
+
+    # Default-layer (Google) first, then alphabetical by category + name.
+    cat_order = {cat: i for i, (cat, _) in enumerate(CATEGORIES)}
+    rows.sort(key=lambda r: (
+        0 if r["is_default"] else 1,
+        cat_order.get(r["category"], 99),
+        r["display_name"].lower(),
+    ))
+    return rows
+
+
 # Side-effect: import provider modules so they register. Keep at bottom
 # to avoid circular imports.
 from . import google  # noqa: E402,F401

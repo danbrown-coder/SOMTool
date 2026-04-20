@@ -720,7 +720,7 @@
   <h3 style="margin-top:0;">Integrations &amp; Files</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;">
     <div>
-      <div class="muted text-sm">Google Calendar</div>
+      <div class="muted text-sm" style="margin-bottom:.35rem;">Google Calendar</div>
       {% if google_connected %}
         <form method="post" action="{{ url_for('sync_event_to_calendar_route', event_id=event.id) }}" style="margin-top:.4rem;">
           <button type="submit" class="btn btn-primary">{% if event.gcal_event_id %}Re-sync to my Calendar{% else %}Sync to my Calendar{% endif %}</button>
@@ -729,12 +729,19 @@
           <div class="text-sm muted mt-1">Linked: <span class="text-mono">{{ event.gcal_event_id[:10] }}…</span></div>
         {% endif %}
       {% else %}
-        <p class="text-sm muted" style="margin:.4rem 0;">Connect Google in <a href="{{ url_for('integrations_settings') }}">Settings → Integrations</a> to sync.</p>
+        {% with provider='google',
+                title='Google Calendar',
+                body='Two-way sync this event with your calendar and auto-attach a Meet link.',
+                icon_char='G',
+                next_url=request.path,
+                configured=google_configured %}
+          {% include 'partials/_integration_empty_state.html' %}
+        {% endwith %}
       {% endif %}
     </div>
 
     <div>
-      <div class="muted text-sm">Import from Google Drive</div>
+      <div class="muted text-sm" style="margin-bottom:.35rem;">Import from Google Drive</div>
       {% if google_connected %}
         <form method="post" action="{{ url_for('import_from_drive_route', event_id=event.id) }}" style="margin-top:.4rem;display:flex;gap:.4rem;">
           <input type="text" name="drive_file" placeholder="Drive file ID or share URL" style="flex:1;">
@@ -742,7 +749,8 @@
         </form>
         <p class="text-xs muted mt-1">Works with CSVs (auto-adds contacts) and other files (stored on the event).</p>
       {% else %}
-        <p class="text-sm muted" style="margin:.4rem 0;">Connect Google to import files from Drive.</p>
+        {# Empty state reuses the Google Calendar connect above — don't double-prompt. #}
+        <p class="text-sm muted" style="margin:.4rem 0;">Connect Google (card above) to import CSV attendee lists and flyers straight from Drive.</p>
       {% endif %}
     </div>
 
@@ -756,8 +764,57 @@
     </div>
   </div>
 
+  {% if event_integration_cards %}
+  <div style="margin-top:1.25rem;">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:.75rem;">
+      <h4 style="margin:0; font-size:1rem;">Provider actions</h4>
+      <a href="{{ url_for('integrations_settings') }}" class="text-sm muted">Manage all integrations →</a>
+    </div>
+    <p class="muted text-sm" style="margin:.2rem 0 0;">These cards light up as you connect providers. Connected ones post or publish on click; the rest explain what they unlock.</p>
+
+    {% set _connected_cards = event_integration_cards | selectattr('state', 'equalto', 'connected') | list %}
+    {% set _available_cards = event_integration_cards | selectattr('state', 'equalto', 'not_connected') | list %}
+    {% set _pending_cards = event_integration_cards | selectattr('state', 'equalto', 'server_not_configured') | list %}
+
+    {% if _connected_cards %}
+    <div class="event-integration-grid">
+      <div class="event-integration-grid__section-title">Ready to use</div>
+      {% for card in _connected_cards %}
+        {% include 'partials/_event_integration_card.html' %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if _available_cards %}
+    <details style="margin-top:1rem;" {% if not _connected_cards %}open{% endif %}>
+      <summary style="cursor:pointer; font-weight:600; color:var(--text-subtle); font-size:.85rem;">
+        Connect more tools ({{ _available_cards|length }})
+      </summary>
+      <div class="event-integration-grid">
+        {% for card in _available_cards %}
+          {% include 'partials/_event_integration_card.html' %}
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+
+    {% if _pending_cards and is_admin %}
+    <details style="margin-top:.75rem;">
+      <summary style="cursor:pointer; font-weight:600; color:var(--text-subtle); font-size:.85rem;">
+        Needs server setup ({{ _pending_cards|length }})
+      </summary>
+      <div class="event-integration-grid">
+        {% for card in _pending_cards %}
+          {% include 'partials/_event_integration_card.html' %}
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% if event_files %}
-  <div style="margin-top:1rem;">
+  <div style="margin-top:1.25rem;">
     <div class="muted text-sm" style="margin-bottom:.35rem;">Files on this event</div>
     <ul style="list-style:none;padding:0;margin:0;display:grid;gap:.35rem;">
       {% for f in event_files %}

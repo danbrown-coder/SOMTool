@@ -47,6 +47,7 @@ SPEC = ProviderSpec(
     api_key_env="MAILCHIMP_API_KEY",
     docs_url="https://mailchimp.com/developer/marketing/api/",
     webhook_secret_env="MAILCHIMP_WEBHOOK_SECRET",
+    extra_env=["MAILCHIMP_AUDIENCE_ID"],
 )
 register_provider(SPEC)
 

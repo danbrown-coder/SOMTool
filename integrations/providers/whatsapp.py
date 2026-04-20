@@ -40,6 +40,7 @@ SPEC = ProviderSpec(
     api_key_env="TWILIO_AUTH_TOKEN",
     docs_url="https://www.twilio.com/docs/whatsapp",
     webhook_secret_env="TWILIO_AUTH_TOKEN",
+    extra_env=["TWILIO_ACCOUNT_SID", "TWILIO_WHATSAPP_FROM"],
 )
 register_provider(SPEC)
 

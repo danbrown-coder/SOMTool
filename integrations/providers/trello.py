@@ -39,6 +39,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="TRELLO_API_KEY",
     docs_url="https://developer.atlassian.com/cloud/trello/rest/",
+    extra_env=["TRELLO_TOKEN", "TRELLO_LIST_ID"],
 )
 register_provider(SPEC)
 

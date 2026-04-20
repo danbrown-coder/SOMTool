@@ -250,24 +250,55 @@ def inject_integrations_flags():
         GOOGLE_SIGNIN_ENABLED=false).
       - google_banner_show: show the first-run "Connect Google" banner at the
         top of the app to users who haven't connected and haven't dismissed it.
+      - has_any_connection: whether the current user has *any* provider
+        connected. Drives the Overview "Connect your stack" card.
+      - integrations_badge_show: tiny dot on the sidebar Integrations link when
+        the user has zero connections and the server is configured for at
+        least one provider.
+      - encryption_key_set: whether INTEGRATIONS_ENCRYPTION_KEY is present.
+        Used by empty-state partials to explain "server not set up" vs
+        "not connected yet".
+      - is_admin: convenience flag so templates can conditionally show
+        admin-only links (e.g. Server setup).
     """
     signin_opt = os.environ.get("GOOGLE_SIGNIN_ENABLED", "").strip().lower()
     signin_enabled = bool(os.environ.get("GOOGLE_CLIENT_ID")) and signin_opt not in ("0", "false", "no", "off")
 
     banner_show = False
+    has_any_connection = False
+    badge_show = False
     try:
-        if signin_enabled:
-            uid = auth.current_user_id()
-            if uid and not session.get("google_banner_dismissed"):
-                import integrations
-                if integrations.get_connection(uid, "google") is None:
+        uid = auth.current_user_id()
+        if uid:
+            import integrations
+            conns = integrations.list_user_connections(uid)
+            has_any_connection = bool(conns)
+            if signin_enabled and not session.get("google_banner_dismissed"):
+                if not any(c.provider == "google" for c in conns):
                     banner_show = True
+            if not has_any_connection:
+                specs = integrations.list_providers().values()
+                if any(getattr(s, "configured", lambda: False)() for s in specs):
+                    badge_show = True
     except Exception:
         banner_show = False
+
+    user = None
+    try:
+        uid = auth.current_user_id()
+        if uid:
+            user = auth.get_user_by_id(uid)
+    except Exception:
+        user = None
+    is_admin = bool(user and getattr(user, "role", "") == "admin")
 
     return dict(
         google_signin_enabled=signin_enabled,
         google_banner_show=banner_show,
+        has_any_connection=has_any_connection,
+        integrations_badge_show=badge_show,
+        encryption_key_set=bool(os.environ.get("INTEGRATIONS_ENCRYPTION_KEY")),
+        is_admin=is_admin,
     )
 
 
@@ -554,6 +585,75 @@ def onboarding_integrations_submit():
 def dismiss_google_banner():
     session["google_banner_dismissed"] = True
     return redirect(request.referrer or url_for("index"))
+
+
+@app.post("/onboarding/connect-stack/dismiss")
+@login_required
+def dismiss_connect_stack():
+    session["connect_stack_dismissed"] = True
+    return redirect(request.referrer or url_for("index"))
+
+
+# ── Server setup checklist (filled in by Phase 2) ──
+
+
+@app.get("/admin/setup")
+@login_required
+def integrations_admin_setup():
+    """Admin-only: shows which env keys are set vs. missing for each provider.
+
+    Phase 2 renders a full checklist page; until then we gate by role and
+    fall through to a minimal inline rendering so cross-template url_for()
+    references stay valid.
+    """
+    from flask import abort
+
+    if getattr(g.current_user, "role", "") != "admin":
+        abort(403)
+
+    import integrations
+    from integrations.google import SPEC as GOOGLE_SPEC
+
+    rows = integrations.setup_status() if hasattr(integrations, "setup_status") else []
+    core_env = [
+        ("GOOGLE_CLIENT_ID", "Google OAuth client ID (drives default layer + sign-in)"),
+        ("GOOGLE_CLIENT_SECRET", "Google OAuth client secret"),
+        ("GOOGLE_REDIRECT_URI", "Callback URL for Google OAuth (e.g. https://your-host/integrations/google/callback)"),
+        ("INTEGRATIONS_ENCRYPTION_KEY", "Fernet key that encrypts stored OAuth tokens at rest"),
+        ("APP_BASE_URL", "Public base URL (used by webhook signatures + wallet passes)"),
+        ("FLASK_SECRET_KEY", "Session signing secret"),
+    ]
+    core_rows = [
+        {"key": k, "description": d, "set": bool(os.environ.get(k))}
+        for k, d in core_env
+    ]
+
+    fresh_key = session.pop("fresh_encryption_key", None)
+
+    return render_template(
+        "admin_setup.html",
+        rows=rows,
+        core_rows=core_rows,
+        google_configured=GOOGLE_SPEC.configured(),
+        encryption_key_set=bool(os.environ.get("INTEGRATIONS_ENCRYPTION_KEY")),
+        fresh_key=fresh_key,
+    )
+
+
+@app.post("/admin/setup/generate-key")
+@login_required
+def integrations_admin_generate_key():
+    from flask import abort
+
+    if getattr(g.current_user, "role", "") != "admin":
+        abort(403)
+
+    try:
+        from cryptography.fernet import Fernet
+        session["fresh_encryption_key"] = Fernet.generate_key().decode("ascii")
+    except Exception as exc:
+        flash(f"Could not generate key: {exc}", "error")
+    return redirect(url_for("integrations_admin_setup"))
 
 
 @app.get("/integrations/<provider>/connect")
@@ -879,6 +979,25 @@ def stripe_events_webhook():
 
 
 # ── Phase 5: Google Calendar sync + Drive import ────────────
+
+
+@app.post("/events/<event_id>/integrations/<provider>/<action>")
+@login_required
+def event_integration_action(event_id: str, provider: str, action: str):
+    """Dispatch a per-event integration card action to its adapter.
+
+    Handlers live in `integrations.event_actions.run_action` so provider logic
+    stays out of app.py. Every action is guarded by the event's edit role and
+    the user's connection for that provider.
+    """
+    event, _ = _require_event_edit(event_id)
+    if not event:
+        flash("Not allowed.", "info")
+        return redirect(url_for("index"))
+    from integrations.event_actions import run_action
+    ok, msg = run_action(g.current_user.id, event, provider, action, request.form.to_dict(flat=True))
+    flash(msg, "info" if ok else "error")
+    return redirect(url_for("event_detail", event_id=event_id, tab="settings"))
 
 
 @app.post("/events/<event_id>/gcal/sync")
@@ -1624,8 +1743,21 @@ def event_detail(event_id: str):
 
     import integrations as _integrations
     import storage as _storage
+    from integrations.google import SPEC as _GOOGLE_SPEC
     google_connected = _integrations.get_connection(g.current_user.id, "google") is not None
+    google_configured = _GOOGLE_SPEC.configured()
     event_files = _storage.files_for_event(event_id)
+
+    # Per-event integration cards for Phase 3 — list of dicts consumed by
+    # templates/partials/_event_integration_card.html. The function is
+    # import-late so a broken provider module never breaks the page.
+    try:
+        from integrations.event_actions import event_integrations as _event_integrations
+        event_integration_cards = _event_integrations(g.current_user.id, event)
+    except Exception as _exc:  # pragma: no cover
+        import logging
+        logging.getLogger(__name__).warning("event_integrations failed: %s", _exc)
+        event_integration_cards = []
 
     return render_template(
         "event_detail.html",
@@ -1644,7 +1776,9 @@ def event_detail(event_id: str):
         goal_review=goal_review,
         is_past=is_past,
         google_connected=google_connected,
+        google_configured=google_configured,
         event_files=event_files,
+        event_integration_cards=event_integration_cards,
     )
 
 

@@ -39,6 +39,7 @@ SPEC = ProviderSpec(
     ],
     auth_style="oauth2",
     docs_url="https://developer.intuit.com/app/developer/qbo/docs/api/accounting/all-entities/",
+    extra_env=["QUICKBOOKS_REALM_ID"],
 )
 register_provider(SPEC)
 

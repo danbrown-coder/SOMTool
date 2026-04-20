@@ -36,6 +36,27 @@
   </div>
 </section>
 
+{% if not has_any_connection and not session.get('connect_stack_dismissed') %}
+<section class="card connect-stack-card" style="margin:0 0 var(--space-lg) 0; padding:1.1rem 1.25rem; background:linear-gradient(135deg,#eef2ff,#f5f3ff); border:1px solid #c7d2fe;">
+  <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+    <div style="flex-shrink:0; width:44px; height:44px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; color:#4f46e5; box-shadow:0 1px 2px rgba(0,0,0,.05);">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 2v6"/><path d="M15 2v6"/><path d="M4 8h16v4a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6V8z"/><path d="M12 18v4"/></svg>
+    </div>
+    <div style="flex:1; min-width:220px;">
+      <div style="font-weight:600; color:#312e81;">Connect your stack</div>
+      <div style="font-size:.88rem; color:#4338ca; opacity:.9;">Hook up Google Calendar, email, your CRM, or ticketing in a couple of clicks. Every feature that needs one of these will light up automatically.</div>
+    </div>
+    <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+      <a class="btn btn-primary btn-sm" href="{{ url_for('onboarding_integrations') }}">Get started</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('integrations_settings') }}">Browse integrations</a>
+      <form method="post" action="{{ url_for('dismiss_connect_stack') }}" style="display:inline;">
+        <button class="btn btn-ghost btn-sm" type="submit" aria-label="Dismiss">Later</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- ── Attention row ── -->
 <div class="grid-3 mb-3">
   <!-- Today's events -->

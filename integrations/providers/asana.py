@@ -39,6 +39,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="ASANA_PAT",
     docs_url="https://developers.asana.com/docs",
+    extra_env=["ASANA_WORKSPACE_GID", "ASANA_PROJECT_GID"],
 )
 register_provider(SPEC)
 

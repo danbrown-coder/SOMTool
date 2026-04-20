@@ -38,6 +38,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="LINEAR_API_KEY",
     docs_url="https://developers.linear.app/docs/graphql/working-with-the-graphql-api",
+    extra_env=["LINEAR_TEAM_ID"],
 )
 register_provider(SPEC)
 

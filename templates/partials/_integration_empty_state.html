@@ -1,28 +1,57 @@
 {#
-  Reusable empty-state block for an in-app feature that requires an integration.
+  Reusable empty-state card for "this provider is not connected yet".
 
-  Required vars in context:
-    provider  — provider slug (e.g. 'qualtrics')
-    name      — display name (e.g. 'Qualtrics')
-    message   — short explanation of what the integration unlocks
+  Params:
+    provider        : slug ("google", "eventbrite", …) — required
+    title           : short headline (e.g. "Google Calendar") — required
+    body            : one-liner describing what this unlocks — required
+    icon_char       : single character shown in the logo bubble (e.g. "G") — optional
+    next_url        : URL to return to after OAuth — optional, defaults to current page
+    configured      : bool. When False we show "Server keys missing" instead of Connect
+    docs_url        : link to provider docs for admins — optional
+    size            : "sm" | "md" (default "md")
 
-  Optional:
-    icon      — single letter/emoji icon (defaults to first letter of `name`)
-    fallback_html — HTML snippet for the "or use the built-in" link
+  Uses globals:
+    encryption_key_set : from inject_integrations_flags
+    is_admin           : from inject_integrations_flags
 #}
-<div style="border:1px dashed var(--border, #e5e7eb); border-radius:12px; padding:1.1rem 1.25rem;
-            background:#fafafa; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
-  <div style="width:42px; height:42px; border-radius:10px; background:#fff; border:1px solid #e5e7eb;
-              display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.1rem;
-              color:#4f46e5; flex-shrink:0;">
-    {{ icon or (name or provider)[0]|upper }}
+{% set _next = next_url or request.path %}
+{% set _size = size or 'md' %}
+<div class="integration-empty-state integration-empty-state--{{ _size }}" data-provider="{{ provider }}">
+  <div class="integration-empty-state__logo" aria-hidden="true">{{ icon_char or title[:1]|upper }}</div>
+  <div class="integration-empty-state__body">
+    <div class="integration-empty-state__title">{{ title }}</div>
+    <div class="integration-empty-state__desc">{{ body }}</div>
+    {% if configured is defined and not configured %}
+      <div class="integration-empty-state__note warn">
+        Server-side keys for {{ title }} aren't configured yet.
+        {% if is_admin %}
+          <a href="{{ url_for('integrations_admin_setup') }}">Finish server setup →</a>
+        {% else %}
+          Ask an admin to finish setup.
+        {% endif %}
+      </div>
+    {% elif not encryption_key_set %}
+      <div class="integration-empty-state__note warn">
+        <code>INTEGRATIONS_ENCRYPTION_KEY</code> isn't set, so connecting will fail.
+        {% if is_admin %}
+          <a href="{{ url_for('integrations_admin_setup') }}">Finish server setup →</a>
+        {% else %}
+          Ask an admin to finish setup.
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
-  <div style="flex:1; min-width:220px;">
-    <div style="font-weight:600; margin-bottom:.1rem;">Connect {{ name or provider|capitalize }} to enable this</div>
-    <div style="font-size:.88rem; color:#4b5563;">{{ message }}</div>
-  </div>
-  <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-    <a class="btn btn-primary" href="{{ url_for('integration_connect', provider=provider) }}">Connect {{ name or provider|capitalize }}</a>
-    {% if fallback_html %}{{ fallback_html|safe }}{% endif %}
+  <div class="integration-empty-state__actions">
+    {% if configured is defined and not configured %}
+      <button type="button" class="btn btn-ghost" disabled title="Server-side OAuth credentials missing">Not configured</button>
+    {% else %}
+      <a class="btn btn-primary btn-sm" href="{{ url_for('integration_connect', provider=provider) }}?next={{ _next|urlencode }}">
+        Connect {{ title.split(' ')[0] }}
+      </a>
+    {% endif %}
+    {% if docs_url %}
+      <a class="btn btn-ghost btn-sm" href="{{ docs_url }}" target="_blank" rel="noopener">Docs</a>
+    {% endif %}
   </div>
 </div>

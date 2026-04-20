@@ -39,6 +39,7 @@ SPEC = ProviderSpec(
     ],
     auth_style="oauth2",
     docs_url="https://developer.xero.com/documentation/api/accounting/overview",
+    extra_env=["XERO_TENANT_ID"],
 )
 register_provider(SPEC)
 

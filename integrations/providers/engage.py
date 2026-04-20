@@ -42,6 +42,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="CAMPUS_ORG_API_KEY",
     docs_url="",
+    extra_env=["CAMPUS_ORG_PLATFORM", "CAMPUS_ORG_BASE_URL"],
 )
 register_provider(SPEC)
 

@@ -52,6 +52,7 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="25LIVE_API_TOKEN",
     docs_url="https://knowledge25.collegenet.com/display/WSR25/",
+    extra_env=["25LIVE_BASE_URL", "25LIVE_USERNAME", "25LIVE_PASSWORD"],
 )
 register_provider(SPEC)
 

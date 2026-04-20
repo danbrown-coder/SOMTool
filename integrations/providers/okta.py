@@ -40,6 +40,7 @@ SPEC = ProviderSpec(
     ],
     auth_style="oauth2",
     docs_url="https://developer.okta.com/docs/",
+    extra_env=["OKTA_DOMAIN", "OKTA_SCIM_TOKEN"],
 )
 register_provider(SPEC)
 

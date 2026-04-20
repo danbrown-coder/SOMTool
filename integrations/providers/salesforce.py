@@ -46,6 +46,7 @@ SPEC = ProviderSpec(
     ],
     auth_style="oauth2",
     docs_url="https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/intro_rest.htm",
+    extra_env=["SALESFORCE_LOGIN_URL"],
 )
 register_provider(SPEC)
 

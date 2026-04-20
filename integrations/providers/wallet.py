@@ -52,6 +52,13 @@ SPEC = ProviderSpec(
     auth_style="api_key",
     api_key_env="APPLE_WALLET_PASS_TYPE_IDENTIFIER",
     docs_url="https://developer.apple.com/documentation/walletpasses",
+    extra_env=[
+        "APPLE_WALLET_TEAM_ID",
+        "APPLE_WALLET_SIGNER_PEM_PATH",
+        "APPLE_WALLET_WWDR_PEM_PATH",
+        "GOOGLE_WALLET_ISSUER_ID",
+        "GOOGLE_WALLET_SA_JSON",
+    ],
 )
 register_provider(SPEC)
 
