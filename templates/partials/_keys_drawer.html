@@ -1,0 +1,442 @@
+{#
+  Keys drawer: right-side slide-in panel that lets an admin paste the
+  OAuth credentials / API keys / tenant IDs for any provider (or the
+  core layer) directly into the running server. Saves hit /admin/env/*.
+
+  Include this partial ONCE per page. Trigger with:
+      <button onclick="KeysDrawer.open('eventbrite')">Set up keys</button>
+  Passing 'core' as the slug opens the core-layer editor.
+#}
+<style>
+  .keys-scrim { position:fixed; inset:0; background:rgba(17,24,39,.45);
+    opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:1000; }
+  .keys-scrim.open { opacity:1; pointer-events:auto; }
+  .keys-drawer { position:fixed; top:0; right:0; bottom:0; width:min(520px,100vw);
+    background:var(--surface,#fff); box-shadow:-12px 0 32px rgba(0,0,0,.12);
+    transform:translateX(100%); transition:transform .22s ease; z-index:1001;
+    display:flex; flex-direction:column; }
+  .keys-drawer.open { transform:translateX(0); }
+  .keys-head { display:flex; gap:.75rem; align-items:center; padding:1.1rem 1.2rem;
+    border-bottom:1px solid var(--border,#e5e7eb); flex-shrink:0; }
+  .keys-head .icon { width:40px; height:40px; border-radius:10px;
+    background:var(--brand-accent,#4f46e5); color:#fff; display:flex;
+    align-items:center; justify-content:center; font-weight:700; font-size:1rem; flex-shrink:0; }
+  .keys-head h2 { margin:0; font-size:1.1rem; line-height:1.2; }
+  .keys-head .sub { font-size:.8rem; color:var(--muted,#6b7280); margin-top:.15rem; }
+  .keys-head .x { margin-left:auto; background:none; border:0; cursor:pointer;
+    color:var(--muted,#6b7280); padding:.4rem; border-radius:6px; }
+  .keys-head .x:hover { background:var(--surface-muted,#f3f4f6); color:#111; }
+
+  .keys-body { flex:1; overflow-y:auto; padding:1.1rem 1.2rem 1.5rem; }
+  .keys-status { display:inline-flex; gap:.35rem; align-items:center; font-size:.75rem;
+    font-weight:600; padding:.2rem .55rem; border-radius:999px; margin-bottom:.85rem; }
+  .keys-status.ok { background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; }
+  .keys-status.off { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
+  .keys-status .dot { width:.45rem; height:.45rem; border-radius:999px; background:currentColor; }
+
+  .keys-desc { font-size:.88rem; color:var(--muted,#6b7280); margin:0 0 1rem; line-height:1.45; }
+
+  .keys-section-title { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted,#6b7280); font-weight:700; margin:1.2rem 0 .55rem; }
+
+  .keys-redirect { display:flex; gap:.4rem; align-items:stretch;
+    background:var(--surface-muted,#f3f4f6); border:1px solid var(--border,#e5e7eb);
+    border-radius:8px; padding:.4rem .45rem .4rem .65rem; margin-bottom:.35rem; }
+  .keys-redirect code { flex:1; font-size:.82rem; word-break:break-all;
+    background:transparent; align-self:center; color:#111; }
+  .keys-redirect button { flex-shrink:0; }
+  .keys-redirect-hint { font-size:.78rem; color:var(--muted,#6b7280); margin:0 0 1rem; }
+
+  .keys-field { margin-bottom:1rem; }
+  .keys-field-label { display:flex; gap:.4rem; align-items:center;
+    font-size:.82rem; font-weight:600; margin-bottom:.3rem; }
+  .keys-field-label .req { font-size:.65rem; color:#b45309; font-weight:700;
+    background:#fffbeb; border:1px solid #fde68a; padding:.05rem .4rem; border-radius:999px; }
+  .keys-field-label .opt { font-size:.65rem; color:#6b7280; font-weight:600;
+    background:#f3f4f6; padding:.05rem .4rem; border-radius:999px; }
+  .keys-field-label code { font-size:.7rem; background:var(--surface-muted,#f3f4f6);
+    padding:.05rem .35rem; border-radius:4px; color:#4b5563; font-weight:500; }
+  .keys-input-wrap { display:flex; gap:.3rem; }
+  .keys-input-wrap input { flex:1; padding:.5rem .65rem; border:1px solid var(--border,#e5e7eb);
+    border-radius:8px; font-size:.88rem; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; background:#fff; }
+  .keys-input-wrap input:focus { outline:2px solid var(--brand-accent,#4f46e5); outline-offset:-2px; border-color:var(--brand-accent,#4f46e5); }
+  .keys-input-wrap input::placeholder { color:#9ca3af; font-family:inherit; }
+  .keys-input-wrap button { flex-shrink:0; padding:.45rem .55rem; background:var(--surface-muted,#f3f4f6);
+    border:1px solid var(--border,#e5e7eb); border-radius:8px; cursor:pointer; font-size:.75rem; }
+  .keys-input-wrap button:hover { background:#e5e7eb; }
+  .keys-field-hint { font-size:.75rem; color:var(--muted,#6b7280); margin:.3rem 0 0; line-height:1.4; }
+  .keys-field-hint.set { color:#047857; }
+
+  .keys-steps { margin:.2rem 0 0; padding-left:1.2rem; font-size:.85rem; color:#374151; line-height:1.55; }
+  .keys-steps li { margin-bottom:.3rem; }
+  .keys-docs-link { display:inline-flex; align-items:center; gap:.35rem;
+    margin-top:.7rem; font-size:.82rem; color:var(--brand-accent,#4f46e5); text-decoration:none; }
+  .keys-docs-link:hover { text-decoration:underline; }
+
+  .keys-foot { flex-shrink:0; display:flex; gap:.45rem; padding:.9rem 1.2rem;
+    border-top:1px solid var(--border,#e5e7eb); background:var(--surface,#fff); }
+  .keys-foot .flex { flex:1; }
+  .keys-msg { font-size:.8rem; padding:.45rem .65rem; border-radius:8px; margin-top:.1rem;
+    display:none; }
+  .keys-msg.ok { display:block; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+  .keys-msg.err { display:block; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+  .keys-msg.info { display:block; background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; }
+
+  @media (max-width:640px) {
+    .keys-drawer { width:100%; }
+    .keys-head { padding:.85rem 1rem; }
+    .keys-body { padding:.85rem 1rem 1.25rem; }
+    .keys-foot { padding:.7rem 1rem; }
+  }
+</style>
+
+<div id="keys-scrim" class="keys-scrim" onclick="KeysDrawer.close()"></div>
+<aside id="keys-drawer" class="keys-drawer" role="dialog" aria-modal="true" aria-labelledby="keys-title" aria-hidden="true">
+  <header class="keys-head">
+    <div id="keys-icon" class="icon">K</div>
+    <div style="min-width:0;">
+      <h2 id="keys-title">Set up keys</h2>
+      <div id="keys-subtitle" class="sub"></div>
+    </div>
+    <button type="button" class="x" aria-label="Close" onclick="KeysDrawer.close()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+  </header>
+
+  <div class="keys-body" id="keys-body">
+    <div id="keys-loading" style="padding:2rem 0; text-align:center; color:#6b7280; font-size:.9rem;">Loading…</div>
+    <div id="keys-content" style="display:none;">
+      <div id="keys-status-row"></div>
+      <p id="keys-desc" class="keys-desc"></p>
+
+      <div id="keys-redirect-block" style="display:none;">
+        <div class="keys-section-title">Redirect URI for this install</div>
+        <div class="keys-redirect">
+          <code id="keys-redirect-uri"></code>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="KeysDrawer.copyRedirect()">Copy</button>
+        </div>
+        <p id="keys-redirect-hint" class="keys-redirect-hint"></p>
+      </div>
+
+      <div class="keys-section-title">Keys</div>
+      <form id="keys-form" onsubmit="return KeysDrawer.save(event)"></form>
+
+      <div id="keys-steps-block" style="display:none;">
+        <div class="keys-section-title">How to get these</div>
+        <ol id="keys-steps" class="keys-steps"></ol>
+        <a id="keys-docs" class="keys-docs-link" href="#" target="_blank" rel="noopener">Open provider docs
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="keys-foot">
+    <div class="flex">
+      <div id="keys-msg" class="keys-msg" role="status"></div>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="KeysDrawer.clearAll()">Clear</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="KeysDrawer.test()">Test</button>
+    <button type="button" class="btn btn-primary btn-sm" onclick="KeysDrawer.save(event)">Save keys</button>
+  </div>
+</aside>
+
+<script>
+(function() {
+  var state = { slug: null, data: null, revealed: false };
+
+  function $(id) { return document.getElementById(id); }
+  function setMsg(kind, text) {
+    var el = $('keys-msg');
+    el.className = 'keys-msg ' + (kind || '');
+    el.textContent = text || '';
+  }
+  function clearMsg() { setMsg('', ''); }
+
+  function renderFields(fields) {
+    var form = $('keys-form');
+    form.innerHTML = '';
+    fields.forEach(function(f) {
+      var row = document.createElement('div');
+      row.className = 'keys-field';
+      var label = document.createElement('div');
+      label.className = 'keys-field-label';
+      label.innerHTML =
+        '<span>' + (f.label || f.name) + '</span>' +
+        (f.required ? '<span class="req">required</span>' : '<span class="opt">optional</span>') +
+        '<code>' + f.name + '</code>';
+      row.appendChild(label);
+
+      var wrap = document.createElement('div');
+      wrap.className = 'keys-input-wrap';
+      var input = document.createElement('input');
+      input.type = f.secret ? 'password' : 'text';
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      input.dataset.envName = f.name;
+      input.dataset.secret = f.secret ? '1' : '0';
+      input.value = f.value || '';
+      if (!input.value && f.is_set) {
+        input.placeholder = f.masked + '  (leave empty to keep)';
+      } else if (!input.value) {
+        input.placeholder = 'Paste value here';
+      }
+      wrap.appendChild(input);
+
+      if (f.secret) {
+        var eye = document.createElement('button');
+        eye.type = 'button';
+        eye.title = 'Show / hide';
+        eye.textContent = 'Show';
+        eye.onclick = function() {
+          if (input.type === 'password') { input.type = 'text'; eye.textContent = 'Hide'; }
+          else { input.type = 'password'; eye.textContent = 'Show'; }
+        };
+        wrap.appendChild(eye);
+      }
+
+      var paste = document.createElement('button');
+      paste.type = 'button';
+      paste.title = 'Paste from clipboard';
+      paste.textContent = 'Paste';
+      paste.onclick = function() {
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+          setMsg('info', 'Your browser blocks clipboard read. Paste with Ctrl/Cmd+V instead.');
+          input.focus();
+          return;
+        }
+        navigator.clipboard.readText().then(function(v) {
+          input.value = v;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }).catch(function() {
+          setMsg('info', 'Clipboard access denied. Use Ctrl/Cmd+V in the field.');
+        });
+      };
+      wrap.appendChild(paste);
+
+      if (f.name === 'INTEGRATIONS_ENCRYPTION_KEY') {
+        var gen = document.createElement('button');
+        gen.type = 'button';
+        gen.title = 'Generate a fresh Fernet key';
+        gen.textContent = 'Generate';
+        gen.onclick = function() {
+          gen.disabled = true;
+          fetch('/admin/env/generate-fernet', { method: 'POST', headers: { 'Accept': 'application/json' } })
+            .then(function(r) { return r.json(); })
+            .then(function(j) {
+              gen.disabled = false;
+              if (j && j.ok) {
+                input.type = 'text';
+                input.value = j.key;
+                setMsg('ok', 'New Fernet key generated. Click Save keys to persist it.');
+              } else {
+                setMsg('err', (j && j.error) || 'Could not generate key.');
+              }
+            }).catch(function() { gen.disabled = false; setMsg('err', 'Network error generating key.'); });
+        };
+        wrap.appendChild(gen);
+      }
+
+      row.appendChild(wrap);
+
+      var hint = document.createElement('p');
+      hint.className = 'keys-field-hint' + (f.is_set ? ' set' : '');
+      if (f.hint) { hint.textContent = f.hint; }
+      else if (f.is_set) { hint.textContent = 'Currently set to ' + f.masked + '. Type a new value to replace it.'; }
+      else if (f.help) { hint.textContent = f.help; }
+      row.appendChild(hint);
+
+      form.appendChild(row);
+    });
+  }
+
+  function renderSteps(steps, docsUrl) {
+    var block = $('keys-steps-block');
+    if (!steps || !steps.length) { block.style.display = 'none'; return; }
+    block.style.display = '';
+    var ol = $('keys-steps'); ol.innerHTML = '';
+    steps.forEach(function(s) { var li = document.createElement('li'); li.textContent = s; ol.appendChild(li); });
+    var a = $('keys-docs');
+    if (docsUrl) { a.href = docsUrl; a.style.display = ''; } else { a.style.display = 'none'; }
+  }
+
+  function renderStatus(configured) {
+    var el = $('keys-status-row');
+    if (configured) {
+      el.innerHTML = '<span class="keys-status ok"><span class="dot"></span>Configured</span>';
+    } else {
+      el.innerHTML = '<span class="keys-status off"><span class="dot"></span>Missing required keys</span>';
+    }
+  }
+
+  function renderProvider(p) {
+    state.data = p;
+    $('keys-title').textContent = p.display_name || 'Set up keys';
+    $('keys-subtitle').textContent = p.description || '';
+    $('keys-icon').textContent = (p.icon_emoji || (p.display_name ? p.display_name.charAt(0).toUpperCase() : 'K'));
+    $('keys-desc').textContent = p.description || '';
+    renderStatus(p.configured);
+    if (p.redirect_uri) {
+      $('keys-redirect-block').style.display = '';
+      $('keys-redirect-uri').textContent = p.redirect_uri;
+      $('keys-redirect-hint').textContent = p.redirect_hint || '';
+    } else {
+      $('keys-redirect-block').style.display = 'none';
+    }
+    renderFields(p.fields || []);
+    renderSteps(p.steps || [], p.docs_url || '');
+    $('keys-loading').style.display = 'none';
+    $('keys-content').style.display = '';
+  }
+
+  function renderCore(fields) {
+    state.data = { slug: 'core', fields: fields, configured: fields.every(function(f){ return !f.required || f.is_set; }) };
+    $('keys-title').textContent = 'Core layer';
+    $('keys-subtitle').textContent = 'Shared keys every integration relies on.';
+    $('keys-icon').textContent = 'SO';
+    $('keys-desc').textContent = 'These values drive Google OAuth, Google sign-in, token encryption, and session signing.';
+    renderStatus(state.data.configured);
+    $('keys-redirect-block').style.display = 'none';
+    renderFields(fields);
+    renderSteps([
+      'Google Client ID / Secret / Redirect come from console.cloud.google.com -> APIs & Services -> Credentials.',
+      'The Fernet key can be generated with the button next to INTEGRATIONS_ENCRYPTION_KEY.',
+      'APP_BASE_URL and FLASK_SECRET_KEY are safe to set at any time.',
+    ], 'https://console.cloud.google.com/apis/credentials');
+    $('keys-loading').style.display = 'none';
+    $('keys-content').style.display = '';
+  }
+
+  function load(slug) {
+    state.slug = slug;
+    $('keys-loading').style.display = '';
+    $('keys-content').style.display = 'none';
+    clearMsg();
+    var url = slug === 'core' ? '/admin/env/core' : '/admin/env/' + encodeURIComponent(slug);
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+      .then(function(r) { return r.json(); })
+      .then(function(j) {
+        if (!j || !j.ok) { setMsg('err', (j && j.error) || 'Could not load provider.'); return; }
+        if (slug === 'core') renderCore(j.fields);
+        else renderProvider(j.provider);
+      }).catch(function() { setMsg('err', 'Network error loading provider.'); });
+  }
+
+  function collectValues() {
+    var out = {};
+    document.querySelectorAll('#keys-form input[data-env-name]').forEach(function(inp) {
+      out[inp.dataset.envName] = inp.value;
+    });
+    return out;
+  }
+
+  function open(slug) {
+    document.body.style.overflow = 'hidden';
+    $('keys-scrim').classList.add('open');
+    $('keys-drawer').classList.add('open');
+    $('keys-drawer').setAttribute('aria-hidden', 'false');
+    load(slug);
+  }
+
+  function close() {
+    document.body.style.overflow = '';
+    $('keys-scrim').classList.remove('open');
+    $('keys-drawer').classList.remove('open');
+    $('keys-drawer').setAttribute('aria-hidden', 'true');
+    state.slug = null; state.data = null;
+  }
+
+  function save(ev) {
+    if (ev && ev.preventDefault) ev.preventDefault();
+    if (!state.slug) return false;
+    var values = collectValues();
+    var payload = {};
+    Object.keys(values).forEach(function(k) {
+      if (values[k] !== '') payload[k] = values[k];
+    });
+    if (!Object.keys(payload).length) {
+      setMsg('info', 'No changes to save. Type a new value in at least one field.');
+      return false;
+    }
+    clearMsg();
+    var url = state.slug === 'core' ? '/admin/env/core' : '/admin/env/' + encodeURIComponent(state.slug);
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ values: payload })
+    }).then(function(r) { return r.json().then(function(j){ return { r: r, j: j }; }); })
+      .then(function(res) {
+        if (res.j && res.j.ok) {
+          setMsg('ok', 'Saved ' + (res.j.saved || []).length + ' value(s). Changes apply immediately.');
+          // Reload so masked values refresh.
+          if (state.slug === 'core') load('core');
+          else if (res.j.provider) renderProvider(res.j.provider);
+          if (window.KeysDrawer.onSaved) { try { window.KeysDrawer.onSaved(state.slug, res.j); } catch(e){} }
+        } else {
+          setMsg('err', (res.j && res.j.error) || 'Save failed.');
+        }
+      }).catch(function() { setMsg('err', 'Network error saving keys.'); });
+    return false;
+  }
+
+  function test() {
+    if (!state.slug || state.slug === 'core') {
+      setMsg('info', 'Core layer has no test probe. Hit Save, then try Connect on any tile.');
+      return;
+    }
+    clearMsg();
+    fetch('/admin/env/' + encodeURIComponent(state.slug) + '/test', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' }
+    }).then(function(r) { return r.json(); })
+      .then(function(j) {
+        if (j.ok) setMsg('ok', j.detail || 'Looks good.');
+        else setMsg('err', j.detail || j.error || 'Test failed.');
+      }).catch(function() { setMsg('err', 'Network error running test.'); });
+  }
+
+  function clearAll() {
+    if (!state.slug || state.slug === 'core') {
+      setMsg('info', 'Core-layer values are required. Edit individual fields instead.');
+      return;
+    }
+    if (!confirm('Clear every key for this provider? This immediately disconnects anyone using it.')) return;
+    fetch('/admin/env/' + encodeURIComponent(state.slug) + '/clear', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' }
+    }).then(function(r) { return r.json(); })
+      .then(function(j) {
+        if (j && j.ok) {
+          renderProvider(j.provider);
+          setMsg('ok', 'All keys cleared.');
+          if (window.KeysDrawer.onSaved) { try { window.KeysDrawer.onSaved(state.slug, j); } catch(e){} }
+        } else {
+          setMsg('err', (j && j.error) || 'Clear failed.');
+        }
+      }).catch(function() { setMsg('err', 'Network error clearing keys.'); });
+  }
+
+  function copyRedirect() {
+    var val = $('keys-redirect-uri').textContent || '';
+    if (!val) return;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(val).then(function() { setMsg('ok', 'Redirect URI copied.'); });
+    } else {
+      var r = document.createRange(); r.selectNode($('keys-redirect-uri'));
+      window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+      document.execCommand('copy'); window.getSelection().removeAllRanges();
+      setMsg('ok', 'Redirect URI copied.');
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && $('keys-drawer').classList.contains('open')) close();
+  });
+
+  window.KeysDrawer = {
+    open: open, close: close, save: save, test: test,
+    clearAll: clearAll, copyRedirect: copyRedirect,
+    onSaved: null,
+  };
+})();
+</script>

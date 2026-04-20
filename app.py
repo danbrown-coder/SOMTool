@@ -53,6 +53,14 @@ import brand_manager
 import observability
 
 load_dotenv()
+try:
+    from integrations import env_store as _env_store
+    _env_store.load(override=True)
+except Exception as _env_store_exc:  # pragma: no cover - never fatal
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "integrations.env_store failed to load: %s", _env_store_exc
+    )
 
 observability.init_sentry()
 observability.init_posthog()
@@ -654,6 +662,262 @@ def integrations_admin_generate_key():
     except Exception as exc:
         flash(f"Could not generate key: {exc}", "error")
     return redirect(url_for("integrations_admin_setup"))
+
+
+# ── Runtime secrets editor (Phase 1: make missing keys fixable in-app) ──
+
+
+def _require_admin():
+    """Gate admin-only routes. Returns ``None`` on success, a Flask
+    response on failure (403 JSON or redirect)."""
+    from flask import abort
+    if getattr(g.current_user, "role", "") != "admin":
+        if request.accept_mimetypes.best == "application/json" or request.is_json:
+            return jsonify({"ok": False, "error": "forbidden"}), 403
+        abort(403)
+    return None
+
+
+def _provider_env_payload(spec, *, reveal: bool = False) -> dict:
+    """Shape a ProviderSpec + env_store data into the JSON blob the keys
+    drawer consumes."""
+    from integrations import env_store
+    from integrations import provider_setup_docs as docs_mod
+
+    fields_raw = env_store.provider_fields(spec)
+    docs = docs_mod.get(spec.slug)
+    hints = docs.get("field_hints") or {}
+
+    fields_out = []
+    for f in fields_raw:
+        fields_out.append({
+            "name": f["name"],
+            "label": f["label"],
+            "required": f["required"],
+            "secret": f["secret"],
+            "masked": f["masked"],
+            "value": f["value"] if reveal else "",
+            "is_set": bool(f["value"]),
+            "hint": hints.get(f["name"], ""),
+        })
+
+    # Canonical redirect URI for OAuth providers.
+    redirect_uri = ""
+    if getattr(spec, "auth_style", "") == "oauth2":
+        try:
+            redirect_uri = url_for(
+                "integration_callback", provider=spec.slug, _external=True
+            )
+        except Exception:
+            redirect_uri = ""
+
+    return {
+        "slug": spec.slug,
+        "display_name": spec.display_name,
+        "auth_style": spec.auth_style,
+        "category": getattr(spec, "category", "other"),
+        "description": spec.description,
+        "icon_emoji": getattr(spec, "icon_emoji", ""),
+        "docs_url": docs.get("docs_url") or getattr(spec, "docs_url", ""),
+        "redirect_hint": docs.get("redirect_hint", ""),
+        "steps": docs.get("steps") or [],
+        "fields": fields_out,
+        "redirect_uri": redirect_uri,
+        "configured": bool(spec.configured()),
+    }
+
+
+@app.get("/admin/env/<provider>")
+@login_required
+def admin_env_get(provider: str):
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    import integrations
+    spec = integrations.get_provider(provider)
+    if spec is None:
+        return jsonify({"ok": False, "error": "unknown_provider"}), 404
+    reveal = request.args.get("reveal") == "1" and session.get("env_reveal_confirmed")
+    return jsonify({"ok": True, "provider": _provider_env_payload(spec, reveal=reveal)})
+
+
+@app.post("/admin/env/<provider>")
+@login_required
+def admin_env_set(provider: str):
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    import integrations
+    from integrations import env_store
+
+    spec = integrations.get_provider(provider)
+    if spec is None:
+        return jsonify({"ok": False, "error": "unknown_provider"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    raw_updates = payload.get("values") if isinstance(payload, dict) else None
+    if not isinstance(raw_updates, dict):
+        return jsonify({"ok": False, "error": "bad_payload"}), 400
+
+    allowed = {f["name"] for f in env_store.provider_fields(spec)}
+    updates: dict[str, str] = {}
+    for k, v in raw_updates.items():
+        if k in allowed:
+            updates[k] = "" if v is None else str(v)
+    if not updates:
+        return jsonify({"ok": False, "error": "no_known_fields"}), 400
+
+    try:
+        env_store.set_many(updates)
+    except Exception as exc:  # pragma: no cover
+        app.logger.error("env_store.set_many failed for %s: %s", provider, exc)
+        return jsonify({"ok": False, "error": "write_failed"}), 500
+
+    return jsonify({
+        "ok": True,
+        "saved": sorted(updates.keys()),
+        "provider": _provider_env_payload(spec, reveal=False),
+    })
+
+
+@app.post("/admin/env/<provider>/test")
+@login_required
+def admin_env_test(provider: str):
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    import integrations
+    from integrations import oauth as oauth_mod
+
+    spec = integrations.get_provider(provider)
+    if spec is None:
+        return jsonify({"ok": False, "error": "unknown_provider"}), 404
+
+    if not spec.configured():
+        return jsonify({
+            "ok": False,
+            "detail": "Required keys are still missing. Save them first.",
+        })
+
+    style = getattr(spec, "auth_style", "oauth2")
+    try:
+        if style == "oauth2":
+            state = oauth_mod.make_state()
+            authorize_url = oauth_mod.build_authorize_url(spec, state)
+            return jsonify({
+                "ok": True,
+                "detail": "OAuth keys accepted. Click Connect on the tile to run the full handshake.",
+                "authorize_url": authorize_url,
+            })
+        if style == "api_key":
+            key = spec.api_key()
+            return jsonify({
+                "ok": True,
+                "detail": f"API key is set ({len(key)} chars). Connect to validate against the provider.",
+            })
+        return jsonify({
+            "ok": True,
+            "detail": "Credentials stored. Trigger Connect on the tile to perform a live auth.",
+        })
+    except Exception as exc:  # pragma: no cover
+        return jsonify({"ok": False, "detail": f"Test failed: {exc}"})
+
+
+@app.post("/admin/env/<provider>/clear")
+@login_required
+def admin_env_clear(provider: str):
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    import integrations
+    from integrations import env_store
+    spec = integrations.get_provider(provider)
+    if spec is None:
+        return jsonify({"ok": False, "error": "unknown_provider"}), 404
+    fields = env_store.provider_fields(spec)
+    try:
+        env_store.set_many({f["name"]: "" for f in fields})
+    except Exception as exc:  # pragma: no cover
+        app.logger.error("env_store clear failed for %s: %s", provider, exc)
+        return jsonify({"ok": False, "error": "write_failed"}), 500
+    return jsonify({"ok": True, "provider": _provider_env_payload(spec, reveal=False)})
+
+
+@app.get("/admin/env/core")
+@login_required
+def admin_env_core_get():
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    from integrations import env_store
+    reveal = request.args.get("reveal") == "1" and session.get("env_reveal_confirmed")
+    fields = []
+    for f in env_store.core_fields():
+        fields.append({
+            "name": f["name"],
+            "label": f["label"],
+            "required": f["required"],
+            "secret": f["secret"],
+            "help": f["help"],
+            "masked": f["masked"],
+            "value": f["value"] if reveal else "",
+            "is_set": bool(f["value"]),
+        })
+    return jsonify({"ok": True, "fields": fields})
+
+
+@app.post("/admin/env/core")
+@login_required
+def admin_env_core_set():
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    from integrations import env_store
+    payload = request.get_json(silent=True) or {}
+    raw_updates = payload.get("values") if isinstance(payload, dict) else None
+    if not isinstance(raw_updates, dict):
+        return jsonify({"ok": False, "error": "bad_payload"}), 400
+    allowed = {f["name"] for f in env_store.CORE_FIELDS}
+    updates = {k: ("" if v is None else str(v)) for k, v in raw_updates.items() if k in allowed}
+    if not updates:
+        return jsonify({"ok": False, "error": "no_known_fields"}), 400
+    try:
+        env_store.set_many(updates)
+    except Exception as exc:  # pragma: no cover
+        app.logger.error("env_store.set_many (core) failed: %s", exc)
+        return jsonify({"ok": False, "error": "write_failed"}), 500
+    return jsonify({"ok": True, "saved": sorted(updates.keys())})
+
+
+@app.post("/admin/env/generate-fernet")
+@login_required
+def admin_env_generate_fernet():
+    """Return a freshly-generated Fernet key as JSON so the keys drawer
+    can drop it into the INTEGRATIONS_ENCRYPTION_KEY field."""
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    try:
+        from cryptography.fernet import Fernet
+        return jsonify({"ok": True, "key": Fernet.generate_key().decode("ascii")})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+
+@app.post("/admin/env/reveal")
+@login_required
+def admin_env_reveal():
+    """Gate the "show unmasked value" action. Requires the admin to
+    re-confirm once per session -- the UI then passes ``?reveal=1`` on
+    subsequent GETs."""
+    guard = _require_admin()
+    if guard is not None:
+        return guard
+    payload = request.get_json(silent=True) or {}
+    if payload.get("confirm"):
+        session["env_reveal_confirmed"] = True
+        return jsonify({"ok": True})
+    return jsonify({"ok": False}), 400
 
 
 @app.get("/integrations/<provider>/connect")

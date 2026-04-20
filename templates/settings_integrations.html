@@ -58,6 +58,16 @@
     background:#fef3c7; color:#92400e; padding:.12rem .5rem; border-radius:999px; font-weight:600; letter-spacing:.02em; }
 
   .empty-match { padding:2rem; text-align:center; color:var(--muted, #6b7280); }
+
+  /* Hide-unconfigured toggle */
+  .hub-util { display:flex; align-items:center; gap:.4rem; font-size:.82rem; color:#6b7280; }
+  .hub-util label { display:inline-flex; gap:.4rem; align-items:center; cursor:pointer; }
+  .hub-util input { accent-color: var(--brand-accent, #4f46e5); }
+  .hub-util-count { font-variant-numeric: tabular-nums; }
+
+  /* Tile action -- "Set up keys" primary when server keys missing */
+  .btn-setup { background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; }
+  .btn-setup:hover { background:#ffedd5; border-color:#fdba74; }
 </style>
 {% endblock %}
 {% block content %}
@@ -71,7 +81,13 @@
     <input id="hub-search-input" type="search" placeholder="Search integrations…" aria-label="Search integrations">
   </div>
   {% if is_admin %}
-  <div>
+  <div style="display:flex; gap:.5rem; align-items:center;">
+    <div class="hub-util">
+      <label title="Only show integrations whose server-side keys are already configured">
+        <input type="checkbox" id="hub-hide-unconfigured" />
+        Hide unconfigured <span class="hub-util-count" id="hub-hidden-count"></span>
+      </label>
+    </div>
     <a class="btn btn-ghost btn-sm" href="{{ url_for('integrations_admin_setup') }}">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="vertical-align:-2px;margin-right:4px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Server setup
@@ -85,8 +101,11 @@
   <div class="alert-body">
     <strong>INTEGRATIONS_ENCRYPTION_KEY is not set.</strong>
     Until this is configured, connecting a provider will fail.
-    Generate a key with <code>python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"</code>
-    and add it to your environment.
+    {% if is_admin %}
+      <button type="button" class="btn btn-primary btn-sm" style="margin-left:.5rem;" onclick="KeysDrawer.open('core')">Fix in-app</button>
+    {% else %}
+      Ask an admin to open Integrations &rarr; Server setup.
+    {% endif %}
   </div>
 </div>
 {% endif %}
@@ -125,7 +144,11 @@
     {% elif google_spec.configured() %}
       <a class="btn btn-primary" href="{{ url_for('integration_connect', provider='google') }}">Connect Google</a>
     {% else %}
-      <button class="btn btn-ghost" disabled title="GOOGLE_CLIENT_ID / SECRET not configured">Not configured</button>
+      {% if is_admin %}
+        <button type="button" class="btn btn-setup" onclick="KeysDrawer.open('google')">Set up Google</button>
+      {% else %}
+        <button class="btn btn-ghost" disabled title="GOOGLE_CLIENT_ID / SECRET not configured">Not configured</button>
+      {% endif %}
     {% endif %}
   </div>
 </div>
@@ -150,7 +173,11 @@
     <div class="hub-panel" data-cat="{{ cat_slug }}" {% if not loop.first %}style="display:none;"{% endif %}>
       <div class="tile-grid">
         {% for tile in tiles %}
-        <div class="tile {% if tile.connection %}connected{% endif %}" data-name="{{ tile.display_name|lower }}" data-desc="{{ tile.description|lower }} {{ tile.unlocks|join(' ')|lower }}">
+        <div class="tile {% if tile.connection %}connected{% endif %}"
+             data-name="{{ tile.display_name|lower }}"
+             data-desc="{{ tile.description|lower }} {{ tile.unlocks|join(' ')|lower }}"
+             data-slug="{{ tile.slug }}"
+             data-configured="{{ '1' if tile.configured else '0' }}">
           {% if tile.connection %}<span class="tile-green-dot" title="Connected"></span>{% endif %}
           {% if tile.recommended %}<span class="tile-recommended">Recommended</span>{% endif %}
           <div class="tile-head">
@@ -160,9 +187,9 @@
               {% if tile.connection %}
                 <div class="tile-status ok">Connected{% if tile.connection.account_email %} as {{ tile.connection.account_email }}{% endif %}</div>
               {% elif tile.configured %}
-                <div class="tile-status off">Not connected</div>
+                <div class="tile-status off">Ready to connect</div>
               {% else %}
-                <div class="tile-status warn">Server keys missing</div>
+                <div class="tile-status warn" data-status-off>Server keys needed</div>
               {% endif %}
             </div>
           </div>
@@ -173,7 +200,7 @@
           {% elif tile.description %}
           <p class="text-sm muted" style="margin:.35rem 0;">{{ tile.description }}</p>
           {% endif %}
-          <div class="tile-actions">
+          <div class="tile-actions" data-actions>
             {% if tile.connection %}
               <form method="post" action="{{ url_for('integration_disconnect', provider=tile.slug) }}">
                 <button class="btn btn-ghost" type="submit">Disconnect</button>
@@ -181,8 +208,15 @@
               <a class="btn btn-secondary" href="{{ url_for('integration_connect', provider=tile.slug) }}">Reauthorize</a>
             {% elif tile.configured %}
               <a class="btn btn-primary" href="{{ url_for('integration_connect', provider=tile.slug) }}">Connect</a>
+              {% if is_admin %}
+                <button type="button" class="btn btn-ghost" onclick="KeysDrawer.open('{{ tile.slug }}')">Edit keys</button>
+              {% endif %}
             {% else %}
-              <button class="btn btn-ghost" disabled title="Server-side OAuth credentials missing in env">Not configured</button>
+              {% if is_admin %}
+                <button type="button" class="btn btn-setup" onclick="KeysDrawer.open('{{ tile.slug }}')">Set up keys</button>
+              {% else %}
+                <button class="btn btn-ghost" disabled title="Ask an admin to paste the provider's OAuth keys">Awaiting admin</button>
+              {% endif %}
             {% endif %}
             {% if tile.docs_url %}
               <a class="btn btn-ghost" href="{{ tile.docs_url }}" target="_blank" rel="noopener">Docs</a>
@@ -201,6 +235,30 @@
   (function() {
     var tabs = document.querySelectorAll('.hub-tab');
     var panels = document.querySelectorAll('.hub-panel');
+    var hideToggle = document.getElementById('hub-hide-unconfigured');
+
+    function applyFilters() {
+      var q = '';
+      var search = document.getElementById('hub-search-input');
+      if (search) q = (search.value || '').trim().toLowerCase();
+      var hideUnconf = hideToggle && hideToggle.checked;
+      var matches = 0, hidden = 0;
+      document.querySelectorAll('.tile').forEach(function(el) {
+        var name = el.getAttribute('data-name') || '';
+        var desc = el.getAttribute('data-desc') || '';
+        var configured = el.getAttribute('data-configured') === '1';
+        var connected = el.classList.contains('connected');
+        var hit = !q || name.indexOf(q) !== -1 || desc.indexOf(q) !== -1;
+        if (hit && hideUnconf && !configured && !connected) { hit = false; hidden++; }
+        el.style.display = hit ? '' : 'none';
+        if (hit) matches++;
+      });
+      var empty = document.getElementById('hub-empty');
+      if (empty) empty.style.display = matches === 0 ? '' : 'none';
+      var countEl = document.getElementById('hub-hidden-count');
+      if (countEl) countEl.textContent = (hideUnconf && hidden) ? '(' + hidden + ')' : '';
+    }
+
     tabs.forEach(function(t) {
       t.addEventListener('click', function() {
         tabs.forEach(function(x){ x.classList.remove('active'); });
@@ -209,29 +267,72 @@
         panels.forEach(function(p) {
           p.style.display = p.getAttribute('data-cat') === cat ? '' : 'none';
         });
-        document.getElementById('hub-empty').style.display = 'none';
         var input = document.getElementById('hub-search-input');
         if (input) input.value = '';
-        document.querySelectorAll('.tile').forEach(function(el){ el.style.display = ''; });
+        applyFilters();
       });
     });
+
     var search = document.getElementById('hub-search-input');
     if (search) {
       search.addEventListener('input', function() {
-        var q = (search.value || '').trim().toLowerCase();
         panels.forEach(function(p){ p.style.display = ''; });
         tabs.forEach(function(t){ t.classList.remove('active'); });
-        var matches = 0;
-        document.querySelectorAll('.tile').forEach(function(el) {
-          var name = el.getAttribute('data-name') || '';
-          var desc = el.getAttribute('data-desc') || '';
-          var hit = !q || name.indexOf(q) !== -1 || desc.indexOf(q) !== -1;
-          el.style.display = hit ? '' : 'none';
-          if (hit) matches++;
-        });
-        document.getElementById('hub-empty').style.display = matches === 0 ? '' : 'none';
+        applyFilters();
       });
+    }
+
+    if (hideToggle) {
+      try {
+        hideToggle.checked = localStorage.getItem('hub_hide_unconfigured') === '1';
+      } catch (e) {}
+      hideToggle.addEventListener('change', function() {
+        try { localStorage.setItem('hub_hide_unconfigured', hideToggle.checked ? '1' : '0'); } catch (e) {}
+        applyFilters();
+      });
+    }
+    applyFilters();
+
+    // Live-update a tile when its keys are saved in the drawer.
+    if (window.KeysDrawer) {
+      window.KeysDrawer.onSaved = function(slug, payload) {
+        if (!slug || slug === 'core') {
+          // Encryption key / Google core may have changed -- simplest is a soft reload.
+          setTimeout(function(){ window.location.reload(); }, 600);
+          return;
+        }
+        var tile = document.querySelector('.tile[data-slug="' + slug + '"]');
+        if (!tile || !payload || !payload.provider) return;
+        var configured = !!payload.provider.configured;
+        tile.setAttribute('data-configured', configured ? '1' : '0');
+        var statusEl = tile.querySelector('.tile-status');
+        if (statusEl && !tile.classList.contains('connected')) {
+          if (configured) {
+            statusEl.className = 'tile-status off';
+            statusEl.textContent = 'Ready to connect';
+          } else {
+            statusEl.className = 'tile-status warn';
+            statusEl.textContent = 'Server keys needed';
+          }
+        }
+        var actions = tile.querySelector('[data-actions]');
+        if (actions && !tile.classList.contains('connected')) {
+          if (configured) {
+            actions.innerHTML =
+              '<a class="btn btn-primary" href="/integrations/' + slug + '/connect">Connect</a>' +
+              '<button type="button" class="btn btn-ghost" onclick="KeysDrawer.open(\'' + slug + '\')">Edit keys</button>';
+          } else {
+            actions.innerHTML =
+              '<button type="button" class="btn btn-setup" onclick="KeysDrawer.open(\'' + slug + '\')">Set up keys</button>';
+          }
+        }
+        applyFilters();
+      };
     }
   })();
 </script>
+
+{% if is_admin %}
+  {% include 'partials/_keys_drawer.html' %}
+{% endif %}
 {% endblock %}
