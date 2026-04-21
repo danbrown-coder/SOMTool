@@ -526,11 +526,47 @@ def integrations_settings():
 
     google_conn = integrations.get_connection(uid, "google")
 
+    # Summarize the outreach ↔ Google Calendar sync channel for this user so
+    # the template can render a "Calendar sync: Live · last delta N min ago" row.
+    gcal_sync_status: dict = {"enabled": False, "live": False, "detail": ""}
+    webhook_url = (os.environ.get("GCAL_WEBHOOK_URL") or "").strip()
+    gcal_sync_status["enabled"] = bool(webhook_url)
+    if google_conn and webhook_url:
+        try:
+            from db_models import ProviderSyncState as _PSS
+            from db import get_session as _sess_fn
+            with _sess_fn() as _sess:
+                row = (
+                    _sess.query(_PSS)
+                    .filter(
+                        _PSS.connection_id == google_conn.id,
+                        _PSS.resource_type == "calendar_watch",
+                        _PSS.resource_id == "primary",
+                    )
+                    .first()
+                )
+                if row is not None:
+                    meta = dict(row.meta or {})
+                    import time as _time
+                    exp = int(meta.get("expires_at_ms") or 0)
+                    gcal_sync_status["live"] = bool(exp and exp > int(_time.time() * 1000))
+                    if row.last_synced_at:
+                        delta = datetime.now(timezone.utc) - row.last_synced_at
+                        mins = int(delta.total_seconds() / 60)
+                        gcal_sync_status["detail"] = (
+                            "just now" if mins < 1 else
+                            f"{mins} min ago" if mins < 60 else
+                            f"{mins // 60} hr ago"
+                        )
+        except Exception as exc:  # pragma: no cover
+            app.logger.warning("gcal status probe failed: %s", exc)
+
     return render_template(
         "settings_integrations.html",
         google_spec=GOOGLE_SPEC,
         google_connection=google_conn,
         google_scope_groups=scope_group_granted_map(uid),
+        gcal_sync_status=gcal_sync_status,
         category_order=integrations.CATEGORIES,
         tiles_by_category=tiles_by_category,
         encryption_key_set=bool(os.environ.get("INTEGRATIONS_ENCRYPTION_KEY")),
@@ -1037,6 +1073,14 @@ def integration_callback(provider: str):
     )
     if provider == "google" and account_id:
         auth.link_google_sub(uid, account_id)
+    # Start the outreach ↔ Google Calendar watch channel the first time a
+    # user grants calendar scope. No-op when GCAL_WEBHOOK_URL is unset.
+    if provider == "google":
+        try:
+            from integrations import google_calendar_sync as gcs
+            gcs.start_watch(uid)
+        except Exception as exc:  # pragma: no cover
+            app.logger.warning("start_watch on connect failed: %s", exc)
     observability.track(
         "integration_connected",
         distinct_id=uid,
@@ -1051,10 +1095,52 @@ def integration_callback(provider: str):
 def integration_disconnect(provider: str):
     import integrations
 
+    if provider == "google":
+        try:
+            from integrations import google_calendar_sync as gcs
+            gcs.stop_watch(g.current_user.id)
+        except Exception as exc:  # pragma: no cover
+            app.logger.warning("stop_watch on disconnect failed: %s", exc)
     integrations.disconnect(g.current_user.id, provider)
     observability.track("integration_disconnected", distinct_id=g.current_user.id, properties={"provider": provider})
     flash("Disconnected.", "info")
     return redirect(url_for("integrations_settings"))
+
+
+# ── Google Calendar push-notification webhook ─────────────────
+#
+# Google pings this URL whenever a watched calendar changes. Requests
+# carry `X-Goog-Channel-ID`, `X-Goog-Channel-Token`, `X-Goog-Resource-
+# State` ("sync"|"exists"|"not_exists") and `X-Goog-Resource-ID`
+# headers but no body. We authenticate by matching the channel token
+# to the one we stashed in provider_sync_state on start_watch.
+
+
+@app.post("/gcal/webhook")
+def gcal_webhook():
+    resource_state = request.headers.get("X-Goog-Resource-State", "")
+    channel_id = request.headers.get("X-Goog-Channel-ID", "")
+    token = request.headers.get("X-Goog-Channel-Token", "")
+
+    try:
+        from integrations import google_calendar_sync as gcs
+    except Exception as exc:  # pragma: no cover
+        app.logger.warning("gcal webhook import failed: %s", exc)
+        return ("", 200)
+
+    meta = gcs.channel_meta_for_token(token)
+    if not meta:
+        app.logger.warning("gcal webhook rejected (unknown token) channel=%s", channel_id)
+        return ("", 401)
+    # The initial "sync" ping just confirms the channel is live.
+    if resource_state == "sync":
+        return ("", 200)
+
+    try:
+        gcs.pull_changes(meta["user_id"])
+    except Exception as exc:  # pragma: no cover
+        app.logger.warning("gcal pull_changes failed: %s", exc)
+    return ("", 200)
 
 
 # ── Phase 6b: SaaS subscription billing ─────────────────────
@@ -3487,6 +3573,52 @@ def _gcal_palette_for(event_ids) -> dict:
     return out
 
 
+# ── Google Calendar sync hooks (thin wrappers) ──────────────
+# Every queue mutation goes through these so the Google side stays
+# in lockstep. They swallow every exception and log to the sync
+# audit trail -- never block the user-facing flow.
+
+
+def _gcal_user_id(action: dict | None = None) -> str:
+    """Pick the user whose calendar should mirror an action.
+
+    Prefers the stamped approver, falls back to the event owner, and
+    lastly the current request user. Returns "" if none are known.
+    """
+    if action and action.get("approved_by_user_id"):
+        return action["approved_by_user_id"]
+    if action and action.get("event_id"):
+        ev = em.get_event(action["event_id"])
+        if ev and getattr(ev, "owner_id", ""):
+            return ev.owner_id
+    try:
+        return g.current_user.id
+    except Exception:
+        return ""
+
+
+def _gcal_push_action(action_id: str, user_id: str | None = None) -> None:
+    try:
+        from integrations import google_calendar_sync as gcs
+        action = outreach_queue.get_by_id(action_id)
+        if not action:
+            return
+        uid = user_id or _gcal_user_id(action)
+        if not uid:
+            return
+        gcs.push_outreach(uid, action)
+    except Exception as exc:  # pragma: no cover - best-effort only
+        app.logger.warning("gcal push for %s failed: %s", action_id, exc)
+
+
+def _gcal_delete_action(action_id: str, user_id: str | None = None) -> None:
+    try:
+        from integrations import google_calendar_sync as gcs
+        gcs.delete_outreach(action_id, user_id=user_id or None)
+    except Exception as exc:  # pragma: no cover
+        app.logger.warning("gcal delete for %s failed: %s", action_id, exc)
+
+
 @app.route("/outreach/schedule")
 @login_required
 def outreach_schedule_page():
@@ -3524,6 +3656,33 @@ def outreach_schedule_page():
         }
         for e in events_sorted
     ]
+    # Pull the Google Calendar mirror metadata (htmlLink, Meet URL)
+    # for each action in a single pass to avoid N-row DB hits.
+    from integrations.sync import list_external_ids as _list_ext  # noqa
+    from db import get_session as _get_session
+    from db_models import ExternalObject as _ExternalObject
+    action_ids = [it.get("id", "") for it in all_items]
+    gcal_meta: dict = {}
+    if action_ids:
+        with _get_session() as _sess:
+            _rows = (
+                _sess.query(_ExternalObject)
+                .filter(
+                    _ExternalObject.entity_type == "outreach_action",
+                    _ExternalObject.provider == "google",
+                    _ExternalObject.entity_id.in_(action_ids),
+                )
+                .all()
+            )
+            gcal_meta = {
+                r.entity_id: {
+                    "external_id": r.external_id,
+                    "html_link": (r.meta or {}).get("html_link", ""),
+                    "meet_url": (r.meta or {}).get("meet_url", ""),
+                }
+                for r in _rows
+            }
+
     gcal_items = [
         {
             "id": it.get("id", ""),
@@ -3537,6 +3696,9 @@ def outreach_schedule_page():
             "preview": (it.get("preview") or "")[:400],
             "ai_reason": (it.get("ai_reason") or "")[:240],
             "color": palette.get(it.get("event_id", ""), "peacock"),
+            "html_link": gcal_meta.get(it.get("id", ""), {}).get("html_link", ""),
+            "meet_url": gcal_meta.get(it.get("id", ""), {}).get("meet_url", ""),
+            "synced": bool(gcal_meta.get(it.get("id", ""))),
         }
         for it in all_items
     ]
@@ -3575,7 +3737,9 @@ def _schedule_redirect():
 @app.post("/outreach/queue/<action_id>/approve")
 @login_required
 def approve_queue_action(action_id: str):
-    outreach_queue.update_status(action_id, "approved")
+    uid = g.current_user.id
+    outreach_queue.update_status(action_id, "approved", approved_by_user_id=uid)
+    _gcal_push_action(action_id, uid)
     flash("Action approved.", "info")
     return _schedule_redirect()
 
@@ -3584,6 +3748,7 @@ def approve_queue_action(action_id: str):
 @login_required
 def skip_queue_action(action_id: str):
     outreach_queue.update_status(action_id, "skipped")
+    _gcal_delete_action(action_id)
     flash("Action skipped.", "info")
     return _schedule_redirect()
 
@@ -3591,6 +3756,7 @@ def skip_queue_action(action_id: str):
 @app.post("/outreach/queue/<action_id>/delete")
 @login_required
 def delete_queue_action(action_id: str):
+    _gcal_delete_action(action_id)
     outreach_queue.delete_action(action_id)
     flash("Action deleted.", "info")
     return _schedule_redirect()
@@ -3607,7 +3773,9 @@ def reschedule_queue_action(action_id: str):
         new_time += "T10:00:00Z"
     elif not new_time.endswith("Z"):
         new_time += "Z"
-    outreach_queue.reschedule(action_id, new_time)
+    uid = g.current_user.id
+    outreach_queue.reschedule(action_id, new_time, approved_by_user_id=uid)
+    _gcal_push_action(action_id, uid)
     flash("Rescheduled and approved.", "info")
     return _schedule_redirect()
 
@@ -3645,6 +3813,7 @@ def regenerate_queue_action(action_id: str):
         return redirect(url_for("outreach_schedule_page"))
     preview = f"Subject: {gen.subject}\n\n{gen.body}"
     outreach_queue.update_preview(action_id, preview)
+    _gcal_push_action(action_id, g.current_user.id)
     flash("Email regenerated with fresh AI content.", "info")
     return _schedule_redirect()
 
@@ -3653,6 +3822,7 @@ def regenerate_queue_action(action_id: str):
 @login_required
 def plan_all_outreach():
     cfg = aic.load_config()
+    uid = g.current_user.id
     total = 0
     for event in em.load_events():
         targets = [
@@ -3666,6 +3836,17 @@ def plan_all_outreach():
         for c in targets:
             _generate_preview_for_queued(event, c)
         total += added
+    # Self-heal: push any auto-approved items that still lack a Google mapping.
+    if total and cfg.get("auto_approve_emails"):
+        from integrations.sync import get_external_id as _gx
+        for item in outreach_queue.load_queue():
+            if item.get("status") != "approved":
+                continue
+            if _gx("outreach_action", item["id"], "google"):
+                continue
+            if not item.get("approved_by_user_id"):
+                outreach_queue.update_status(item["id"], "approved", approved_by_user_id=uid)
+            _gcal_push_action(item["id"], uid)
     flash(f"Planned {total} outreach action(s) across all events.", "info")
     return redirect(url_for("outreach_schedule_page"))
 
@@ -3692,14 +3873,20 @@ def _generate_preview_for_queued(event, contact) -> None:
 @app.post("/outreach/approve-all")
 @login_required
 def approve_all_outreach():
+    uid = g.current_user.id
     items = outreach_queue.load_queue()
+    touched_ids: list[str] = []
     count = 0
     for item in items:
         if item["status"] == "planned":
             item["status"] = "approved"
+            item["approved_by_user_id"] = uid
+            touched_ids.append(item["id"])
             count += 1
     if count:
         outreach_queue.save_queue(items)
+        for aid in touched_ids:
+            _gcal_push_action(aid, uid)
     flash(f"Approved {count} planned action(s).", "info")
     return redirect(url_for("outreach_schedule_page"))
 
@@ -4126,6 +4313,10 @@ def _execute_approved_actions() -> int:
 
     gmail_ok = bool(os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"))
 
+    def _finish(action_row, status):
+        outreach_queue.update_status(action_row["id"], status)
+        _gcal_push_action(action_row["id"], action_row.get("approved_by_user_id") or "")
+
     for action in due:
         atype = action["action_type"]
 
@@ -4133,17 +4324,17 @@ def _execute_approved_actions() -> int:
             if not gmail_ok or emails_today >= max_emails:
                 continue
             if not _is_valid_email(action.get("contact_email", "")):
-                outreach_queue.update_status(action["id"], "failed")
+                _finish(action, "failed")
                 continue
 
             event = em.get_event(action["event_id"])
             if not event:
-                outreach_queue.update_status(action["id"], "failed")
+                _finish(action, "failed")
                 continue
 
             contact = next((c for c in event.contacts if c.id == action["contact_id"]), None)
             if not contact:
-                outreach_queue.update_status(action["id"], "failed")
+                _finish(action, "failed")
                 continue
 
             preview = action.get("preview", "")
@@ -4195,7 +4386,7 @@ def _execute_approved_actions() -> int:
             if atype == "email_initial":
                 em.update_contact_status(event.id, contact.id, "contacted")
 
-            outreach_queue.update_status(action["id"], "sent")
+            _finish(action, "sent")
             emails_today += 1
             executed += 1
 
@@ -4204,15 +4395,15 @@ def _execute_approved_actions() -> int:
                 continue
             event = em.get_event(action["event_id"])
             if not event:
-                outreach_queue.update_status(action["id"], "failed")
+                _finish(action, "failed")
                 continue
             contact = next((c for c in event.contacts if c.id == action["contact_id"]), None)
             if not contact:
-                outreach_queue.update_status(action["id"], "failed")
+                _finish(action, "failed")
                 continue
             phone = _person_phone_for_contact(contact)
             if not phone:
-                outreach_queue.update_status(action["id"], "failed")
+                _finish(action, "failed")
                 continue
             ctx = _person_context_for_contact(contact)
             bg_parts = []
@@ -4244,11 +4435,11 @@ def _execute_approved_actions() -> int:
                     f"[AI CALL — AUTO] Call placed to {phone}",
                     subject=f"AI Call: {event.name}",
                 )
-                outreach_queue.update_status(action["id"], "sent")
+                _finish(action, "sent")
                 calls_today += 1
                 executed += 1
             else:
-                outreach_queue.update_status(action["id"], "failed")
+                _finish(action, "failed")
 
     return executed
 
@@ -4306,6 +4497,12 @@ def _monitor_loop() -> None:
 
             _auto_plan_outreach()
             _execute_approved_actions()
+
+            try:
+                from integrations import google_calendar_sync as _gcs
+                _gcs.renew_expiring_watches()
+            except Exception as exc:  # pragma: no cover
+                app.logger.warning("gcal renew_expiring_watches failed: %s", exc)
 
             call_monitor.sync_all_active()
             _auto_analyze_completed_calls()

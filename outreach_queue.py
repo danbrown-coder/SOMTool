@@ -41,6 +41,7 @@ def add_action(
     ai_reason: str = "",
     preview: str = "",
     status: str = "planned",
+    approved_by_user_id: str = "",
 ) -> dict:
     items = load_queue()
     entry = {
@@ -56,6 +57,7 @@ def add_action(
         "preview": preview,
         "created_at": utc_now_iso(),
         "executed_at": None,
+        "approved_by_user_id": approved_by_user_id,
     }
     items.append(entry)
     save_queue(items)
@@ -79,24 +81,28 @@ def already_queued(event_id: str, contact_id: str, action_type: str) -> bool:
     )
 
 
-def update_status(action_id: str, status: str) -> bool:
+def update_status(action_id: str, status: str, approved_by_user_id: str = "") -> bool:
     items = load_queue()
     for item in items:
         if item["id"] == action_id:
             item["status"] = status
             if status == "sent":
                 item["executed_at"] = utc_now_iso()
+            if approved_by_user_id and status in ("approved", "sent"):
+                item["approved_by_user_id"] = approved_by_user_id
             save_queue(items)
             return True
     return False
 
 
-def reschedule(action_id: str, new_time: str) -> bool:
+def reschedule(action_id: str, new_time: str, approved_by_user_id: str = "") -> bool:
     items = load_queue()
     for item in items:
         if item["id"] == action_id:
             item["scheduled_at"] = new_time
             item["status"] = "approved"
+            if approved_by_user_id:
+                item["approved_by_user_id"] = approved_by_user_id
             save_queue(items)
             return True
     return False

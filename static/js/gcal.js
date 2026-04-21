@@ -1,79 +1,91 @@
-/* Google Calendar-style outreach view engine.
+/* ─────────────────────────────────────────────────────────
+ * Google Calendar clone engine for the SOMTool outreach view.
  *
- * Consumes a JSON blob embedded by outreach_schedule.html:
- *   window.__GCAL_DATA__ = { items, events, palette, today, urls }
- *
- * Renders four views (Month / Week / Day / Agenda), a mini-month on the
- * left rail, a "My calendars" list driving chip visibility, a click
- * popover, and Google-parity keyboard shortcuts (t / d / w / m / a /
- * j / k / /). View + cursor + hidden calendars persist to localStorage
- * so refresh keeps context.
- */
+ * Consumes window.__GCAL_DATA__ = { items, events, palette,
+ * today, urls } that outreach_schedule.html embeds and renders
+ * four views (Month / Week / Day / Schedule) + mini-month +
+ * calendar list + popover + keyboard shortcuts. State lives in
+ * localStorage so refresh preserves view / cursor / hidden
+ * calendars.
+ * ────────────────────────────────────────────────────────── */
 
 (function () {
   "use strict";
 
-  const data = window.__GCAL_DATA__ || { items: [], events: [], palette: {}, today: null, urls: {} };
-  const PALETTE = ["tomato","flamingo","tangerine","banana","sage","basil","peacock","blueberry","lavender","grape","graphite","lime"];
+  const data = window.__GCAL_DATA__ || {
+    items: [], events: [], palette: {}, today: null, urls: {},
+  };
+
+  const DOW_FULL = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const DOW_SHORT = ["S","M","T","W","T","F","S"];
   const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const STORE_KEY = "gcal.state.v1";
+  const STORE_KEY = "gcal.state.v2";
   const HOUR_PX = 48;
+  const VIEW_LABELS = { day: "Day", week: "Week", month: "Month", agenda: "Schedule" };
 
   const state = loadState();
   const items = data.items.map(parseItem).sort((a, b) => a.start - b.start);
   const eventsById = Object.fromEntries(data.events.map((e) => [e.id, e]));
   const allItemsByKey = indexItemsByDate(items);
 
-  // DOM refs
   const $shell = document.querySelector(".gcal-shell");
   if (!$shell) return;
   const $canvas = $shell.querySelector(".gcal-canvas");
   const $range = $shell.querySelector(".gcal-range");
   const $mini = $shell.querySelector(".gcal-mini");
-  const $calList = $shell.querySelector(".gcal-cal-list-events");
+  const $calListEvents = $shell.querySelector(".gcal-cal-list-events");
   const $calListStatus = $shell.querySelector(".gcal-cal-list-status");
-  const $search = $shell.querySelector(".gcal-search input");
-  const $viewSwitch = $shell.querySelector(".gcal-view-switch");
+  const $searchWrap = $shell.querySelector(".gcal-search");
+  const $searchInput = $searchWrap && $searchWrap.querySelector("input");
+  const $searchBtn = $searchWrap && $searchWrap.querySelector(".search-icon-btn");
+  const $viewWrap = $shell.querySelector(".gcal-view");
+  const $viewBtn = $viewWrap && $viewWrap.querySelector(".gcal-view-btn");
+  const $viewBtnLabel = $viewBtn && $viewBtn.querySelector(".view-label");
+  const $viewMenu = $viewWrap && $viewWrap.querySelector(".gcal-view-menu");
   const $popover = document.getElementById("gcal-popover");
 
   const urls = data.urls || {};
+  let selectedChipId = null;
 
-  // ── Init ───────────────────────────────────────────────
   wireTopbar();
-  wireViewSwitch();
   wireSidebar();
   wireKeyboard();
   wirePopoverDismiss();
   renderCalendarList();
   render();
 
-  // Keep now-line live in Week/Day
-  setInterval(() => { if (state.view === "week" || state.view === "day") positionNowLine(); }, 60000);
+  setInterval(() => {
+    if (state.view === "week" || state.view === "day") positionNowLine();
+  }, 60000);
 
-  // ── State helpers ──────────────────────────────────────
+  // ── State ────────────────────────────────────────────
   function loadState() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const s = JSON.parse(raw);
         return {
-          view: s.view || "month",
+          view: s.view || "week",
           cursor: s.cursor || data.today,
           hiddenEvents: Array.isArray(s.hiddenEvents) ? s.hiddenEvents : [],
           hiddenStatuses: Array.isArray(s.hiddenStatuses) ? s.hiddenStatuses : [],
+          collapsedSections: Array.isArray(s.collapsedSections) ? s.collapsedSections : [],
           search: "",
         };
       }
     } catch (e) { /* ignore */ }
-    return { view: "month", cursor: data.today, hiddenEvents: [], hiddenStatuses: [], search: "" };
+    return {
+      view: "week", cursor: data.today, hiddenEvents: [], hiddenStatuses: [],
+      collapsedSections: [], search: "",
+    };
   }
   function saveState() {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({
         view: state.view, cursor: state.cursor,
         hiddenEvents: state.hiddenEvents, hiddenStatuses: state.hiddenStatuses,
+        collapsedSections: state.collapsedSections,
       }));
     } catch (e) { /* ignore */ }
   }
@@ -82,9 +94,7 @@
     const start = new Date(raw.scheduled_at);
     const end = new Date(start.getTime() + 30 * 60 * 1000);
     return {
-      ...raw,
-      start,
-      end,
+      ...raw, start, end,
       dateKey: dateKey(start),
       minutes: start.getHours() * 60 + start.getMinutes(),
       durationMin: 30,
@@ -96,7 +106,7 @@
     return m;
   }
 
-  // ── Date helpers ───────────────────────────────────────
+  // ── Date helpers ─────────────────────────────────────
   function parseISODate(s) {
     if (!s) return new Date();
     const [y, m, d] = s.split("-").map(Number);
@@ -107,15 +117,19 @@
   }
   function cursorDate() { return parseISODate(state.cursor); }
   function todayDate() { return parseISODate(data.today || dateKey(new Date())); }
-  function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+  function sameDay(a, b) {
+    return a.getFullYear() === b.getFullYear()
+      && a.getMonth() === b.getMonth()
+      && a.getDate() === b.getDate();
+  }
   function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
   function startOfWeek(d) { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); return x; }
   function fmtTime(d) {
     let h = d.getHours();
     const m = d.getMinutes();
-    const ampm = h >= 12 ? "PM" : "AM";
+    const ampm = h >= 12 ? "pm" : "am";
     h = h % 12 || 12;
-    return m === 0 ? `${h} ${ampm}` : `${h}:${String(m).padStart(2, "0")} ${ampm}`;
+    return m === 0 ? `${h}${ampm}` : `${h}:${String(m).padStart(2, "0")}${ampm}`;
   }
   function fmtHour(h) {
     if (h === 0) return "";
@@ -123,8 +137,13 @@
     const hh = h % 12 || 12;
     return `${hh} ${ampm}`;
   }
+  function fmtTimezone() {
+    const off = -new Date().getTimezoneOffset() / 60;
+    const sign = off >= 0 ? "+" : "-";
+    return `GMT${sign}${String(Math.abs(off)).padStart(2, "0")}`;
+  }
 
-  // ── Visibility filter ──────────────────────────────────
+  // ── Visibility filter ────────────────────────────────
   function visibleItems() {
     const q = (state.search || "").trim().toLowerCase();
     return items.filter((i) => {
@@ -136,10 +155,10 @@
     });
   }
 
-  // ── Render root ────────────────────────────────────────
+  // ── Render root ──────────────────────────────────────
   function render() {
     renderRange();
-    renderViewSwitch();
+    if ($viewBtnLabel) $viewBtnLabel.textContent = VIEW_LABELS[state.view] || "Week";
     renderMini();
     $canvas.innerHTML = "";
     if (state.view === "month") renderMonth();
@@ -157,24 +176,18 @@
       const s = startOfWeek(c);
       const e = addDays(s, 6);
       if (s.getMonth() === e.getMonth()) {
-        $range.textContent = `${MONTHS[s.getMonth()]} ${s.getDate()} \u2013 ${e.getDate()}, ${e.getFullYear()}`;
+        $range.textContent = `${MONTHS[s.getMonth()]} ${c.getFullYear()}`;
       } else {
-        $range.textContent = `${MONTHS[s.getMonth()].slice(0,3)} ${s.getDate()} \u2013 ${MONTHS[e.getMonth()].slice(0,3)} ${e.getDate()}, ${e.getFullYear()}`;
+        $range.textContent = `${MONTHS[s.getMonth()].slice(0,3)} \u2013 ${MONTHS[e.getMonth()].slice(0,3)} ${e.getFullYear()}`;
       }
     } else if (state.view === "day") {
-      $range.textContent = `${MONTHS[c.getMonth()]} ${c.getDate()}, ${c.getFullYear()}`;
+      $range.textContent = `${MONTHS[c.getMonth()]} ${c.getFullYear()}`;
     } else {
       $range.textContent = "Schedule";
     }
   }
 
-  function renderViewSwitch() {
-    $viewSwitch.querySelectorAll("button").forEach((b) => {
-      b.classList.toggle("active", b.dataset.view === state.view);
-    });
-  }
-
-  // ── Mini-month ─────────────────────────────────────────
+  // ── Mini-month ───────────────────────────────────────
   function renderMini() {
     const c = cursorDate();
     const first = new Date(c.getFullYear(), c.getMonth(), 1);
@@ -182,11 +195,10 @@
     let html = `<div class="gcal-mini-head">
       <div class="gcal-mini-title">${MONTHS[c.getMonth()]} ${c.getFullYear()}</div>
       <div class="gcal-mini-nav">
-        <button type="button" aria-label="Previous month" data-mini="-1">${chev("left")}</button>
-        <button type="button" aria-label="Next month" data-mini="1">${chev("right")}</button>
+        <button type="button" aria-label="Previous month" data-mini="-1">${svgChev("left", 18)}</button>
+        <button type="button" aria-label="Next month" data-mini="1">${svgChev("right", 18)}</button>
       </div>
-    </div>
-    <div class="gcal-mini-grid">`;
+    </div><div class="gcal-mini-grid">`;
     DOW_SHORT.forEach((d) => { html += `<div class="gcal-mini-dow">${d}</div>`; });
     const today = todayDate();
     for (let i = 0; i < 42; i++) {
@@ -194,7 +206,7 @@
       const classes = ["gcal-mini-day"];
       if (d.getMonth() !== c.getMonth()) classes.push("other");
       if (sameDay(d, today)) classes.push("today");
-      if (sameDay(d, c)) classes.push("selected");
+      if (sameDay(d, c) && !sameDay(d, today)) classes.push("selected");
       if (allItemsByKey[dateKey(d)]) classes.push("has-events");
       html += `<div class="${classes.join(" ")}" data-date="${dateKey(d)}">${d.getDate()}</div>`;
     }
@@ -213,58 +225,75 @@
         const c2 = cursorDate();
         c2.setMonth(c2.getMonth() + Number(b.dataset.mini));
         state.cursor = dateKey(c2);
-        renderMini(); renderRange();
+        renderMini();
       });
     });
   }
 
-  // ── Calendar list (My calendars + Other calendars) ─────
+  // ── Calendar list ────────────────────────────────────
+  function sectionCollapsed(id) { return state.collapsedSections.includes(id); }
+  function toggleSection(id) {
+    const idx = state.collapsedSections.indexOf(id);
+    if (idx >= 0) state.collapsedSections.splice(idx, 1);
+    else state.collapsedSections.push(id);
+    saveState();
+    applySectionCollapse();
+  }
+  function applySectionCollapse() {
+    $shell.querySelectorAll(".gcal-cal-section").forEach((sec) => {
+      sec.classList.toggle("collapsed", sectionCollapsed(sec.dataset.section));
+    });
+  }
+
   function renderCalendarList() {
-    $calList.innerHTML = "";
-    data.events.forEach((ev) => {
-      const off = state.hiddenEvents.includes(ev.id);
-      const li = document.createElement("li");
-      li.className = "gcal-cal-item c-" + (ev.color || "peacock") + (off ? " off" : "");
-      li.innerHTML = `
-        <span class="swatch"></span>
-        <span class="gcal-cal-name" title="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}</span>
-        <span class="gcal-cal-count">${ev.count || 0}</span>`;
-      li.addEventListener("click", () => {
-        const idx = state.hiddenEvents.indexOf(ev.id);
-        if (idx >= 0) state.hiddenEvents.splice(idx, 1);
-        else state.hiddenEvents.push(ev.id);
-        renderCalendarList(); render();
-      });
-      $calList.appendChild(li);
-    });
-
-    if (!$calListStatus) return;
-    $calListStatus.innerHTML = "";
-    [
-      { id: "planned", label: "Planned", color: "graphite" },
-      { id: "approved", label: "Approved", color: "basil" },
-      { id: "sent", label: "Sent", color: "peacock" },
-      { id: "skipped", label: "Skipped / failed", color: "tomato" },
-    ].forEach((s) => {
-      const off = state.hiddenStatuses.includes(s.id) || (s.id === "skipped" && state.hiddenStatuses.includes("failed"));
-      const li = document.createElement("li");
-      li.className = "gcal-cal-item c-" + s.color + (off ? " off" : "");
-      li.innerHTML = `<span class="swatch"></span><span class="gcal-cal-name">${s.label}</span>`;
-      li.addEventListener("click", () => {
-        const ids = s.id === "skipped" ? ["skipped", "failed"] : [s.id];
-        const anyOn = ids.some((id) => !state.hiddenStatuses.includes(id));
-        ids.forEach((id) => {
-          const idx = state.hiddenStatuses.indexOf(id);
-          if (anyOn && idx < 0) state.hiddenStatuses.push(id);
-          if (!anyOn && idx >= 0) state.hiddenStatuses.splice(idx, 1);
+    if ($calListEvents) {
+      $calListEvents.innerHTML = "";
+      data.events.forEach((ev) => {
+        const off = state.hiddenEvents.includes(ev.id);
+        const li = document.createElement("li");
+        li.className = "gcal-cal-item c-" + (ev.color || "peacock") + (off ? " off" : "");
+        li.innerHTML = `
+          <span class="swatch" aria-hidden="true"></span>
+          <span class="gcal-cal-name" title="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}</span>
+          <span class="gcal-cal-count">${ev.count || 0}</span>`;
+        li.addEventListener("click", () => {
+          const idx = state.hiddenEvents.indexOf(ev.id);
+          if (idx >= 0) state.hiddenEvents.splice(idx, 1);
+          else state.hiddenEvents.push(ev.id);
+          renderCalendarList(); render();
         });
-        renderCalendarList(); render();
+        $calListEvents.appendChild(li);
       });
-      $calListStatus.appendChild(li);
-    });
+    }
+    if ($calListStatus) {
+      $calListStatus.innerHTML = "";
+      [
+        { id: "planned", label: "Planned", color: "graphite" },
+        { id: "approved", label: "Approved", color: "basil" },
+        { id: "sent", label: "Sent", color: "peacock" },
+        { id: "skipped", label: "Skipped / failed", color: "tomato" },
+      ].forEach((s) => {
+        const ids = s.id === "skipped" ? ["skipped", "failed"] : [s.id];
+        const off = ids.every((id) => state.hiddenStatuses.includes(id));
+        const li = document.createElement("li");
+        li.className = "gcal-cal-item c-" + s.color + (off ? " off" : "");
+        li.innerHTML = `<span class="swatch" aria-hidden="true"></span><span class="gcal-cal-name">${s.label}</span>`;
+        li.addEventListener("click", () => {
+          const anyOn = ids.some((id) => !state.hiddenStatuses.includes(id));
+          ids.forEach((id) => {
+            const idx = state.hiddenStatuses.indexOf(id);
+            if (anyOn && idx < 0) state.hiddenStatuses.push(id);
+            if (!anyOn && idx >= 0) state.hiddenStatuses.splice(idx, 1);
+          });
+          renderCalendarList(); render();
+        });
+        $calListStatus.appendChild(li);
+      });
+    }
+    applySectionCollapse();
   }
 
-  // ── Month view ─────────────────────────────────────────
+  // ── Month view ───────────────────────────────────────
   function renderMonth() {
     const c = cursorDate();
     const today = todayDate();
@@ -288,7 +317,8 @@
       if (d.getMonth() !== c.getMonth()) cell.classList.add("other-month");
       if (sameDay(d, today)) cell.classList.add("today");
 
-      const num = el("div", "gcal-month-daynum"); num.textContent = d.getDate();
+      const num = el("div", "gcal-month-daynum");
+      num.innerHTML = `<span class="num">${d.getDate()}</span>`;
       num.addEventListener("click", () => { state.cursor = key; state.view = "day"; render(); });
       cell.appendChild(num);
 
@@ -298,7 +328,7 @@
       dayItems.slice(0, MAX).forEach((it) => chips.appendChild(monthChip(it)));
       if (dayItems.length > MAX) {
         const more = el("div", "gcal-month-more");
-        more.textContent = `+${dayItems.length - MAX} more`;
+        more.textContent = `${dayItems.length - MAX} more`;
         more.addEventListener("click", () => { state.cursor = key; state.view = "day"; render(); });
         chips.appendChild(more);
       }
@@ -310,20 +340,21 @@
   }
 
   function monthChip(it) {
-    const status = it.status || "planned";
-    const filled = status === "approved" || status === "sent";
-    const chip = el("div", "gcal-chip " + (filled ? "filled" : "outlined") + " " + status + " c-" + (it.color || "peacock"));
-    if (filled) {
-      chip.innerHTML = `<span class="chip-time">${fmtTime(it.start)}</span><span class="chip-title">${escapeHtml(chipTitle(it))}</span>`;
-    } else {
-      chip.innerHTML = `<span class="chip-dot"></span><span class="chip-time">${fmtTime(it.start)}</span><span class="chip-title">${escapeHtml(chipTitle(it))}</span>`;
-    }
-    chip.addEventListener("click", (e) => { e.stopPropagation(); openPopover(it, chip); });
+    const chip = el("div", "gcal-chip " + (it.status || "planned") + " c-" + (it.color || "peacock"));
+    if (selectedChipId === it.id) chip.classList.add("selected");
+    chip.innerHTML = `
+      <span class="chip-dot"></span>
+      <span class="chip-time">${fmtTime(it.start)}</span>
+      <span class="chip-title">${escapeHtml(chipTitle(it))}</span>`;
+    chip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openPopover(it, chip);
+    });
     return chip;
   }
   function chipTitle(it) {
     const action = humanAction(it.action_type);
-    if (it.contact_name) return `${action} \u00b7 ${it.contact_name}`;
+    if (it.contact_name) return `${action}, ${it.contact_name}`;
     return action;
   }
   function humanAction(t) {
@@ -337,7 +368,7 @@
     }
   }
 
-  // ── Week / Day view ────────────────────────────────────
+  // ── Week / Day view ──────────────────────────────────
   function renderWeek(cols) {
     const c = cursorDate();
     const start = cols === 7 ? startOfWeek(c) : c;
@@ -349,9 +380,9 @@
     const wrap = el("div", "gcal-week");
     wrap.style.setProperty("--cols", cols);
 
-    // Day header
     const header = el("div", "gcal-week-header");
-    header.appendChild(el("div", "gcal-week-corner"));
+    const gmt = el("div", "gcal-week-gmt"); gmt.textContent = fmtTimezone();
+    header.appendChild(gmt);
     days.forEach((d) => {
       const dh = el("div", "gcal-week-dayhead");
       if (sameDay(d, today)) dh.classList.add("today");
@@ -361,27 +392,24 @@
     });
     wrap.appendChild(header);
 
-    // All-day row (we place any items flagged as all-day here; scheduled_at has times so usually empty)
     const allday = el("div", "gcal-week-allday");
-    allday.appendChild(el("div", "gcal-week-allday-label", "all-day"));
+    const alldayLabel = el("div", "gcal-week-allday-label"); alldayLabel.textContent = "";
+    allday.appendChild(alldayLabel);
     days.forEach(() => allday.appendChild(el("div", "gcal-week-allday-cell")));
     wrap.appendChild(allday);
 
-    // Scrollable body
     const scroll = el("div", "gcal-week-scroll");
     const grid = el("div", "gcal-week-grid");
 
-    // Hour labels column
     const hours = el("div", "gcal-hour-labels");
     for (let h = 0; h < 24; h++) {
       hours.appendChild(el("div", "gcal-hour-label", fmtHour(h)));
     }
     grid.appendChild(hours);
 
-    // Day columns
     days.forEach((d) => {
       const col = el("div", "gcal-day-col");
-      if (sameDay(d, today)) col.classList.add("today-col");
+      col.dataset.date = dateKey(d);
       for (let h = 0; h < 24; h++) col.appendChild(el("div", "gcal-hour-slot"));
       const dayItems = vis.filter((it) => sameDay(it.start, d));
       packBlocks(dayItems).forEach((b) => col.appendChild(renderBlock(b)));
@@ -392,7 +420,6 @@
     wrap.appendChild(scroll);
     $canvas.appendChild(wrap);
 
-    // Scroll to a sensible position (7am or now)
     requestAnimationFrame(() => {
       const now = new Date();
       const hour = sameDay(now, c) ? Math.max(0, now.getHours() - 1) : 7;
@@ -432,7 +459,7 @@
     blk.style.left = `calc(${leftPct}% + 2px)`;
     blk.style.width = `calc(${widthPct}% - 4px)`;
     blk.innerHTML = `
-      <div class="block-title">${escapeHtml(humanAction(it.action_type))}${it.contact_name ? " \u00b7 " + escapeHtml(it.contact_name) : ""}</div>
+      <div class="block-title">${escapeHtml(humanAction(it.action_type))}${it.contact_name ? ", " + escapeHtml(it.contact_name) : ""}</div>
       <div class="block-time">${fmtTime(it.start)}</div>`;
     blk.addEventListener("click", (e) => { e.stopPropagation(); openPopover(it, blk); });
     return blk;
@@ -444,37 +471,25 @@
     wrap.querySelectorAll(".gcal-now-line").forEach((n) => n.remove());
     const now = new Date();
     const cols = wrap.querySelectorAll(".gcal-day-col");
-    cols.forEach((col, idx) => {
-      const day = headerDayAt(wrap, idx);
-      if (!day) return;
-      if (!sameDay(day, now)) return;
+    cols.forEach((col) => {
+      const key = col.dataset.date;
+      if (!key) return;
+      const d = parseISODate(key);
+      if (!sameDay(d, now)) return;
       const line = el("div", "gcal-now-line");
       line.style.top = ((now.getHours() + now.getMinutes() / 60) * HOUR_PX) + "px";
       col.appendChild(line);
     });
   }
-  function headerDayAt(wrap, idx) {
-    const heads = wrap.querySelectorAll(".gcal-week-dayhead");
-    return heads[idx] ? parseHead(heads[idx]) : null;
-  }
-  function parseHead(el) {
-    // reverse from DOM: rebuild by reading .daynum + nearest month from range
-    // Simpler: iterate children of the week header and compute from cursor.
-    const wrap = el.closest(".gcal-week");
-    const cols = Number(wrap.style.getPropertyValue("--cols") || 7);
-    const heads = Array.from(wrap.querySelectorAll(".gcal-week-dayhead"));
-    const idx = heads.indexOf(el);
-    const c = cursorDate();
-    const start = cols === 7 ? startOfWeek(c) : c;
-    return addDays(start, idx);
-  }
 
-  // ── Agenda view ────────────────────────────────────────
+  // ── Agenda view ──────────────────────────────────────
   function renderAgenda() {
     const vis = visibleItems();
     const wrap = el("div", "gcal-agenda");
     if (vis.length === 0) {
-      wrap.appendChild(el("div", "gcal-agenda-empty", "No scheduled outreach. Use Plan outreach to queue actions."));
+      const empty = el("div", "gcal-agenda-empty");
+      empty.innerHTML = `<strong>No events scheduled</strong>Use the Create button to plan outreach for your events.`;
+      wrap.appendChild(empty);
       $canvas.appendChild(wrap);
       return;
     }
@@ -483,11 +498,15 @@
     const today = todayDate();
     keys.forEach((k) => {
       const d = parseISODate(k);
-      const header = el("div", "gcal-agenda-date");
-      if (sameDay(d, today)) header.classList.add("today");
-      header.innerHTML = `<span>${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}</span><span class="dayname">${DOW[d.getDay()]}${sameDay(d, today) ? " \u00b7 Today" : ""}</span>`;
-      wrap.appendChild(header);
-      byKey[k].sort((a,b) => a.start - b.start).forEach((it) => wrap.appendChild(agendaRow(it)));
+      const group = el("div", "gcal-agenda-group");
+      const datebox = el("div", "gcal-agenda-datebox");
+      if (sameDay(d, today)) datebox.classList.add("today");
+      datebox.innerHTML = `<div class="daynum">${d.getDate()}</div><div class="dayname">${DOW[d.getDay()].toUpperCase()}</div>`;
+      group.appendChild(datebox);
+      const list = el("div", "gcal-agenda-list");
+      byKey[k].sort((a,b) => a.start - b.start).forEach((it) => list.appendChild(agendaRow(it)));
+      group.appendChild(list);
+      wrap.appendChild(group);
     });
     $canvas.appendChild(wrap);
   }
@@ -497,7 +516,7 @@
       <div class="gcal-agenda-time">${fmtTime(it.start)}</div>
       <div class="gcal-agenda-dot"></div>
       <div class="gcal-agenda-title">
-        <span>${escapeHtml(humanAction(it.action_type))}${it.contact_name ? " \u00b7 " + escapeHtml(it.contact_name) : ""}</span>
+        <span>${escapeHtml(humanAction(it.action_type))}${it.contact_name ? ", " + escapeHtml(it.contact_name) : ""}</span>
         <span class="meta">${escapeHtml(it.event_name || "")}</span>
       </div>
       <div class="gcal-agenda-status ${it.status}">${it.status}</div>`;
@@ -505,92 +524,146 @@
     return row;
   }
 
-  // ── Popover ────────────────────────────────────────────
+  // ── Popover ──────────────────────────────────────────
   function openPopover(it, anchor) {
     closePopover();
+    selectedChipId = it.id;
     const color = "c-" + (it.color || "peacock");
     const ev = eventsById[it.event_id];
-    const approveUrl = (urls.approve || "/outreach/queue/__id__/approve").replace("__id__", it.id);
-    const skipUrl = (urls.skip || "/outreach/queue/__id__/skip").replace("__id__", it.id);
-    const deleteUrl = (urls.del || "/outreach/queue/__id__/delete").replace("__id__", it.id);
-    const csrf = (urls.csrf || "");
+    const approveUrl = (urls.approve || "").replace("__id__", it.id);
+    const skipUrl = (urls.skip || "").replace("__id__", it.id);
+    const deleteUrl = (urls.del || "").replace("__id__", it.id);
     const eventUrl = ev && urls.event ? urls.event.replace("__id__", ev.id) : null;
+
+    const dateLabel = `${DOW_FULL[it.start.getDay()]}, ${MONTHS[it.start.getMonth()]} ${it.start.getDate()}`;
+    const timeLabel = `${fmtTime(it.start)} \u2013 ${fmtTime(it.end)}`;
 
     $popover.className = "gcal-popover open " + color;
     $popover.innerHTML = `
-      <div class="gcal-pop-bar"></div>
+      <div class="gcal-pop-bar" aria-hidden="true"></div>
       <div class="gcal-pop-head">
-        <div class="gcal-pop-swatch"></div>
-        <div class="gcal-pop-title">${escapeHtml(humanAction(it.action_type))}${it.contact_name ? " \u00b7 " + escapeHtml(it.contact_name) : ""}</div>
-        <button class="gcal-pop-close" type="button" aria-label="Close">${icon("x")}</button>
+        <div class="gcal-pop-swatch" aria-hidden="true"></div>
+        <div class="gcal-pop-title">${escapeHtml(humanAction(it.action_type))}${it.contact_name ? ", " + escapeHtml(it.contact_name) : ""}</div>
+        <button class="gcal-pop-close" type="button" aria-label="Close">${svgIcon("x", 18)}</button>
       </div>
       <div class="gcal-pop-meta">
-        <div>${fmtAgendaDate(it.start)} \u00b7 ${fmtTime(it.start)}</div>
-        ${ev ? `<div>Event: ${eventUrl ? `<a href="${eventUrl}">${escapeHtml(ev.name)}</a>` : escapeHtml(ev.name)}</div>` : ""}
-        ${it.contact_email ? `<div>To: <a href="mailto:${escapeHtml(it.contact_email)}">${escapeHtml(it.contact_email)}</a></div>` : ""}
-        <div>Status: <strong>${it.status}</strong></div>
+        <div class="gcal-pop-meta-row">${svgIcon("clock", 20)}<span>${dateLabel} \u00b7 ${timeLabel}</span></div>
+        ${ev ? `<div class="gcal-pop-meta-row">${svgIcon("calendar", 20)}<span>${eventUrl ? `<a href="${eventUrl}">${escapeHtml(ev.name)}</a>` : escapeHtml(ev.name)}</span></div>` : ""}
+        ${it.contact_email ? `<div class="gcal-pop-meta-row">${svgIcon("user", 20)}<span><a href="mailto:${escapeHtml(it.contact_email)}">${escapeHtml(it.contact_email)}</a></span></div>` : ""}
+        <div class="gcal-pop-meta-row">${svgIcon("status", 20)}<span class="gcal-agenda-status ${it.status}" style="margin:0;">${it.status}</span></div>
+        ${it.html_link ? `<div class="gcal-pop-meta-row">${svgIcon("link", 20)}<span><a href="${escapeHtml(it.html_link)}" target="_blank" rel="noopener">Open in Google Calendar</a></span></div>` : ""}
+        ${it.meet_url ? `<div class="gcal-pop-meta-row">${svgIcon("video", 20)}<span><a href="${escapeHtml(it.meet_url)}" target="_blank" rel="noopener">Join Google Meet</a></span></div>` : ""}
+        ${it.synced ? `<div class="gcal-pop-meta-row" style="color:var(--gcal-text-muted);">${svgIcon("check", 20)}<span>Synced with Google Calendar</span></div>` : ""}
       </div>
       ${it.preview ? `<div class="gcal-pop-body">${escapeHtml(it.preview)}</div>` : ""}
       <div class="gcal-pop-actions">
-        ${it.status !== "skipped" && it.status !== "failed" && it.status !== "sent" ? `<form method="post" action="${skipUrl}"><input type="hidden" name="csrf_token" value="${csrf}">${hiddenReturn()}<button class="gcal-btn" type="submit">Skip</button></form>` : ""}
-        ${it.status === "planned" ? `<form method="post" action="${approveUrl}"><input type="hidden" name="csrf_token" value="${csrf}">${hiddenReturn()}<button class="gcal-btn primary" type="submit">Approve</button></form>` : ""}
-        <form method="post" action="${deleteUrl}" onsubmit="return confirm('Delete this action?');"><input type="hidden" name="csrf_token" value="${csrf}">${hiddenReturn()}<button class="gcal-btn danger" type="submit">Delete</button></form>
+        ${it.status !== "skipped" && it.status !== "failed" && it.status !== "sent" && skipUrl ? `<form method="post" action="${skipUrl}"><button class="gcal-btn" type="submit">Skip</button></form>` : ""}
+        ${it.status === "planned" && approveUrl ? `<form method="post" action="${approveUrl}"><button class="gcal-btn primary" type="submit">Approve</button></form>` : ""}
+        ${deleteUrl ? `<form method="post" action="${deleteUrl}" onsubmit="return confirm('Delete this action?');"><button class="gcal-btn danger" type="submit">Delete</button></form>` : ""}
       </div>`;
 
     $popover.querySelector(".gcal-pop-close").addEventListener("click", closePopover);
 
-    // Position the popover near the anchor, clamped into viewport
+    // Reflect selection in month chips
+    if (state.view === "month") {
+      $canvas.querySelectorAll(".gcal-chip.selected").forEach((el) => el.classList.remove("selected"));
+      anchor.classList.add("selected");
+    }
+
     const a = anchor.getBoundingClientRect();
-    const pw = 360, ph = Math.min(420, window.innerHeight - 40);
-    let left = a.right + 8;
-    if (left + pw > window.innerWidth - 8) left = Math.max(8, a.left - pw - 8);
+    const pw = 448, ph = Math.min(520, window.innerHeight - 32);
+    let left = a.right + 12;
+    if (left + pw > window.innerWidth - 16) left = Math.max(16, a.left - pw - 12);
+    if (left < 16) left = Math.max(16, (window.innerWidth - pw) / 2);
     let top = a.top;
-    if (top + ph > window.innerHeight - 8) top = Math.max(8, window.innerHeight - ph - 8);
+    if (top + ph > window.innerHeight - 16) top = Math.max(16, window.innerHeight - ph - 16);
     $popover.style.left = left + "px";
     $popover.style.top = top + "px";
   }
   function closePopover() {
-    if ($popover) { $popover.classList.remove("open"); $popover.innerHTML = ""; }
+    if (!$popover) return;
+    if (selectedChipId) {
+      $canvas.querySelectorAll(".gcal-chip.selected").forEach((el) => el.classList.remove("selected"));
+      selectedChipId = null;
+    }
+    $popover.classList.remove("open");
+    $popover.innerHTML = "";
   }
   function wirePopoverDismiss() {
     document.addEventListener("click", (e) => {
+      if (!$popover.classList.contains("open")) return;
       if (!$popover.contains(e.target)) closePopover();
     });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePopover(); });
   }
-  function hiddenReturn() { return `<input type="hidden" name="return_to" value="">`; }
-  function fmtAgendaDate(d) {
-    return `${DOW[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
-  }
 
-  // ── Topbar / sidebar / shortcuts ───────────────────────
+  // ── Topbar / sidebar / shortcuts ─────────────────────
   function wireTopbar() {
-    $shell.querySelector(".gcal-today-btn").addEventListener("click", () => {
+    const todayBtn = $shell.querySelector(".gcal-today-btn");
+    if (todayBtn) todayBtn.addEventListener("click", () => {
       state.cursor = data.today || dateKey(new Date());
       render();
     });
-    const [prev, next] = $shell.querySelectorAll(".gcal-nav button");
-    prev.addEventListener("click", () => { step(-1); });
-    next.addEventListener("click", () => { step(1); });
-    if ($search) {
-      $search.addEventListener("input", () => { state.search = $search.value; render(); });
-      $search.addEventListener("keydown", (e) => { if (e.key === "Escape") { $search.value = ""; state.search = ""; render(); $search.blur(); } });
+    const [prev, next] = $shell.querySelectorAll(".gcal-nav .gcal-icon-btn");
+    if (prev) prev.addEventListener("click", () => step(-1));
+    if (next) next.addEventListener("click", () => step(1));
+
+    if ($searchBtn) {
+      $searchBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        $searchWrap.classList.add("expanded");
+        setTimeout(() => $searchInput && $searchInput.focus(), 0);
+      });
     }
-  }
-  function wireViewSwitch() {
-    $viewSwitch.querySelectorAll("button").forEach((b) => {
-      b.addEventListener("click", () => { state.view = b.dataset.view; render(); });
-    });
+    if ($searchInput) {
+      $searchInput.addEventListener("input", () => { state.search = $searchInput.value; render(); });
+      $searchInput.addEventListener("blur", () => {
+        if (!$searchInput.value) $searchWrap.classList.remove("expanded");
+      });
+      $searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          $searchInput.value = ""; state.search = "";
+          $searchWrap.classList.remove("expanded");
+          render();
+          $searchInput.blur();
+        }
+      });
+    }
+
+    if ($viewBtn && $viewWrap && $viewMenu) {
+      $viewBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        $viewWrap.classList.toggle("open");
+      });
+      $viewMenu.querySelectorAll("button[data-view]").forEach((b) => {
+        b.addEventListener("click", () => {
+          if (b.disabled) return;
+          state.view = b.dataset.view;
+          $viewWrap.classList.remove("open");
+          render();
+        });
+      });
+      document.addEventListener("click", () => $viewWrap.classList.remove("open"));
+    }
   }
   function wireSidebar() {
     const ham = $shell.querySelector(".gcal-hamburger");
     if (ham) ham.addEventListener("click", () => $shell.classList.toggle("rail-closed"));
-    const createBtn = $shell.querySelector(".gcal-create-btn");
+
     const createWrap = $shell.querySelector(".gcal-create");
+    const createBtn = createWrap && createWrap.querySelector(".gcal-create-btn");
     if (createBtn && createWrap) {
       createBtn.addEventListener("click", (e) => { e.stopPropagation(); createWrap.classList.toggle("open"); });
       document.addEventListener("click", () => createWrap.classList.remove("open"));
     }
+
+    $shell.querySelectorAll(".gcal-cal-section-head").forEach((head) => {
+      head.addEventListener("click", () => {
+        const sec = head.closest(".gcal-cal-section");
+        if (sec && sec.dataset.section) toggleSection(sec.dataset.section);
+      });
+    });
+    applySectionCollapse();
   }
   function wireKeyboard() {
     document.addEventListener("keydown", (e) => {
@@ -603,9 +676,15 @@
         case "w": state.view = "week"; render(); break;
         case "m": state.view = "month"; render(); break;
         case "a": state.view = "agenda"; render(); break;
-        case "j": case "ArrowRight": if (e.key === "j" || e.shiftKey) { step(1); } else return; break;
-        case "k": case "ArrowLeft": if (e.key === "k" || e.shiftKey) { step(-1); } else return; break;
-        case "/": if ($search) { e.preventDefault(); $search.focus(); } break;
+        case "j": step(1); break;
+        case "k": step(-1); break;
+        case "/":
+          if ($searchBtn) {
+            e.preventDefault();
+            $searchWrap.classList.add("expanded");
+            setTimeout(() => $searchInput && $searchInput.focus(), 0);
+          }
+          break;
         default: return;
       }
     });
@@ -620,7 +699,7 @@
     render();
   }
 
-  // ── Tiny DOM helpers ───────────────────────────────────
+  // ── DOM / SVG helpers ─────────────────────────────────
   function el(tag, cls, text) {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -632,13 +711,34 @@
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
-  function chev(dir) {
+  function svgChev(dir, size) {
+    const s = size || 20;
     return dir === "left"
-      ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>`
-      : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
+      ? `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`
+      : `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
   }
-  function icon(name) {
-    if (name === "x") return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-    return "";
+  function svgIcon(name, size) {
+    const s = size || 18;
+    const attrs = `width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
+    switch (name) {
+      case "x":
+        return `<svg ${attrs}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+      case "clock":
+        return `<svg ${attrs}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+      case "calendar":
+        return `<svg ${attrs}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+      case "user":
+        return `<svg ${attrs}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+      case "status":
+        return `<svg ${attrs}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+      case "link":
+        return `<svg ${attrs}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+      case "video":
+        return `<svg ${attrs}><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
+      case "check":
+        return `<svg ${attrs}><polyline points="20 6 9 17 4 12"/></svg>`;
+      default:
+        return "";
+    }
   }
 })();

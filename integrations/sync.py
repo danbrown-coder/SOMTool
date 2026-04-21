@@ -118,6 +118,46 @@ def get_external_id(entity_type: str, entity_id: str, provider: str) -> Optional
         return row.external_id if row else None
 
 
+def delete_external_id(entity_type: str, entity_id: str, provider: str) -> bool:
+    """Forget the mapping between a SOMTool entity and an external provider id.
+
+    Returns True iff a row was deleted. Callers use this when the user deletes
+    a queue action so the next push can't try to patch an event that no longer
+    exists on our side.
+    """
+    with get_session() as sess:
+        row = (
+            sess.query(ExternalObject)
+            .filter(
+                ExternalObject.entity_type == entity_type,
+                ExternalObject.entity_id == entity_id,
+                ExternalObject.provider == provider,
+            )
+            .first()
+        )
+        if row is None:
+            return False
+        sess.delete(row)
+        return True
+
+
+def get_external_meta(entity_type: str, entity_id: str, provider: str) -> dict:
+    """Return the meta dict we stashed when mapping this entity (Meet URL,
+    htmlLink, ownerUserId, etag, etc.), or {} if no mapping exists.
+    """
+    with get_session() as sess:
+        row = (
+            sess.query(ExternalObject)
+            .filter(
+                ExternalObject.entity_type == entity_type,
+                ExternalObject.entity_id == entity_id,
+                ExternalObject.provider == provider,
+            )
+            .first()
+        )
+        return dict(row.meta or {}) if row else {}
+
+
 def list_external_ids(entity_type: str, entity_id: str) -> dict[str, str]:
     with get_session() as sess:
         rows = (

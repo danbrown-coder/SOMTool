@@ -35,11 +35,13 @@ DOCS: dict[str, dict] = {
             "APIs & Services -> Credentials -> Create Credentials -> OAuth client ID -> Web application.",
             "Paste the Redirect URI below into \"Authorized redirect URIs\" and save.",
             "Copy the Client ID and Client Secret into the fields on the right.",
+            "(Optional) For live two-way Calendar sync, set GCAL_WEBHOOK_URL to a public HTTPS URL pointing at /gcal/webhook (use a tunnel like ngrok/Cloudflare in dev). Leave blank and SOMTool still pushes to Google, but changes Google-side won't flow back.",
         ],
         "field_hints": {
             "GOOGLE_CLIENT_ID": "Shown on the OAuth client screen after you create it.",
             "GOOGLE_CLIENT_SECRET": "Shown once when the OAuth client is created; regenerate if lost.",
             "GOOGLE_REDIRECT_URI": "Use the suggested value exactly; it must match what's in the Google console.",
+            "GCAL_WEBHOOK_URL": "Optional. Public HTTPS endpoint for Google Calendar push notifications, e.g. https://your-host/gcal/webhook. Leave empty to disable Google -> SOMTool sync (outbound sync still works).",
         },
     },
 

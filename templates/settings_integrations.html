@@ -134,6 +134,17 @@
         {% endif %}
       {% endfor %}
     </div>
+    {% if google_connection and google_scope_groups.get('calendar') %}
+    <div class="hub-sync-status" style="margin-top:.6rem; font-size:.85rem; color:var(--text-muted);">
+      {% if gcal_sync_status and gcal_sync_status.live %}
+        <span style="color:#137333;">●</span> Calendar sync: <strong>Live</strong>{% if gcal_sync_status.detail %} · last delta {{ gcal_sync_status.detail }}{% endif %}
+      {% elif gcal_sync_status and gcal_sync_status.enabled %}
+        <span style="color:#f4b400;">●</span> Calendar sync: <strong>Outbound only</strong> · watch channel not yet established — reauthorize to start it
+      {% else %}
+        <span style="color:#9aa0a6;">●</span> Calendar sync: <strong>Outbound only</strong> · set <code>GCAL_WEBHOOK_URL</code> to enable Google → SOMTool sync
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
   <div style="display:flex; gap:.4rem; flex-shrink:0;">
     {% if google_connection %}

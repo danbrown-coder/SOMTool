@@ -76,6 +76,7 @@ SPEC = ProviderSpec(
     client_id_env="GOOGLE_CLIENT_ID",
     client_secret_env="GOOGLE_CLIENT_SECRET",
     redirect_uri_env="GOOGLE_REDIRECT_URI",
+    extra_env=["GCAL_WEBHOOK_URL"],
     extra_auth_params={
         "access_type": "offline",
         "prompt": "consent",
