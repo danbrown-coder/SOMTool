@@ -3468,6 +3468,25 @@ def api_call_status(call_id: str):
 # ── Outreach Schedule routes ─────────────────────────────────
 
 
+GCAL_PALETTE = [
+    "tomato", "flamingo", "tangerine", "banana",
+    "sage", "basil", "peacock", "blueberry",
+    "lavender", "grape", "graphite", "lime",
+]
+
+
+def _gcal_palette_for(event_ids) -> dict:
+    """Deterministic event_id -> palette-name mapping using zlib.adler32
+    so the same event always renders the same color across sessions/
+    workers (builtin ``hash`` is salted per process)."""
+    import zlib
+    out = {}
+    for eid in event_ids:
+        idx = zlib.adler32((eid or "").encode("utf-8")) % len(GCAL_PALETTE)
+        out[eid] = GCAL_PALETTE[idx]
+    return out
+
+
 @app.route("/outreach/schedule")
 @login_required
 def outreach_schedule_page():
@@ -3492,12 +3511,55 @@ def outreach_schedule_page():
             return (2, "")
         return (1, e.date)
     events_sorted = sorted(events, key=_event_sort_key)
+
+    # Google-Calendar-style data blob the client renders directly.
+    palette = _gcal_palette_for([e.id for e in events_sorted])
+    gcal_events = [
+        {
+            "id": e.id,
+            "name": e.name,
+            "date": e.date or "",
+            "color": palette.get(e.id, "peacock"),
+            "count": event_counts.get(e.id, 0),
+        }
+        for e in events_sorted
+    ]
+    gcal_items = [
+        {
+            "id": it.get("id", ""),
+            "event_id": it.get("event_id", ""),
+            "event_name": event_map.get(it.get("event_id", ""), ""),
+            "contact_name": it.get("contact_name", ""),
+            "contact_email": it.get("contact_email", ""),
+            "action_type": it.get("action_type", ""),
+            "scheduled_at": it.get("scheduled_at", ""),
+            "status": it.get("status", "planned"),
+            "preview": (it.get("preview") or "")[:400],
+            "ai_reason": (it.get("ai_reason") or "")[:240],
+            "color": palette.get(it.get("event_id", ""), "peacock"),
+        }
+        for it in all_items
+    ]
+
+    today = date.today().isoformat()
+    gcal_data = {
+        "items": gcal_items,
+        "events": gcal_events,
+        "palette": palette,
+        "today": today,
+        "status_filter": status_filter,
+        "type_filter": type_filter,
+        "event_filter": event_filter,
+    }
+
     return render_template(
         "outreach_schedule.html",
         queue=items, event_map=event_map, events=events_sorted,
         status_filter=status_filter, type_filter=type_filter,
         event_filter=event_filter, event_counts=event_counts,
         event_priorities=event_priorities,
+        gcal_data=gcal_data,
+        palette=palette,
     )
 
 

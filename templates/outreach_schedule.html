@@ -1,365 +1,109 @@
 {% extends "base.html" %}
 {% block title %}Outreach calendar — {{ brand.short_name }}{% endblock %}
 
-{% block topbar %}
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="breadcrumb">
-      <a href="{{ url_for('index') }}">Overview</a><span class="sep">/</span>Outreach calendar
-    </div>
-    <h1>Outreach calendar</h1>
-    <p class="muted text-sm" style="margin:4px 0 0;">AI-planned emails and calls across every event.</p>
-  </div>
-  <div class="topbar-actions">
-    <form method="post" action="{{ url_for('approve_all_outreach') }}" style="margin:0;">
-      <button type="submit" class="btn btn-secondary btn-sm">Approve all planned</button>
-    </form>
-    <form method="post" action="{{ url_for('plan_all_outreach') }}" style="margin:0;">
-      <button type="submit" class="btn btn-primary btn-sm">Plan all events</button>
-    </form>
-  </div>
-</div>
-{% endblock %}
+{# Zero out the default topbar; the Google-Calendar shell renders its own. #}
+{% block topbar %}{% endblock %}
 
 {% block extra_css %}
-{% set planned_count = queue|selectattr('status', 'eq', 'planned')|list|length %}
-{% set approved_count = queue|selectattr('status', 'eq', 'approved')|list|length %}
-{% set sent_count = queue|selectattr('status', 'eq', 'sent')|list|length %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gcal.css') }}">
 <style>
-.cal-layout {
-  display: flex;
-  gap: 0;
-  align-items: flex-start;
-}
-.cal-sidebar {
-  width: 240px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--border);
-  padding: 1rem .85rem 1rem 0;
-  position: sticky;
-  top: 0;
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
-}
-.cal-main {
-  flex: 1;
-  min-width: 0;
-  padding: 1rem 0 1rem 1.25rem;
-}
-.cal-sidebar-heading {
-  font-size: .68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: var(--text-secondary);
-  margin-bottom: .5rem;
-}
-
-/* Event list items */
-.cal-event-list { list-style: none; padding: 0; margin: 0 0 1.25rem; }
-.cal-event-item {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .35rem .45rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: .82rem;
-  font-weight: 500;
-  color: var(--text);
-  transition: background .15s;
-  text-decoration: none;
-}
-.cal-event-item:hover { background: var(--accent-light); color: var(--text); }
-.cal-event-item.active { background: var(--accent-light); font-weight: 600; }
-.cal-event-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.cal-event-dot.critical { background: var(--s-declined); }
-.cal-event-dot.high { background: #F0885D; }
-.cal-event-dot.medium { background: var(--s-contacted); }
-.cal-event-dot.low { background: var(--s-not-contacted); }
-.cal-event-dot.past { background: #D6D3D1; }
-.cal-event-dot.tba { background: #4796C1; }
-.cal-event-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cal-event-count {
-  font-size: .7rem;
-  color: var(--text-secondary);
-  font-weight: 400;
-}
-
-/* Priority ranking */
-.pri-toggle {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.pri-toggle .arrow { font-size: .65rem; transition: transform .2s; }
-.pri-toggle .arrow.open { transform: rotate(90deg); }
-.pri-list { list-style: none; padding: 0; margin: .4rem 0 1rem; }
-.pri-item {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .3rem .35rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: .75rem;
-  transition: background .15s;
-}
-.pri-item:hover { background: var(--accent-light); }
-.pri-urgency {
-  display: inline-block;
-  padding: .1rem .35rem;
-  font-size: .6rem;
-  font-weight: 700;
-  border-radius: 100px;
-  text-transform: uppercase;
-  letter-spacing: .03em;
-  flex-shrink: 0;
-}
-.pri-urgency.critical { background: #FBE9E9; color: #8A2A29; }
-.pri-urgency.high { background: #FDEAD9; color: #8C3F1A; }
-.pri-urgency.medium { background: var(--color-highlight-wash); color: #6B4A00; }
-.pri-urgency.low { background: var(--surface-subtle); color: var(--text-secondary); }
-.pri-urgency.past { background: var(--surface-subtle); color: var(--text-tertiary); }
-.pri-urgency.tba { background: #E3F3F9; color: #0F4A6A; }
-.pri-meta {
-  font-size: .65rem;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-.pri-door {
-  font-size: .6rem;
-  flex-shrink: 0;
-}
-/* Mini stats */
-.cal-stats {
-  display: flex;
-  gap: .6rem;
-  margin-bottom: 1.25rem;
-}
-.cal-stat {
-  text-align: center;
-  flex: 1;
-}
-.cal-stat-val {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-.cal-stat-label {
-  font-size: .65rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-/* Chip filters */
-.cal-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .3rem;
-  margin-bottom: .5rem;
-}
-.cal-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: .2rem .55rem;
-  font-size: .7rem;
-  font-weight: 600;
-  border-radius: 100px;
-  border: 1.5px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all .15s;
-}
-.cal-chip:hover { border-color: var(--accent); color: var(--accent); }
-.cal-chip.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-}
-
-/* Status pill (reused in list / popover) */
-.status-pill {
-  display: inline-block;
-  padding: .15rem .55rem;
-  font-size: .72rem;
-  font-weight: 600;
-  border-radius: 100px;
-}
-.status-pill.planned { background: #E5DEF2; color: #3B2360; }
-.status-pill.approved { background: #CDE7DB; color: #00532F; }
-.status-pill.sent { background: var(--surface-subtle); color: var(--text-secondary); }
-.status-pill.skipped { background: #FAD6D5; color: #8A2A29; }
-.status-pill.failed { background: #FAD6D5; color: #8A2A29; }
-
-@media (max-width: 900px) {
-  .cal-layout { flex-direction: column; }
-  .cal-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: none; position: static; padding: .75rem 0; }
-  .cal-main { padding: .75rem 0 0; }
-}
-.cal-event-item:hover { background: var(--accent-soft); }
-.cal-event-item.active { background: var(--accent-soft); }
-.pri-item:hover { background: var(--accent-soft); }
-.cal-stat-val { color: var(--accent); font-family: var(--font-display); }
-.cal-chip { font-family: var(--font-mono); letter-spacing: .04em; text-transform: uppercase; border: 1px solid var(--border-strong); }
-.cal-chip.active { background: var(--color-primary); color: #FFFFFF; border-color: var(--color-primary); }
-.cal-chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
-.status-pill { font-family: var(--font-mono); letter-spacing: .03em; }
-.cal-event-dot.medium { background: var(--accent); }
+  /* Let the calendar shell fill the content area flush with the app chrome. */
+  main#main-content.content-area {
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+  main#main-content.content-area > .alert { margin: 1rem 1rem 0; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="cal-layout">
-  <!-- ── Left sidebar ── -->
-  <div class="cal-sidebar">
-    <div class="cal-sidebar-heading">Events</div>
-    <ul class="cal-event-list" id="eventList">
-      {% for e in events %}
-      {% set ep = event_priorities.get(e.id, {}) %}
-      <li class="cal-event-item{% if event_filter == e.id %} active{% endif %}"
-          data-event-id="{{ e.id }}" onclick="filterByEvent('{{ e.id }}')">
-        <span class="cal-event-dot {{ ep.get('urgency', 'low') }}"></span>
-        <span class="cal-event-name">{{ e.name|truncate(28) }}</span>
-        <span class="cal-event-count">{{ event_counts.get(e.id, 0) }}</span>
-      </li>
-      {% endfor %}
-    </ul>
-
-    <div class="pri-toggle cal-sidebar-heading" onclick="var l=document.getElementById('priList');var a=this.querySelector('.arrow');l.style.display=l.style.display==='none'?'':'none';a.classList.toggle('open');">
-      Priority <span class="arrow open">▶</span>
+<div class="gcal-shell" id="gcal-shell">
+  <!-- ── Top bar ── -->
+  <div class="gcal-topbar">
+    <button class="gcal-hamburger" type="button" aria-label="Toggle sidebar">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="gcal-brand" aria-hidden="true"><span class="logo"></span>Calendar</span>
+    <button class="gcal-today-btn" type="button">Today</button>
+    <div class="gcal-nav">
+      <button type="button" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button type="button" aria-label="Next"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
-    <ul class="pri-list" id="priList">
-      {% for e in events %}
-      {% set ep = event_priorities.get(e.id, {}) %}
-      <li class="pri-item" onclick="filterByEvent('{{ e.id }}')">
-        {% if ep.get('is_past') %}
-        <span class="pri-urgency past">PAST</span>
-        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.6;">{{ e.name|truncate(20) }}</span>
-        <span class="pri-meta" style="opacity:.5;">Closed</span>
-        {% elif ep.get('is_tba') %}
-        <span class="pri-urgency tba">TBA</span>
-        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.name|truncate(20) }}</span>
-        <span class="pri-meta">TBA</span>
-        {% else %}
-        <span class="pri-urgency {{ ep.get('urgency', 'low') }}">{{ ep.get('urgency', 'low')|upper }}</span>
-        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ e.name|truncate(20) }}</span>
-        <span class="pri-meta">{{ ep.get('days_until', '?') }}d</span>
-        <span class="pri-door" aria-hidden="true" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:{% if ep.get('door_status') == 'open' %}var(--s-confirmed){% elif ep.get('door_status') == 'limited' %}var(--s-contacted){% elif ep.get('door_status') == 'full' or ep.get('door_status') == 'over_capacity' %}var(--s-declined){% else %}#D6D3D1{% endif %};box-shadow:0 0 4px rgba(0,0,0,.15);"></span>
-        {% if ep.get('spots_remaining', -1) >= 0 %}<span class="pri-meta">{{ ep.spots_remaining }}sp</span>{% endif %}
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
+    <div class="gcal-range" aria-live="polite">&nbsp;</div>
 
-    <div class="cal-sidebar-heading">Summary</div>
-    <div class="cal-stats">
-      <div class="cal-stat">
-        <div class="cal-stat-val">{{ planned_count }}</div>
-        <div class="cal-stat-label">Planned</div>
-      </div>
-      <div class="cal-stat">
-        <div class="cal-stat-val">{{ approved_count }}</div>
-        <div class="cal-stat-label">Approved</div>
-      </div>
-      <div class="cal-stat">
-        <div class="cal-stat-val">{{ sent_count }}</div>
-        <div class="cal-stat-label">Sent</div>
-      </div>
-    </div>
+    <div class="spacer"></div>
 
-    <div class="cal-sidebar-heading">Status</div>
-    <div class="cal-chips" id="statusChips">
-      <span class="cal-chip{% if status_filter == '' %} active{% endif %}" data-val="">All</span>
-      <span class="cal-chip{% if status_filter == 'planned' %} active{% endif %}" data-val="planned">Planned</span>
-      <span class="cal-chip{% if status_filter == 'approved' %} active{% endif %}" data-val="approved">Approved</span>
-      <span class="cal-chip{% if status_filter == 'sent' %} active{% endif %}" data-val="sent">Sent</span>
-      <span class="cal-chip{% if status_filter == 'skipped' %} active{% endif %}" data-val="skipped">Skipped</span>
-    </div>
+    <label class="gcal-search" aria-label="Search outreach">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" placeholder="Search" autocomplete="off" aria-label="Search outreach">
+    </label>
 
-    <div class="cal-sidebar-heading" style="margin-top:.75rem;">Type</div>
-    <div class="cal-chips" id="typeChips">
-      <span class="cal-chip{% if type_filter == '' %} active{% endif %}" data-val="">All</span>
-      <span class="cal-chip{% if type_filter == 'email_initial' %} active{% endif %}" data-val="email_initial">Email</span>
-      <span class="cal-chip{% if type_filter == 'email_followup' %} active{% endif %}" data-val="email_followup">Follow-up</span>
-      <span class="cal-chip{% if type_filter == 'call_invite' %} active{% endif %}" data-val="call_invite">Call</span>
-      <span class="cal-chip{% if type_filter == 'call_followup' %} active{% endif %}" data-val="call_followup">Call F/U</span>
+    <div class="gcal-view-switch" role="tablist" aria-label="View">
+      <button type="button" data-view="day" role="tab">Day</button>
+      <button type="button" data-view="week" role="tab">Week</button>
+      <button type="button" data-view="month" role="tab">Month</button>
+      <button type="button" data-view="agenda" role="tab">Schedule</button>
     </div>
   </div>
 
-  <!-- ── Main calendar area ── -->
-  <div class="cal-main">
-    {% set calendar_event_id = event_filter %}
-    {% set calendar_return_to = "" %}
-    {% include "partials/outreach_calendar.html" %}
+  <!-- ── Body: sidebar + main ── -->
+  <div class="gcal-body">
+    <!-- ── Left rail ── -->
+    <aside class="gcal-sidebar" aria-label="Sidebar">
+      <div class="gcal-create">
+        <button type="button" class="gcal-create-btn" aria-haspopup="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Create
+        </button>
+        <div class="gcal-create-menu" role="menu">
+          <form method="post" action="{{ url_for('plan_all_outreach') }}" style="margin:0;">
+            <button type="submit" role="menuitem">Plan outreach for all events</button>
+          </form>
+          <form method="post" action="{{ url_for('approve_all_outreach') }}" style="margin:0;">
+            <button type="submit" role="menuitem">Approve all planned</button>
+          </form>
+          <a role="menuitem" href="{{ url_for('ai_settings_page') }}">Outreach AI settings</a>
+          <a role="menuitem" href="{{ url_for('index') }}">Back to dashboard</a>
+        </div>
+      </div>
 
-    {% if not queue %}
-    <p class="empty-state" style="margin-top:1rem;">
-      No outreach actions in the queue yet.
-      Click <strong>Plan all events</strong> to have AI generate a schedule.
-    </p>
-    {% endif %}
+      <div class="gcal-mini" aria-label="Mini month picker"></div>
+
+      <div class="gcal-cal-section" id="gcalMyCals">
+        <h4>My calendars</h4>
+        <ul class="gcal-cal-list gcal-cal-list-events" aria-label="My calendars"></ul>
+      </div>
+
+      <div class="gcal-cal-section" id="gcalOtherCals">
+        <h4>Other calendars</h4>
+        <ul class="gcal-cal-list gcal-cal-list-status" aria-label="Other calendars"></ul>
+      </div>
+    </aside>
+
+    <!-- ── Main canvas ── -->
+    <section class="gcal-main">
+      <div class="gcal-view-switch-mobile" hidden></div>
+      <div class="gcal-canvas" id="gcalCanvas"></div>
+    </section>
   </div>
+
+  <!-- ── Event popover (floating) ── -->
+  <div class="gcal-popover" id="gcal-popover" role="dialog" aria-modal="false"></div>
 </div>
+
+<script>
+  window.__GCAL_DATA__ = {{ gcal_data|tojson }};
+  window.__GCAL_DATA__.urls = {
+    approve: "{{ url_for('approve_queue_action', action_id='__id__') }}",
+    skip: "{{ url_for('skip_queue_action', action_id='__id__') }}",
+    del: "{{ url_for('delete_queue_action', action_id='__id__') }}",
+    event: "{{ url_for('event_detail', event_id='__id__') }}",
+    schedule: "{{ url_for('outreach_schedule_page') }}"
+  };
+</script>
 {% endblock %}
 
 {% block scripts %}
-<style>
-  :root {
-    --ev-color-0: #1E5989;
-    --ev-color-1: #00854F;
-    --ev-color-2: #FFC222;
-    --ev-color-3: #E74645;
-    --ev-color-4: #6A4C92;
-    --ev-color-5: #4796C1;
-    --ev-color-6: #31B27D;
-    --ev-color-7: #F0885D;
-  }
-</style>
-<script>
-(function(){
-  var currentEvent = {{ event_filter|tojson }};
-  var currentStatus = {{ status_filter|tojson }};
-  var currentType = {{ type_filter|tojson }};
-
-  function applyFilters(eventId, status, type) {
-    var params = new URLSearchParams();
-    if (eventId) params.set('event', eventId);
-    if (status) params.set('status', status);
-    if (type) params.set('type', type);
-    window.location.href = '{{ url_for("outreach_schedule_page") }}' + (params.toString() ? '?' + params.toString() : '');
-  }
-
-  window.filterByEvent = function(eid) {
-    var next = (currentEvent === eid) ? '' : eid;
-    applyFilters(next, currentStatus, currentType);
-  };
-
-  document.querySelectorAll('#statusChips .cal-chip').forEach(function(chip){
-    chip.addEventListener('click', function(){
-      applyFilters(currentEvent, this.dataset.val, currentType);
-    });
-  });
-
-  document.querySelectorAll('#typeChips .cal-chip').forEach(function(chip){
-    chip.addEventListener('click', function(){
-      applyFilters(currentEvent, currentStatus, this.dataset.val);
-    });
-  });
-
-})();
-</script>
+<script src="{{ url_for('static', filename='js/gcal.js') }}"></script>
 {% endblock %}
