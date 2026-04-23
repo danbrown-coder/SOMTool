@@ -11,10 +11,30 @@
         <div class="brand-sub">Event Operating System</div>
       </div>
     </div>
-    <h1>Create your account</h1>
-    <p class="auth-sub">Join your team&rsquo;s event workspace to plan, outreach, and run the desk.</p>
 
-    <form method="post" action="{{ url_for('register') }}">
+    {% if already_signed_in_as %}
+      <div class="auth-signed-in" style="border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;background:var(--surface-tinted);">
+        <div style="font-weight:600;margin-bottom:4px;">You're already signed in</div>
+        <div class="text-sm muted" style="margin-bottom:12px;">
+          Signed in as <strong>{{ already_signed_in_as.display_name or already_signed_in_as.username }}</strong>
+          <span class="chip" style="margin-left:.4rem;">{{ already_signed_in_as.role }}</span>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          {% if already_signed_in_as.role == "register_only" %}
+            <a href="{{ url_for('registration_gate') }}" class="btn btn-primary">Continue to check-in</a>
+          {% else %}
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Continue to dashboard</a>
+          {% endif %}
+          <a href="{{ url_for('register', switch=1) }}" class="btn btn-secondary">Create another account</a>
+        </div>
+      </div>
+      <div class="divider-labeled">or create a new account</div>
+    {% else %}
+      <h1>Create your account</h1>
+      <p class="auth-sub">Join your team&rsquo;s event workspace to plan, outreach, and run the desk.</p>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('register') }}" autocomplete="off">
       <div class="field">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" required autocomplete="username" autofocus>
@@ -32,11 +52,15 @@
         <input type="password" id="password" name="password" required autocomplete="new-password" minlength="6">
         <p class="text-xs muted mt-1">Minimum 6 characters.</p>
       </div>
+      <label class="field" style="display:flex;align-items:center;gap:.5rem;flex-direction:row;cursor:pointer;margin-top:-.25rem;">
+        <input type="checkbox" id="remember_me" name="remember_me" value="1" style="width:auto;margin:0;">
+        <span class="text-sm">Remember me on this device</span>
+      </label>
       <button type="submit" class="btn btn-primary btn-block btn-hero">Create account</button>
     </form>
 
     <p class="text-sm muted mt-3" style="text-align:center;">
-      Already have one? <a href="{{ url_for('login') }}">Back to sign in</a>
+      Already have one? <a href="{{ url_for('login', switch=1) }}">Back to sign in</a>
     </p>
   </div>
 </div>

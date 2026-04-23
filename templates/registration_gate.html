@@ -100,10 +100,11 @@
     </form>
     <p class="muted text-sm" style="margin-top:14px;margin-bottom:0;">Ask the event organizer for the PIN.</p>
   </div>
-  {% if not hide_sidebar|default(false) %}
-  <form method="post" action="{{ url_for('logout_route') }}">
-    <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
-  </form>
-  {% endif %}
+  <div style="display:flex;gap:.5rem;align-items:center;">
+    <form method="post" action="{{ url_for('logout_route') }}" style="margin:0;">
+      <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+    </form>
+    <a href="{{ url_for('login', switch=1) }}" class="btn btn-ghost btn-sm">Switch account</a>
+  </div>
 </div>
 {% endblock %}

@@ -424,20 +424,33 @@ def _sync_event_to_google(event, user_id: str) -> None:
 # ── Auth (public) ───────────────────────────────────────────
 
 
+_DEMO_CREDENTIALS = {
+    "admin": "admin123",
+    "viewer": "viewer123",
+    "register": "register123",
+}
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if request.method == "GET" and request.args.get("switch"):
+        auth.logout_user()
+        return redirect(url_for("login"))
+
+    already_user = None
     uid = auth.current_user_id()
     if uid:
-        user = auth.get_user_by_id(uid)
-        if user and user.role == "register_only":
-            return redirect(url_for("registration_gate"))
-        return redirect(url_for("index"))
+        already_user = auth.get_user_by_id(uid)
+        if already_user is None:
+            auth.logout_user()
+
     if request.method == "POST":
         u = request.form.get("username", "")
         p = request.form.get("password", "")
+        remember = bool(request.form.get("remember_me"))
         user = auth.verify_login(u, p)
         if user:
-            auth.login_user(user)
+            auth.login_user(user, remember=remember)
             observability.identify(user.id, {
                 "username": user.username,
                 "display_name": user.display_name,
@@ -456,17 +469,56 @@ def login():
                 nxt = url_for("index")
             return redirect(nxt)
         flash("Invalid username or password.", "info")
-    return render_template("login.html", hide_sidebar=True)
+
+    return render_template(
+        "login.html",
+        hide_sidebar=True,
+        already_signed_in_as=already_user,
+    )
+
+
+@app.post("/login/as/<role>")
+def login_as_demo(role: str):
+    """One-click demo sign-in used by the login page chips.
+
+    Only works when the demo user still has its default password, so this is
+    a no-op in any install that rotated creds.
+    """
+    role = (role or "").strip().lower()
+    username = role if role in _DEMO_CREDENTIALS else ""
+    if not username:
+        flash("Unknown demo account.", "info")
+        return redirect(url_for("login"))
+    password = _DEMO_CREDENTIALS[username]
+    user = auth.verify_login(username, password)
+    if not user:
+        flash("Demo account is not available (password was changed).", "info")
+        return redirect(url_for("login"))
+    auth.logout_user()
+    auth.login_user(user, remember=False)
+    observability.track(
+        "login_success",
+        distinct_id=user.id,
+        properties={"role": user.role, "via": "demo_chip"},
+    )
+    if user.role == "register_only":
+        return redirect(url_for("registration_gate"))
+    return redirect(url_for("index"))
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if request.method == "GET" and request.args.get("switch"):
+        auth.logout_user()
+        return redirect(url_for("register"))
+
+    already_user = None
     uid = auth.current_user_id()
     if uid:
-        user = auth.get_user_by_id(uid)
-        if user and user.role == "register_only":
-            return redirect(url_for("registration_gate"))
-        return redirect(url_for("index"))
+        already_user = auth.get_user_by_id(uid)
+        if already_user is None:
+            auth.logout_user()
+
     if request.method == "POST":
         user = auth.register_user(
             request.form.get("username", ""),
@@ -475,11 +527,16 @@ def register():
             request.form.get("password", ""),
         )
         if user:
-            auth.login_user(user)
+            auth.login_user(user, remember=bool(request.form.get("remember_me")))
             flash("Account created.", "info")
             return redirect(url_for("index"))
         flash("Username taken or invalid fields.", "info")
-    return render_template("register.html", hide_sidebar=True)
+
+    return render_template(
+        "register.html",
+        hide_sidebar=True,
+        already_signed_in_as=already_user,
+    )
 
 
 @app.post("/logout")
@@ -969,11 +1026,15 @@ def integration_connect(provider: str):
     state = oauth_mod.make_state()
     session["oauth_state"] = state
     session["oauth_provider"] = provider
+    extra_params: dict | None = None
     if request.args.get("signin"):
         session["oauth_intent"] = "signin"
+        # Force the account chooser so users can switch Google accounts
+        # instead of being silently reused on every sign-in.
+        extra_params = {"prompt": "select_account"}
     else:
         session["oauth_intent"] = "connect"
-    return redirect(oauth_mod.build_authorize_url(spec, state))
+    return redirect(oauth_mod.build_authorize_url(spec, state, extra_params=extra_params))
 
 
 @app.get("/integrations/<provider>/callback")

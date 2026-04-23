@@ -171,9 +171,9 @@ def verify_login(username: str, password: str) -> User | None:
     return None
 
 
-def login_user(user: User) -> None:
+def login_user(user: User, remember: bool = False) -> None:
     session["user_id"] = user.id
-    session.permanent = True
+    session.permanent = bool(remember)
 
 
 def logout_user() -> None:

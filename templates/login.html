@@ -11,8 +11,28 @@
         <div class="brand-sub">Event Operating System</div>
       </div>
     </div>
-    <h1>Welcome back</h1>
-    <p class="auth-sub">Sign in to manage events, outreach, and the registration desk.</p>
+
+    {% if already_signed_in_as %}
+      <div class="auth-signed-in" style="border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;background:var(--surface-tinted);">
+        <div style="font-weight:600;margin-bottom:4px;">You're already signed in</div>
+        <div class="text-sm muted" style="margin-bottom:12px;">
+          Signed in as <strong>{{ already_signed_in_as.display_name or already_signed_in_as.username }}</strong>
+          <span class="chip" style="margin-left:.4rem;">{{ already_signed_in_as.role }}</span>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          {% if already_signed_in_as.role == "register_only" %}
+            <a href="{{ url_for('registration_gate') }}" class="btn btn-primary">Continue to check-in</a>
+          {% else %}
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Continue to dashboard</a>
+          {% endif %}
+          <a href="{{ url_for('login', switch=1) }}" class="btn btn-secondary">Switch account</a>
+        </div>
+      </div>
+      <div class="divider-labeled">or sign in as someone else</div>
+    {% else %}
+      <h1>Welcome back</h1>
+      <p class="auth-sub">Sign in to manage events, outreach, and the registration desk.</p>
+    {% endif %}
 
     {% if google_signin_enabled %}
       <a href="{{ url_for('integration_connect', provider='google', signin=1) }}"
@@ -21,10 +41,10 @@
         <span style="font-weight:700; color:#4f46e5;">G</span>
         <span>Sign in with Google</span>
       </a>
-      <div class="divider-labeled">or use username & password</div>
+      <div class="divider-labeled">or use username &amp; password</div>
     {% endif %}
 
-    <form method="post" action="{{ url_for('login') }}">
+    <form method="post" action="{{ url_for('login') }}" autocomplete="off">
       {% if request.args.get('next') %}
       <input type="hidden" name="next" value="{{ request.args.get('next') }}">
       {% endif %}
@@ -36,15 +56,32 @@
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required autocomplete="current-password">
       </div>
+      <label class="field" style="display:flex;align-items:center;gap:.5rem;flex-direction:row;cursor:pointer;margin-top:-.25rem;">
+        <input type="checkbox" id="remember_me" name="remember_me" value="1" style="width:auto;margin:0;">
+        <span class="text-sm">Remember me on this device</span>
+      </label>
       <button type="submit" class="btn btn-primary btn-block btn-hero">Sign in</button>
     </form>
 
     <div class="divider-labeled">Demo accounts</div>
-    <div class="stack text-sm muted">
-      <div><span class="chip">admin</span> <span class="text-mono">admin123</span> &middot; full access</div>
-      <div><span class="chip">viewer</span> <span class="text-mono">viewer123</span> &middot; read-only</div>
-      <div><span class="chip chip-gold">register</span> <span class="text-mono">register123</span> &middot; registration desk</div>
+    <div class="stack text-sm muted" style="gap:.5rem;">
+      <form method="post" action="{{ url_for('login_as_demo', role='admin') }}" style="display:flex;align-items:center;gap:.5rem;">
+        <button type="submit" class="chip chip-btn" style="border:0;cursor:pointer;">admin</button>
+        <span class="text-mono">admin123</span>
+        <span>&middot; full access</span>
+      </form>
+      <form method="post" action="{{ url_for('login_as_demo', role='viewer') }}" style="display:flex;align-items:center;gap:.5rem;">
+        <button type="submit" class="chip chip-btn" style="border:0;cursor:pointer;">viewer</button>
+        <span class="text-mono">viewer123</span>
+        <span>&middot; read-only</span>
+      </form>
+      <form method="post" action="{{ url_for('login_as_demo', role='register') }}" style="display:flex;align-items:center;gap:.5rem;">
+        <button type="submit" class="chip chip-gold chip-btn" style="border:0;cursor:pointer;">register</button>
+        <span class="text-mono">register123</span>
+        <span>&middot; registration desk</span>
+      </form>
     </div>
+    <p class="text-xs muted mt-2" style="margin-top:.4rem;">One-click sign-in — bypasses any saved password and switches account instantly.</p>
 
     <p class="text-sm muted mt-3" style="text-align:center;">
       New to the team? <a href="{{ url_for('register') }}">Create an account</a>

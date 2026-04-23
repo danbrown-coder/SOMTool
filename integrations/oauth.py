@@ -107,7 +107,11 @@ class ProviderSpec:
 # ── Flow ───────────────────────────────────────────────────
 
 
-def build_authorize_url(spec: ProviderSpec, state: str) -> str:
+def build_authorize_url(
+    spec: ProviderSpec,
+    state: str,
+    extra_params: dict | None = None,
+) -> str:
     params = {
         "client_id": spec.client_id(),
         "redirect_uri": spec.redirect_uri(),
@@ -116,6 +120,8 @@ def build_authorize_url(spec: ProviderSpec, state: str) -> str:
         "state": state,
     }
     params.update(spec.extra_auth_params or {})
+    if extra_params:
+        params.update(extra_params)
     return f"{spec.authorize_url}?{urlencode(params)}"
 
 
